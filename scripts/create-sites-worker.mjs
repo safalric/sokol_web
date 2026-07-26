@@ -1,10 +1,12 @@
-import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 
 const serverDir = join(process.cwd(), "dist", "server");
 const assetsDir = join(process.cwd(), "dist", "assets");
 const distDir = join(process.cwd(), "dist");
 const indexHtml = await readFile(join(process.cwd(), "dist", "index.html"), "utf8");
+const calendarEvents = JSON.parse(await readFile(join(process.cwd(), "src", "data", "calendar-events.json"), "utf8"));
+const registrationEvents = JSON.parse(await readFile(join(process.cwd(), "src", "data", "registration-events.json"), "utf8"));
 
 async function collectFiles(dir) {
   const entries = await Promise.all(
@@ -25,6 +27,9 @@ function getContentType(fileName) {
   if (fileName.endsWith(".png")) return "image/png";
   if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) return "image/jpeg";
   if (fileName.endsWith(".webp")) return "image/webp";
+  if (fileName.endsWith(".pdf")) return "application/pdf";
+  if (fileName.endsWith(".json")) return "application/json; charset=utf-8";
+  if (fileName.endsWith(".ico")) return "image/x-icon";
   return "application/octet-stream";
 }
 
@@ -54,71 +59,25 @@ const publicEntries = await Promise.all(
 const staticEntries = [...assetEntries, ...publicEntries.filter(Boolean)];
 
 await mkdir(serverDir, { recursive: true });
+await Promise.all(
+  (await readdir(join(process.cwd(), "server")))
+    .filter((fileName) => fileName.endsWith(".js"))
+    .map((fileName) => copyFile(join(process.cwd(), "server", fileName), join(serverDir, fileName === "worker-runtime.js" ? "runtime.js" : fileName))),
+);
 await writeFile(
   join(serverDir, "index.js"),
-`const INDEX_HTML = ${JSON.stringify(indexHtml)};
+`import { createWorker } from "./runtime.js";
+
+const INDEX_HTML = ${JSON.stringify(indexHtml)};
 const ASSETS = new Map(${JSON.stringify(staticEntries)});
+const CALENDAR_EVENTS = ${JSON.stringify(calendarEvents)};
+const REGISTRATION_EVENTS = ${JSON.stringify(registrationEvents)};
 
-function decodeBase64(value) {
-  const binary = atob(value);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
-  return bytes;
-}
-
-function responseWithHeaders(body, contentType, status = 200) {
-  const headers = new Headers({
-    "Content-Type": contentType,
-    "Cache-Control": contentType.includes("text/html")
-      ? "no-store"
-      : "public, max-age=31536000, immutable",
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-    "X-Frame-Options": "DENY",
-  });
-
-  return new Response(body, { status, headers });
-}
-
-function withSecurityHeaders(response) {
-  const headers = new Headers(response.headers);
-  headers.set("X-Content-Type-Options", "nosniff");
-  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  headers.set("X-Frame-Options", "DENY");
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
-}
-
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
-
-    if (url.pathname === "/" || url.pathname === "/index.html") {
-      return responseWithHeaders(INDEX_HTML, "text/html; charset=utf-8");
-    }
-
-    const asset = ASSETS.get(url.pathname);
-    if (asset) {
-      return responseWithHeaders(decodeBase64(asset.content), asset.contentType);
-    }
-
-    if (request.method === "GET" && (request.headers.get("Accept") || "").includes("text/html")) {
-      return responseWithHeaders(INDEX_HTML, "text/html; charset=utf-8");
-    }
-
-    if (env.ASSETS) {
-      return withSecurityHeaders(await env.ASSETS.fetch(request));
-    }
-
-    return responseWithHeaders("Not found", "text/plain; charset=utf-8", 404);
-  },
-};
+export default createWorker({
+  indexHtml: INDEX_HTML,
+  staticEntries: ASSETS,
+  calendarEvents: CALENDAR_EVENTS,
+  registrationEvents: REGISTRATION_EVENTS,
+});
 `,
 );

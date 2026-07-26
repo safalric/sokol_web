@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --configLoader native",
     "build": "vite build --configLoader native && node scripts/create-sites-worker.mjs",
-    "preview": "vite preview --host 127.0.0.1 --configLoader native"
+    "check": "tsc --noEmit",
+    "preview": "vite preview --host 127.0.0.1 --configLoader native",
+    "preview:worker": "node scripts/preview-worker.mjs",
+    "test:api": "node --test tests/*.test.mjs",
+    "qa": "pnpm check && pnpm test:api && pnpm build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",

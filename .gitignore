@@ -2,6 +2,8 @@ node_modules/
 dist/
 work/
 outputs/
+output/
+tmp/
 .agents/
 .codex/
 .env

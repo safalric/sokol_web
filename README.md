@@ -1,40 +1,41 @@
 # TJ Sokol Doudleby nad Orlicí
 
-Nový moderní web pro TJ Sokol Doudleby nad Orlicí. Projekt je připraven jako rychlá React/Vite aplikace se stylingem přes Tailwind CSS.
+Moderní prezentační web postavený v Reactu, TypeScriptu, Vite a Tailwind CSS. Součástí je same-origin API pro kalendář a přihlášky na akce.
 
-## Struktura
-
-- `src/App.tsx` - aktuální jednostránkový layout a obsahové bloky.
-- `src/components/` - sdílené komponenty layoutu.
-- `src/data/siteContent.ts` - navigace, aktuality, oddíly, akce, kontakty a GDPR obsah.
-- `src/styles.css` - Tailwind vrstvy a vlastní komponentové třídy.
-- `tailwind.config.js` - sokolská barevná paleta a základní design tokeny.
-
-## Obsah webu
-
-Homepage obsahuje hero rozcestník, aktuality, nadcházející akce, karty oddílů,
-kontakt/pronájem sokolovny a základ samostatné GDPR sekce. Formulář
-`EventRegistrationForm` je vložený do detailu vybrané akce.
-
-Typografie je připravena pro oficiální sokolské písmo Tyrš / Fügner. Pokud budou
-dodány licencované webfonty, stačí je přidat přes `@font-face`; současný fallback
-používá kondenzovanou sportovní sazbu ve stejném duchu.
-
-## Spusteni
+## Vývoj
 
 ```bash
 pnpm install
-pnpm run dev
+pnpm dev
 ```
 
-## Prihlasky na akce
-
-Komponenta `EventRegistrationForm` odesílá data na HTTPS webhook nastavený v `.env`:
+Kompletní kontrola typů, API testů a produkčního sestavení:
 
 ```bash
-VITE_EVENT_REGISTRATION_WEBHOOK_URL=https://example.com/api/event-registration
+pnpm qa
 ```
 
-Webhook má zajistit poslání e-mailu organizátorovi, potvrzení účastníkovi a zápis řádku do Google Sheets. Tajné klíče pro Web3Forms, Tally, Make/Zapier nebo Google Apps Script patří na serverovou/webhook stranu, nikdy přímo do klienta.
+Lokální náhled včetně worker API:
 
-Serverová ukázka webhooku je v `server/event-registration-webhook.example.ts`. Počítá s proměnnými prostředí `ALLOWED_ORIGIN`, `GOOGLE_SHEETS_WEBHOOK_URL`, `ORGANIZER_EMAIL` a `MAIL_WEBHOOK_URL`.
+```bash
+pnpm preview:worker
+```
+
+## Struktura
+
+- `src/pages/` obsahuje stránky seskupené podle domény.
+- `src/components/` obsahuje sdílené komponenty a formuláře.
+- `src/config/` obsahuje sdílená pravidla klienta.
+- `src/data/` obsahuje veřejný obsah, demo kalendář a povolené akce.
+- `src/services/` je jediná klientská vrstva pro same-origin API.
+- `server/` odděluje HTTP zabezpečení, kalendář a zpracování přihlášek.
+- `tests/` ověřuje API, bezpečnostní hlavičky a kritická pravidla formuláře.
+- `docs/` popisuje integrace, bezpečnost a kroky před ostrým provozem.
+
+## Provozní režimy
+
+Bez tajných proměnných běží kalendář a přihlášky v transparentním demo režimu. Přihláška projde serverovou validací, ale osobní ani zdravotní údaje se neukládají a neodesílají.
+
+Ostrý režim se aktivuje pouze serverovými proměnnými prostředí. Klíče nesmí mít prefix `VITE_` a nesmí být commitnuty. Zdravotní údaje mají samostatnou pojistku `REGISTRATION_HEALTH_DATA_ENABLED=true` a nikdy se neposílají e-mailem.
+
+Podrobnosti jsou v [integrations.md](docs/integrations.md), [security.md](docs/security.md) a [privacy-go-live.md](docs/privacy-go-live.md).

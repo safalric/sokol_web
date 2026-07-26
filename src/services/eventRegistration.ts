@@ -1,4 +1,5 @@
 export type EventRegistrationPayload = {
+  submissionId: string;
   eventName: string;
   participantName: string;
   birthDate: string;
@@ -6,53 +7,61 @@ export type EventRegistrationPayload = {
   email: string;
   phone: string;
   healthNote: string;
-  gdprConsent: boolean;
+  additionalNote: string;
+  privacyAcknowledged: boolean;
+  guardianDeclaration: boolean;
+  healthConsent: boolean;
   mediaConsent: boolean;
-  organizerEmail?: string;
-  submittedAt: string;
+  website_hp: string;
+  consentVersion: "2026-07-26";
+};
+
+type DeliveryState = "sent" | "saved" | "preview" | "not_configured";
+
+export type EventRegistrationResult = {
+  ok: true;
+  mode: "demo" | "live" | "discarded";
+  receiptId?: string;
+  delivery?: {
+    organizerEmail: DeliveryState;
+    participantEmail: DeliveryState;
+    googleSheet: DeliveryState;
+  };
+  preview?: {
+    organizer: { to: string; subject: string };
+    participant: { to: string; subject: string };
+  };
 };
 
 function isLocalhost() {
-  return ["localhost", "127.0.0.1"].includes(window.location.hostname);
+  return ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
 }
 
-function assertSecureTransport(webhookUrl: string) {
+export async function submitEventRegistration(payload: EventRegistrationPayload): Promise<EventRegistrationResult> {
   if (window.location.protocol !== "https:" && !isLocalhost()) {
     throw new Error("Formulář lze odeslat pouze ze zabezpečené HTTPS adresy.");
   }
 
-  if (!webhookUrl.startsWith("https://") && !isLocalhost()) {
-    throw new Error("Webhook musí používat šifrované HTTPS rozhraní.");
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 15_000);
+  try {
+    const response = await fetch("/api/registrations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    const result = (await response.json().catch(() => ({}))) as EventRegistrationResult & { error?: string };
+    if (!response.ok) {
+      throw new Error(result.error || "Přihlášku se nepodařilo odeslat. Zkuste to prosím později.");
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("Odeslání trvalo příliš dlouho. Zkontrolujte připojení a zkuste to znovu.");
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
   }
-}
-
-export async function submitEventRegistration(payload: EventRegistrationPayload, webhookUrl?: string) {
-  if (!webhookUrl) {
-    throw new Error("Chybí konfigurace webhooku pro zpracování přihlášky.");
-  }
-
-  assertSecureTransport(webhookUrl);
-
-  const response = await fetch(webhookUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({
-      formType: "event-registration",
-      actions: {
-        notifyOrganizer: true,
-        confirmParticipant: true,
-        appendGoogleSheetRow: true,
-      },
-      payload,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Přihlášku se nepodařilo odeslat. Zkuste to prosím později.");
-  }
-
-  return response;
 }

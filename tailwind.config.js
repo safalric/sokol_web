@@ -8,7 +8,7 @@ export default {
           blue: "#1976D2",
           navy: "#111827",
           ink: "#1F2937",
-          paper: "#FBF7F2",
+          paper: "#F4F5F7",
           peach: "#F0B383",
         },
       },

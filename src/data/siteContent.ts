@@ -13,94 +13,130 @@ import {
 export const memberApplicationUrl = "https://www.ecz-sokol.cz/clen/prihlaska";
 
 export const navigation = [
-  { label: "Home", href: "/" },
+  { label: "Úvod", href: "/" },
+  { label: "Cvičení / Oddíly", href: "/cviceni" },
+  { label: "Akce & Tábory", href: "/akce" },
+  { label: "Kalendář", href: "/kalendar" },
+  { label: "Kontakty", href: "/kontakt" },
+];
+
+export const secondaryNavigation = [
   { label: "O nás", href: "/o-nas" },
-  { label: "Cvičení", href: "/cviceni" },
-  { label: "Akce", href: "/akce" },
-  { label: "Přihláška", href: "/prihlaska" },
   { label: "Fotogalerie", href: "/fotogalerie" },
   { label: "Historie", href: "/historie" },
-  { label: "Kontakt", href: "/kontakt" },
 ];
 
 export const quickLinks = [
   { label: "Chci cvičit", href: "/cviceni", icon: Dumbbell },
-  { label: "Aktuální akce", href: "/akce", icon: CalendarDays },
+  { label: "Aktuální program", href: "/kalendar", icon: CalendarDays },
   { label: "Přihláška do Sokola", href: "/prihlaska", icon: Users },
 ];
 
 export const notices = [
   {
     title: "Zahájení nové sezóny",
-    date: "září 2026",
-    text: "Rozvrh cvičení bude potvrzen po domluvě s cvičiteli. Aktuální časy najdete vždy v přehledu oddílů.",
+    date: "ukázka · září 2026",
+    type: "info",
+    label: "Informace",
+    text: "Ukázková aktualita k zahájení sezóny. Finální rozvrh bude zveřejněn po potvrzení vedením jednoty.",
   },
   {
-    title: "Přihlášky na akce",
-    date: "průběžně",
-    text: "Na výlety a tábory používejte online formulář u konkrétní akce. Po nastavení webhooku přijde potvrzení e-mailem.",
+    title: "Změna tréninku florbalu",
+    date: "ukázka · organizační změna",
+    type: "alert",
+    label: "Důležité",
+    text: "Ukázka upozornění na přesun nebo zrušení tréninku. Skutečné změny bude nutné před zveřejněním potvrdit.",
   },
   {
-    title: "Členství v Sokole",
-    date: "online",
-    text: "Noví členové mohou vyplnit oficiální přihlášku ČOS přes elektronický systém eČlen.",
+    title: "Pozvánka na společný výlet",
+    date: "ukázka · podzim 2026",
+    type: "event",
+    label: "Akce",
+    text: "Ukázková pozvánka pro rodiny a členy jednoty. Detail představuje budoucí podobu informací a online přihlášky.",
   },
-];
+] as const;
 
 export const departments = [
   {
     title: "Rodiče a děti",
     age: "2-4 roky s doprovodem",
-    schedule: "úterý 16:00-17:00",
-    place: "velký sál sokolovny",
-    contact: "cvičitelka bude doplněna",
+    day: "úterý",
+    time: "16:00-17:00",
+    place: "sokolovna Doudleby nad Orlicí",
+    contactName: "Kontakt čeká na potvrzení",
     description: "Hravé cvičení, základní pohybové návyky, koordinace a společný čas rodičů s dětmi.",
     icon: Baby,
+    demo: true,
   },
   {
     title: "Předškoláci",
     age: "4-6 let",
-    schedule: "čtvrtek 16:00-17:00",
-    place: "sokolovna",
-    contact: "predskolaci@sokoldoudleby.cz",
+    day: "čtvrtek",
+    time: "16:00-17:00",
+    place: "sokolovna Doudleby nad Orlicí",
+    contactName: "Kontakt čeká na potvrzení",
     description: "Všeobecná pohybová příprava, překážkové dráhy, obratnost a jistota v pohybu.",
     icon: Sparkles,
+    demo: true,
+  },
+  {
+    title: "Mladší žactvo",
+    age: "1.-4. třída",
+    day: "středa",
+    time: "16:00-17:00",
+    place: "sokolovna Doudleby nad Orlicí",
+    contactName: "Matyáš Leimer",
+    contactPhone: "736 221 206",
+    description: "Pestrý pohybový program pro mladší školní děti, hry, obratnost a základní sportovní dovednosti.",
+    icon: Users,
+    demo: true,
   },
   {
     title: "Florbal",
     age: "mladší a starší žáci",
-    schedule: "pondělí 17:00-18:30",
-    place: "sportovní sál",
-    contact: "florbal@sokoldoudleby.cz",
+    day: "pondělí",
+    time: "17:00-18:30",
+    place: "sokolovna Doudleby nad Orlicí",
+    contactName: "Jan Merganc",
+    contactPhone: "604 580 544",
     description: "Týmová hra, rychlost, technika hole, spolupráce a pravidelný trénink.",
     icon: Goal,
+    demo: true,
   },
   {
     title: "Všestrannost",
     age: "děti 6-12 let",
-    schedule: "středa 17:00-18:00",
-    place: "sokolovna a venkovní hřiště",
-    contact: "cviceni@sokoldoudleby.cz",
+    day: "středa",
+    time: "17:00-18:00",
+    place: "sokolovna a venkovní prostor",
+    contactName: "Kontakt čeká na potvrzení",
     description: "Základy gymnastiky, atletiky, her, posílení a celkové pohybové gramotnosti.",
     icon: Dumbbell,
+    demo: true,
   },
   {
     title: "Gymnastika",
     age: "školní děti",
-    schedule: "pátek 16:30-18:00",
-    place: "sokolovna",
-    contact: "gymnastika@sokoldoudleby.cz",
+    day: "pátek",
+    time: "16:30-18:00",
+    place: "sokolovna Doudleby nad Orlicí",
+    contactName: "Veronika Šlajová",
+    contactPhone: "739 315 527",
     description: "Obratnost, síla, držení těla, základní prvky a práce na nářadí.",
     icon: ShieldCheck,
+    demo: true,
   },
   {
-    title: "Rekreační pohyb",
-    age: "mládež a dospělí",
-    schedule: "dle aktuální domluvy",
-    place: "sokolovna / venkovní prostor",
-    contact: "info@sokoldoudleby.cz",
-    description: "Volnější sportovní program, kondiční pohyb a komunitní setkání.",
-    icon: Users,
+    title: "Fit dance děti",
+    age: "děti školního věku",
+    day: "čeká na potvrzení",
+    time: "čeká na potvrzení",
+    place: "sokolovna Doudleby nad Orlicí",
+    contactName: "Barbora Pitter",
+    contactPhone: "606 569 122",
+    description: "Taneční pohyb, rytmus, kondice a radost z pohybu ve skupině.",
+    icon: Sparkles,
+    demo: true,
   },
 ];
 
@@ -111,9 +147,12 @@ export const events = [
     time: "odjezd 8:30",
     place: "sraz u sokolovny",
     capacity: "30 míst",
+    category: "Výlet",
+    status: "Ukázkový termín",
     description:
       "Rodinný výlet pro děti, rodiče i členy jednoty. Počítá se s lehčí trasou, společným obědem a návratem odpoledne.",
     registration: true,
+    posterUrl: "/posters/sokolsky-vylet-2026.pdf",
   },
   {
     title: "Sokolský běh republiky",
@@ -121,8 +160,11 @@ export const events = [
     time: "čas bude upřesněn",
     place: "Doudleby nad Orlicí",
     capacity: "otevřeno veřejnosti",
+    category: "Komunitní akce",
+    status: "Ukázkový obsah",
     description: "Komunitní běh pro všechny věkové kategorie. Připravujeme tratě pro děti i dospělé.",
     registration: false,
+    posterUrl: "/posters/sokolsky-beh-republiky-2026.pdf",
   },
   {
     title: "Letní tábor",
@@ -130,8 +172,11 @@ export const events = [
     time: "týdenní pobyt",
     place: "místo bude potvrzeno",
     capacity: "předběžný zájem",
+    category: "Tábor",
+    status: "Ukázkový obsah",
     description: "Informační karta pro budoucí tábor. Později doplníme termín, cenu a pokyny pro rodiče.",
     registration: false,
+    posterUrl: "/posters/letni-tabor-2027.pdf",
   },
 ];
 
@@ -238,23 +283,4 @@ export const contactDetails = [
   { label: "Datová schránka", value: "c7sy84v", icon: ShieldCheck },
   { label: "Korespondenční adresa", value: "Na Benátkách 131\nDoudleby nad Orlicí\n517 42", icon: MapPin },
   { label: "Sídlo jednoty", value: "Švermova 528\nDoudleby nad Orlicí\n517 42", icon: MapPin },
-];
-
-export const privacyItems = [
-  {
-    title: "Jaké údaje zpracováváme",
-    text: "Jméno, datum narození, kontaktní e-mail, telefon, případné zdravotní omezení a souhlasy nutné pro organizaci akce.",
-  },
-  {
-    title: "Proč údaje potřebujeme",
-    text: "Pro přihlášení, komunikaci s účastníky, bezpečnou organizaci akce a splnění základních povinností pořadatele.",
-  },
-  {
-    title: "Jak dlouho je držíme",
-    text: "Údaje k akci uchováváme jen po dobu nutnou pro organizaci, vyúčtování a případnou kontrolu.",
-  },
-  {
-    title: "Práva účastníků",
-    text: "Účastník nebo zákonný zástupce může požádat o přístup, opravu, výmaz nebo omezení zpracování.",
-  },
 ];
