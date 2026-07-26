@@ -19,9 +19,9 @@ export const socialLinks = [
     href: "https://www.facebook.com/TJ-Sokol-Doudleby-nad-Orlic%C3%AD-1547925445429424",
   },
   {
-    label: "Instagram České obce sokolské",
-    shortLabel: "Instagram Sokol",
-    href: "https://www.instagram.com/ceskaobecsokolska/",
+    label: "Instagram TJ Sokol Doudleby nad Orlicí",
+    shortLabel: "Instagram Doudleby",
+    href: "https://www.instagram.com/sokoldoudlebyno/",
   },
 ] as const;
 
