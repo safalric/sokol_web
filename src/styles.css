@@ -1197,6 +1197,16 @@ html[data-theme="dark"] .privacy-summary a {
   color: #ff737b;
 }
 
+html[data-theme="dark"] .poster-download-button {
+  color: #f7f7f8;
+  text-decoration-color: #8f98a4;
+}
+
+html[data-theme="dark"] .poster-download-button:hover {
+  color: #ff737b;
+  text-decoration-color: #ff737b;
+}
+
 html[data-theme="dark"] .text-sokol-blue {
   color: #7eb9ff;
 }
