@@ -1,6 +1,6 @@
 import { AlertCircle, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
 import type { FormEvent, HTMLAttributes, HTMLInputTypeAttribute, ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   isParticipantMinor,
   parseIsoBirthDate,
@@ -8,10 +8,13 @@ import {
   REGISTRATION_LIMITS,
 } from "../config/registration";
 import {
+  loadRegistrationConfig,
   submitEventRegistration,
   type EventRegistrationPayload,
   type EventRegistrationResult,
+  type RegistrationClientConfig,
 } from "../services/eventRegistration";
+import { TurnstileWidget } from "./TurnstileWidget";
 
 type FormValues = {
   eventName: string;
@@ -113,7 +116,7 @@ function validate(values: FormValues): FormErrors {
   return errors;
 }
 
-function toPayload(values: FormValues, submissionId: string): EventRegistrationPayload {
+function toPayload(values: FormValues, submissionId: string, formStartedAt: number, turnstileToken: string): EventRegistrationPayload {
   return {
     submissionId,
     eventName: normalizeInput(values.eventName, 160),
@@ -129,6 +132,8 @@ function toPayload(values: FormValues, submissionId: string): EventRegistrationP
     healthConsent: values.healthConsent,
     mediaConsent: values.mediaConsent,
     website_hp: normalizeInput(values.website_hp, 200),
+    formStartedAt,
+    turnstileToken,
     consentVersion: REGISTRATION_CONSENT_VERSION,
   };
 }
@@ -142,9 +147,27 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [submissionId, setSubmissionId] = useState(createSubmissionId);
+  const [formStartedAt, setFormStartedAt] = useState(() => Date.now());
   const [successResult, setSuccessResult] = useState<EventRegistrationResult | null>(null);
+  const [clientConfig, setClientConfig] = useState<RegistrationClientConfig | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const isSubmitting = status === "submitting";
   const participantIsMinor = isParticipantMinor(values.birthDate);
+
+  useEffect(() => {
+    let active = true;
+    loadRegistrationConfig()
+      .then((config) => {
+        if (active) setClientConfig(config);
+      })
+      .catch(() => {
+        if (active) setClientConfig({ mode: "unavailable", turnstileSiteKey: null });
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const updateField = <Key extends keyof FormValues>(field: Key, value: FormValues[Key]) => {
     setValues((current) => ({ ...current, [field]: value }));
@@ -184,20 +207,34 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
       return;
     }
 
+    if (!clientConfig || clientConfig.mode === "unavailable") {
+      setErrors({ submit: "Přihlášky jsou nyní dočasně nedostupné. Zkuste to prosím později." });
+      return;
+    }
+    if (clientConfig.mode === "live" && !turnstileToken) {
+      setErrors({ submit: "Dokončete prosím ověření proti spamu." });
+      return;
+    }
+
     setStatus("submitting");
     setSuccessResult(null);
 
     try {
       const [result] = await Promise.all([
-        submitEventRegistration(toPayload(values, submissionId)),
+        submitEventRegistration(toPayload(values, submissionId, formStartedAt, turnstileToken)),
         new Promise<void>((resolve) => window.setTimeout(resolve, 1000)),
       ]);
       setStatus("success");
       setSuccessResult(result);
       setValues(initialValues(eventName));
       setSubmissionId(createSubmissionId());
+      setFormStartedAt(Date.now());
+      setTurnstileToken("");
+      setTurnstileResetKey((current) => current + 1);
     } catch (error) {
       setStatus("error");
+      setTurnstileToken("");
+      setTurnstileResetKey((current) => current + 1);
       setErrors({
         submit:
           error instanceof Error
@@ -356,8 +393,23 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
         Dobrovolně souhlasím s pořízením a zveřejněním fotografií nebo videozáznamů účastníka z této akce na webu a sociálních sítích TJ Sokol pro informování o činnosti jednoty. Neudělení souhlasu nemá vliv na účast a souhlas lze kdykoli odvolat.
       </ConsentField>
 
+      {clientConfig?.mode === "live" && clientConfig.turnstileSiteKey ? (
+        <TurnstileWidget
+          siteKey={clientConfig.turnstileSiteKey}
+          resetKey={turnstileResetKey}
+          onToken={setTurnstileToken}
+          onError={(message) => setErrors((current) => ({ ...current, submit: message }))}
+        />
+      ) : null}
+
       <div className="form-note">
-        Přihlášku kontroluje zabezpečené serverové API. V aktuálním demo režimu se vytvoří pouze náhled potvrzovacích e-mailů; osobní ani zdravotní údaje se neukládají a nikam se neposílají.
+        {!clientConfig
+          ? "Ověřujeme dostupnost bezpečného přihlašovacího systému."
+          : clientConfig.mode === "live"
+            ? "Přihlášku kontroluje zabezpečené serverové API. Po rezervaci místa bude odesláno potvrzení a údaje se uloží do omezené evidence organizátora."
+            : clientConfig.mode === "demo"
+              ? "Aktuálně běží demo režim: vytvoří se pouze náhled potvrzovacích e-mailů a žádné osobní ani zdravotní údaje se neukládají ani neposílají."
+              : "Přihlašovací systém je dočasně nedostupný kvůli neúplnému provoznímu nastavení."}
       </div>
 
       {status === "success" ? (
@@ -365,7 +417,7 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
           tone="success"
           message={
             successResult?.mode === "live"
-              ? "Přihláška byla úspěšně odeslána. Potvrzení bylo zasláno na e-mail."
+              ? `Přihláška byla úspěšně odeslána. Potvrzení bylo zasláno na e-mail.${typeof successResult.capacityRemaining === "number" ? ` Zbývá ${successResult.capacityRemaining} volných míst.` : ""}`
               : "Demo přihláška byla úspěšně zkontrolována. V ostrém provozu by potvrzení přišlo na e-mail; žádná data nebyla uložena ani odeslána."
           }
         />
@@ -379,7 +431,11 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
       ) : null}
       {errors.submit ? <StatusMessage tone="error" message={errors.submit} /> : null}
 
-      <button type="submit" className="btn-primary inline-flex items-center justify-center gap-2" disabled={isSubmitting}>
+      <button
+        type="submit"
+        className="btn-primary inline-flex items-center justify-center gap-2"
+        disabled={isSubmitting || !clientConfig || clientConfig.mode === "unavailable"}
+      >
         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
         {isSubmitting ? "Odesílám přihlášku" : "Odeslat přihlášku"}
       </button>

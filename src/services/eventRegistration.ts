@@ -13,15 +13,18 @@ export type EventRegistrationPayload = {
   healthConsent: boolean;
   mediaConsent: boolean;
   website_hp: string;
+  formStartedAt: number;
+  turnstileToken: string;
   consentVersion: "2026-07-26";
 };
 
-type DeliveryState = "sent" | "saved" | "preview" | "not_configured";
+type DeliveryState = "sent" | "saved" | "duplicate" | "preview" | "not_configured";
 
 export type EventRegistrationResult = {
   ok: true;
   mode: "demo" | "live" | "discarded";
   receiptId?: string;
+  capacityRemaining?: number;
   delivery?: {
     organizerEmail: DeliveryState;
     participantEmail: DeliveryState;
@@ -31,6 +34,11 @@ export type EventRegistrationResult = {
     organizer: { to: string; subject: string };
     participant: { to: string; subject: string };
   };
+};
+
+export type RegistrationClientConfig = {
+  mode: "demo" | "live" | "unavailable";
+  turnstileSiteKey: string | null;
 };
 
 function isLocalhost() {
@@ -61,6 +69,21 @@ export async function submitEventRegistration(payload: EventRegistrationPayload)
       throw new Error("Odeslání trvalo příliš dlouho. Zkontrolujte připojení a zkuste to znovu.");
     }
     throw error;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+export async function loadRegistrationConfig(): Promise<RegistrationClientConfig> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 8_000);
+  try {
+    const response = await fetch("/api/registration-config", {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error("Konfiguraci přihlášek se nepodařilo načíst.");
+    return (await response.json()) as RegistrationClientConfig;
   } finally {
     window.clearTimeout(timeout);
   }

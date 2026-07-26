@@ -1,6 +1,6 @@
 import { handleCalendar } from "./calendar-api.js";
 import { isLocalRequest, jsonResponse, staticResponse, withSecurityHeaders } from "./http-security.js";
-import { createRegistrationHandler } from "./registration-api.js";
+import { createRegistrationHandler, registrationRuntimeStatus } from "./registration-api.js";
 
 function decodeBase64(value) {
   const binary = atob(value);
@@ -41,24 +41,20 @@ export function createWorker({
 
       if (url.pathname === "/api/health") {
         if (request.method !== "GET") return methodNotAllowed(["GET"]);
-        const registrationConfig = [
-          env.RESEND_API_KEY,
-          env.REGISTRATION_FROM_EMAIL,
-          env.REGISTRATION_ORGANIZER_EMAIL,
-          env.GOOGLE_SHEETS_WEBHOOK_URL,
-          env.GOOGLE_SHEETS_WEBHOOK_SECRET,
-        ];
-        const registrationConfigCount = registrationConfig.filter(Boolean).length;
+        const registration = registrationRuntimeStatus(env);
         return jsonResponse({
           ok: true,
           calendar: env.GOOGLE_CALENDAR_ID && env.GOOGLE_CALENDAR_API_KEY ? "google" : "demo",
-          registrations:
-            registrationConfigCount === 0
-              ? "demo"
-              : registrationConfigCount === registrationConfig.length
-                ? "configured"
-                : "misconfigured",
+          registrations: registration.status,
           healthData: env.REGISTRATION_HEALTH_DATA_ENABLED === "true" ? "enabled" : "disabled",
+        });
+      }
+      if (url.pathname === "/api/registration-config") {
+        if (request.method !== "GET") return methodNotAllowed(["GET"]);
+        const registration = registrationRuntimeStatus(env);
+        return jsonResponse({
+          mode: registration.status === "configured" ? "live" : registration.status === "demo" ? "demo" : "unavailable",
+          turnstileSiteKey: registration.turnstileSiteKey,
         });
       }
       if (url.pathname === "/api/calendar") {

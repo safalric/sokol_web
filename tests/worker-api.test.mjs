@@ -6,6 +6,15 @@ import { createWorker } from "../server/worker-runtime.js";
 const calendarEvents = JSON.parse(await readFile(new URL("../src/data/calendar-events.json", import.meta.url), "utf8"));
 const registrationEvents = JSON.parse(await readFile(new URL("../src/data/registration-events.json", import.meta.url), "utf8"));
 const fixedNow = () => new Date("2026-07-26T12:00:00Z");
+const liveEnv = {
+  RESEND_API_KEY: "re_test",
+  REGISTRATION_FROM_EMAIL: "test@sokol.example",
+  REGISTRATION_ORGANIZER_EMAIL: "organizer@sokol.example",
+  GOOGLE_SHEETS_WEBHOOK_URL: "https://script.google.com/macros/s/test/exec",
+  GOOGLE_SHEETS_WEBHOOK_SECRET: "long-test-secret",
+  TURNSTILE_SITE_KEY: "turnstile-site-key",
+  TURNSTILE_SECRET_KEY: "turnstile-secret-key",
+};
 
 function createTestWorker(options = {}) {
   return createWorker({ indexHtml: "<!doctype html><title>Test</title>", staticEntries: [], calendarEvents, registrationEvents, now: fixedNow, ...options });
@@ -27,8 +36,27 @@ function registration(overrides = {}) {
     healthConsent: false,
     mediaConsent: false,
     website_hp: "",
+    formStartedAt: fixedNow().getTime() - 60_000,
+    turnstileToken: "verified-token",
     consentVersion: "2026-07-26",
     ...overrides,
+  };
+}
+
+function successfulDeliveryFetch(calls = []) {
+  return async (url, init) => {
+    calls.push({ url: String(url), init });
+    if (String(url).includes("turnstile")) {
+      return new Response(JSON.stringify({ success: true, action: "event-registration", hostname: "sokol.example" }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (String(url).includes("script.google.com")) {
+      return new Response(JSON.stringify({ ok: true, status: "created", capacityRemaining: 29 }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ id: "email-id" }), { headers: { "Content-Type": "application/json" } });
   };
 }
 
@@ -131,6 +159,12 @@ test("registration API rejects unexpected fields", async () => {
   assert.ok((await response.json()).fields.request);
 });
 
+test("registration API rejects submissions completed unrealistically quickly", async () => {
+  const response = await postRegistration(createTestWorker(), registration({ formStartedAt: fixedNow().getTime() - 500 }));
+  assert.equal(response.status, 422);
+  assert.ok((await response.json()).fields.request);
+});
+
 test("registration API applies per-client rate limiting", async () => {
   const worker = createTestWorker();
   const makeRequest = (index) => worker.fetch(new Request("https://sokol.example/api/registrations", {
@@ -156,63 +190,89 @@ test("valid demo registration returns email previews and is idempotent", async (
 
 test("configured registration sends two emails and appends one sheet row", async () => {
   const calls = [];
-  const fetchImpl = async (url, init) => {
-    calls.push({ url: String(url), init });
-    if (String(url).includes("script.google.com")) return new Response(JSON.stringify({ ok: true }), { headers: { "Content-Type": "application/json" } });
-    return new Response(JSON.stringify({ id: "email-id" }), { headers: { "Content-Type": "application/json" } });
-  };
-  const env = {
-    RESEND_API_KEY: "re_test",
-    REGISTRATION_FROM_EMAIL: "test@sokol.example",
-    REGISTRATION_ORGANIZER_EMAIL: "organizer@sokol.example",
-    GOOGLE_SHEETS_WEBHOOK_URL: "https://script.google.com/macros/s/test/exec",
-    GOOGLE_SHEETS_WEBHOOK_SECRET: "long-test-secret",
-    REGISTRATION_HEALTH_DATA_ENABLED: "true",
-  };
+  const fetchImpl = successfulDeliveryFetch(calls);
+  const env = { ...liveEnv, REGISTRATION_HEALTH_DATA_ENABLED: "true" };
   const response = await postRegistration(createTestWorker({ fetchImpl }), registration({ healthNote: "Alergie", healthConsent: true, additionalNote: "=IMPORTXML(A1)" }), env);
   assert.equal(response.status, 201);
-  assert.equal((await response.json()).mode, "live");
+  const responseBody = await response.json();
+  assert.equal(responseBody.mode, "live");
+  assert.equal(responseBody.capacityRemaining, 29);
   assert.equal(calls.filter((call) => call.url === "https://api.resend.com/emails").length, 2);
   assert.equal(calls.filter((call) => call.url.includes("script.google.com")).length, 1);
-  assert.ok(calls[0].init.headers["Idempotency-Key"]);
-  assert.doesNotMatch(calls[0].init.body, /Alergie/);
+  assert.equal(calls.filter((call) => call.url.includes("turnstile")).length, 1);
+  const organizerCall = calls.find((call) => call.url === "https://api.resend.com/emails");
+  assert.ok(organizerCall.init.headers["Idempotency-Key"]);
+  assert.doesNotMatch(organizerCall.init.body, /Alergie/);
   const sheetCall = calls.find((call) => call.url.includes("script.google.com"));
   const sheetBody = JSON.parse(sheetCall.init.body);
+  assert.equal(sheetBody.action, "reserve");
+  assert.equal(sheetBody.capacity, 30);
   assert.equal(sheetBody.row[9], "'=IMPORTXML(A1)");
+});
+
+test("registration capacity is enforced before emails are sent", async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url: String(url), init });
+    if (String(url).includes("turnstile")) {
+      return new Response(JSON.stringify({ success: true, action: "event-registration", hostname: "sokol.example" }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (String(url).includes("script.google.com")) {
+      return new Response(JSON.stringify({ ok: true, status: "full", capacityRemaining: 0 }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ id: "unexpected-email" }), { headers: { "Content-Type": "application/json" } });
+  };
+  const response = await postRegistration(createTestWorker({ fetchImpl }), registration(), liveEnv);
+  assert.equal(response.status, 409);
+  assert.equal(calls.filter((call) => call.url === "https://api.resend.com/emails").length, 0);
+});
+
+test("live registrations require a valid Turnstile token", async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url: String(url), init });
+    return new Response(JSON.stringify({ success: false }), { headers: { "Content-Type": "application/json" } });
+  };
+  const response = await postRegistration(createTestWorker({ fetchImpl }), registration(), liveEnv);
+  assert.equal(response.status, 403);
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].url, /turnstile/);
 });
 
 test("organizer email HTML-encodes untrusted free text", async () => {
   const calls = [];
-  const fetchImpl = async (url, init) => {
-    calls.push({ url: String(url), init });
-    if (String(url).includes("script.google.com")) {
-      return new Response(JSON.stringify({ ok: true }), { headers: { "Content-Type": "application/json" } });
-    }
-    return new Response(JSON.stringify({ id: "email-id" }), { headers: { "Content-Type": "application/json" } });
-  };
+  const fetchImpl = successfulDeliveryFetch(calls);
   const response = await postRegistration(createTestWorker({ fetchImpl }), registration({
     additionalNote: "<img src=x onerror=alert(1)>",
-  }), {
-    RESEND_API_KEY: "re_test",
-    REGISTRATION_FROM_EMAIL: "test@sokol.example",
-    REGISTRATION_ORGANIZER_EMAIL: "organizer@sokol.example",
-    GOOGLE_SHEETS_WEBHOOK_URL: "https://script.google.com/macros/s/test/exec",
-    GOOGLE_SHEETS_WEBHOOK_SECRET: "long-test-secret",
-  });
+  }), liveEnv);
   assert.equal(response.status, 201);
-  const organizerPayload = JSON.parse(calls[0].init.body);
+  const organizerCall = calls.find((call) => call.url === "https://api.resend.com/emails");
+  const organizerPayload = JSON.parse(organizerCall.init.body);
   assert.doesNotMatch(organizerPayload.html, /<img/);
   assert.match(organizerPayload.html, /&lt;img/);
 });
 
 test("live health data requires an explicitly enabled restricted store", async () => {
-  const fetchImpl = async () => new Response(JSON.stringify({ id: "email-id" }), { headers: { "Content-Type": "application/json" } });
-  const response = await postRegistration(createTestWorker({ fetchImpl }), registration({ healthNote: "Alergie", healthConsent: true }), {
-    RESEND_API_KEY: "re_test",
-    REGISTRATION_FROM_EMAIL: "test@sokol.example",
-    REGISTRATION_ORGANIZER_EMAIL: "organizer@sokol.example",
-  });
+  const fetchImpl = successfulDeliveryFetch();
+  const response = await postRegistration(createTestWorker({ fetchImpl }), registration({ healthNote: "Alergie", healthConsent: true }), liveEnv);
   assert.equal(response.status, 503);
+});
+
+test("registration config exposes only the public Turnstile site key", async () => {
+  const worker = createTestWorker();
+  const live = await worker.fetch(new Request("https://sokol.example/api/registration-config"), liveEnv);
+  const liveBody = await live.json();
+  assert.deepEqual(liveBody, { mode: "live", turnstileSiteKey: "turnstile-site-key" });
+  assert.doesNotMatch(JSON.stringify(liveBody), /secret/i);
+
+  const unavailable = await worker.fetch(new Request("https://sokol.example/api/registration-config"), {
+    RESEND_API_KEY: "partial",
+  });
+  assert.equal((await unavailable.json()).mode, "unavailable");
 });
 
 test("API and HTML responses include security headers", async () => {
@@ -223,6 +283,7 @@ test("API and HTML responses include security headers", async () => {
   assert.equal(html.headers.get("X-Frame-Options"), "DENY");
   assert.match(html.headers.get("Content-Security-Policy"), /frame-ancestors 'none'/);
   assert.match(html.headers.get("Content-Security-Policy"), /frame-src https:\/\/www\.openstreetmap\.org/);
+  assert.match(html.headers.get("Content-Security-Policy"), /https:\/\/challenges\.cloudflare\.com/);
   assert.doesNotMatch(html.headers.get("Content-Security-Policy"), /unsafe-inline/);
   assert.equal(html.headers.get("Cross-Origin-Opener-Policy"), "same-origin");
 });

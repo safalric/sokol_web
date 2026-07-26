@@ -24,11 +24,11 @@ const privacySections = [
   },
   {
     title: "Uchování a výmaz",
-    text: "Produkční evidence musí mít pro každou akci předem určené datum kontroly výmazu. Návrh pro tuto akci je 30 dní po jejím skončení; delší uchování je možné jen při doložené právní povinnosti nebo řešení nároku. Demo režim údaje neukládá ani neodesílá.",
+    text: "Produkční evidence má pro každou akci předem určené datum kontroly výmazu. Pro aktuálně připravenou akci je nastaveno 30 dní po jejím skončení; delší uchování je možné jen při doložené právní povinnosti nebo řešení nároku. Demo režim údaje neukládá ani neodesílá.",
   },
   {
     title: "Příjemci a zpracovatelé",
-    text: "Přístup mají mít pouze pověření organizátoři. Před aktivací ostrého režimu musí jednota zveřejnit konkrétní poskytovatele hostingu, e-mailu a evidence, prověřit místo zpracování a uzavřít potřebné zpracovatelské smlouvy. Bez toho zůstává formulář pouze v demo režimu.",
+    text: "Přístup mají pouze pověření organizátoři. Připravený produkční tok využívá hostingovou infrastrukturu Cloudflare, službu Resend pro transakční e-maily a Google Sheets s Google Apps Script pro omezenou evidenci. Před aktivací musí jednota schválit tyto dodavatele, ověřit místo zpracování a uzavřít potřebné zpracovatelské smlouvy.",
   },
   {
     title: "Vaše práva",
@@ -36,7 +36,7 @@ const privacySections = [
   },
   {
     title: "Cookies, mapa a automatizace",
-    text: "Aplikační kód nepoužívá analytické ani marketingové cookies, reklamní profilování ani automatizované rozhodování. Kontaktní stránka načítá mapový náhled od OpenStreetMap; provozovatel mapy při tom může obdržet IP adresu a technické údaje požadavku. Odkaz na Google Mapy se otevře pouze na výslovný pokyn návštěvníka.",
+    text: "Aplikační kód nepoužívá analytické ani marketingové cookies ani reklamní profilování. V ostrém režimu chrání formulář Cloudflare Turnstile, který automaticky vyhodnocuje technické signály spamu bez rozhodnutí s právními účinky. Kontaktní stránka načítá mapu od OpenStreetMap; tito poskytovatelé mohou obdržet IP adresu a technické údaje požadavku. Odkaz na Google Mapy se otevře pouze na výslovný pokyn návštěvníka.",
   },
 ];
 
@@ -46,12 +46,12 @@ export function PrivacyPage() {
       <div className="legal-draft">
         <ShieldCheck className="h-5 w-5 shrink-0" aria-hidden="true" />
         <p>
-          Formulář je nyní bezpečný funkční prototyp v režimu bez ukládání. Níže uvedený text je věcný návrh informační povinnosti; před aktivací skutečného ukládání jej musí schválit vedení jednoty a právník včetně právních titulů, lhůt a smluv s dodavateli.
+          Přihlašovací systém technicky podporuje demo i ostrý režim. Níže uvedený text je věcný návrh informační povinnosti; před aktivací skutečného ukládání jej musí schválit vedení jednoty a právník včetně právních titulů, lhůt a smluv s dodavateli.
         </p>
       </div>
       <div className="privacy-summary" aria-label="Rychlé shrnutí">
-        <strong>Aktuální režim</strong>
-        <span>Demo bez ukládání osobních a zdravotních údajů</span>
+        <strong>Stav formuláře</strong>
+        <span>Aktuální provozní režim je vždy uveden přímo u přihlašovacího formuláře</span>
         <strong>Kontakt správce</strong>
         <a href="mailto:sokoldoudleby@seznam.cz">sokoldoudleby@seznam.cz</a>
       </div>

@@ -3,6 +3,7 @@ import { isLocalRequest, jsonResponse } from "./http-security.js";
 const CONSENT_VERSION = "2026-07-26";
 const REGISTRATION_LIMIT = 5;
 const REGISTRATION_WINDOW_MS = 10 * 60 * 1000;
+const MIN_FORM_COMPLETION_MS = 3_000;
 const MAX_BODY_BYTES = 12_000;
 const MAX_STATE_ENTRIES = 5_000;
 const ALLOWED_FIELDS = new Set([
@@ -20,6 +21,8 @@ const ALLOWED_FIELDS = new Set([
   "healthConsent",
   "mediaConsent",
   "website_hp",
+  "formStartedAt",
+  "turnstileToken",
   "consentVersion",
 ]);
 
@@ -57,6 +60,8 @@ function validateRegistration(input, now, registrationEvents) {
     healthConsent: input.healthConsent === true,
     mediaConsent: input.mediaConsent === true,
     website_hp: cleanText(input.website_hp, 200),
+    formStartedAt: Number.isFinite(input.formStartedAt) ? Math.trunc(input.formStartedAt) : 0,
+    turnstileToken: cleanText(input.turnstileToken, 2_048),
     consentVersion: cleanText(input.consentVersion, 30),
   };
   const errors = {};
@@ -66,7 +71,16 @@ function validateRegistration(input, now, registrationEvents) {
 
   if (unexpectedFields.length) errors.request = "Požadavek obsahuje nepovolená pole.";
   if (!/^[a-zA-Z0-9_-]{16,80}$/.test(payload.submissionId)) errors.submissionId = "Neplatný identifikátor odeslání.";
-  if (!eventPolicy) errors.eventName = "Na tuto akci nyní nelze odeslat přihlášku.";
+  if (!eventPolicy) {
+    errors.eventName = "Na tuto akci nyní nelze odeslat přihlášku.";
+  } else {
+    const closesAt = new Date(eventPolicy.registrationClosesAt);
+    if (!Number.isInteger(eventPolicy.capacity) || eventPolicy.capacity < 1 || Number.isNaN(closesAt.getTime())) {
+      errors.eventName = "Přihlašování na tuto akci není správně nastaveno.";
+    } else if (now > closesAt) {
+      errors.eventName = "Přihlašování na tuto akci již bylo ukončeno.";
+    }
+  }
   if (!namePattern.test(payload.participantName)) errors.participantName = "Zkontrolujte jméno účastníka.";
   if (payload.guardianName && !namePattern.test(payload.guardianName)) errors.guardianName = "Zkontrolujte jméno zákonného zástupce.";
   if (!validIsoDate(payload.birthDate)) {
@@ -85,6 +99,9 @@ function validateRegistration(input, now, registrationEvents) {
   if (!/^(\+420\s?)?(\d\s?){9}$/.test(payload.phone)) errors.phone = "Zadejte platné české telefonní číslo.";
   if (!payload.privacyAcknowledged) errors.privacyAcknowledged = "Potvrďte seznámení se zásadami ochrany osobních údajů.";
   if (payload.healthNote && !payload.healthConsent) errors.healthConsent = "Pro zpracování zdravotních údajů je nutný výslovný souhlas.";
+  if (!payload.formStartedAt || now.getTime() - payload.formStartedAt < MIN_FORM_COMPLETION_MS) {
+    errors.request = "Formulář byl odeslán příliš rychle. Zkontrolujte údaje a zkuste to znovu.";
+  }
   if (payload.consentVersion !== CONSENT_VERSION) errors.consentVersion = "Formulář používá neplatnou verzi právních informací.";
   return { payload, errors, eventPolicy };
 }
@@ -162,7 +179,7 @@ async function deliverEmails(payload, receiptId, env, fetchImpl) {
   }, `${payload.submissionId}-participant`);
 }
 
-async function appendGoogleSheet(payload, receiptId, eventPolicy, env, fetchImpl, now) {
+async function reserveGoogleSheet(payload, receiptId, eventPolicy, env, fetchImpl, now) {
   const endpoint = new URL(env.GOOGLE_SHEETS_WEBHOOK_URL);
   if (endpoint.protocol !== "https:" || !["script.google.com", "script.googleusercontent.com"].includes(endpoint.hostname)) {
     throw new Error("Invalid Google Sheets webhook URL");
@@ -188,22 +205,56 @@ async function appendGoogleSheet(payload, receiptId, eventPolicy, env, fetchImpl
   const response = await fetchImpl(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json", "User-Agent": "sokol-doudleby-web/2.0" },
-    body: JSON.stringify({ secret: env.GOOGLE_SHEETS_WEBHOOK_SECRET, receiptId, row }),
+    body: JSON.stringify({
+      secret: env.GOOGLE_SHEETS_WEBHOOK_SECRET,
+      action: "reserve",
+      receiptId,
+      eventName: payload.eventName,
+      capacity: eventPolicy.capacity,
+      row,
+    }),
   });
   if (!response.ok) throw new Error(`Google Sheets webhook returned ${response.status}`);
   const result = await response.json().catch(() => ({}));
-  if (result.ok !== true) throw new Error("Google Sheets webhook rejected the row");
+  if (result.ok !== true || !["created", "duplicate", "full"].includes(result.status)) {
+    throw new Error("Google Sheets webhook rejected the row");
+  }
+  return result;
 }
 
-function checkConfiguration(env) {
+export function registrationRuntimeStatus(env) {
   const emailValues = [env.RESEND_API_KEY, env.REGISTRATION_FROM_EMAIL, env.REGISTRATION_ORGANIZER_EMAIL];
   const sheetValues = [env.GOOGLE_SHEETS_WEBHOOK_URL, env.GOOGLE_SHEETS_WEBHOOK_SECRET];
-  const allValues = [...emailValues, ...sheetValues];
-  const configuredCount = allValues.filter(Boolean).length;
-  if (configuredCount > 0 && configuredCount < allValues.length) {
-    return "Ostrý režim vyžaduje kompletní nastavení obou e-mailů i zabezpečené evidence.";
+  const turnstileValues = [env.TURNSTILE_SITE_KEY, env.TURNSTILE_SECRET_KEY];
+  const deliveryValues = [...emailValues, ...sheetValues];
+  const deliveryCount = deliveryValues.filter(Boolean).length;
+  const turnstileCount = turnstileValues.filter(Boolean).length;
+
+  if (deliveryCount === 0 && turnstileCount === 0) return { status: "demo", turnstileSiteKey: null };
+  if (deliveryCount !== deliveryValues.length || turnstileCount !== turnstileValues.length) {
+    return { status: "misconfigured", turnstileSiteKey: null };
   }
-  return null;
+  return { status: "configured", turnstileSiteKey: env.TURNSTILE_SITE_KEY };
+}
+
+async function verifyTurnstile(payload, request, url, env, fetchImpl) {
+  const body = new URLSearchParams({
+    secret: env.TURNSTILE_SECRET_KEY,
+    response: payload.turnstileToken,
+  });
+  const remoteIp = clientKey(request);
+  if (remoteIp !== "unknown") body.set("remoteip", remoteIp);
+
+  const response = await fetchImpl("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+  });
+  if (!response.ok) throw new Error(`Turnstile returned ${response.status}`);
+  const result = await response.json().catch(() => ({}));
+  return result.success === true
+    && result.action === "event-registration"
+    && (!result.hostname || result.hostname === url.hostname);
 }
 
 function clientKey(request) {
@@ -268,12 +319,25 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
       return jsonResponse(previous.result.mode === "demo" ? { ...previous.result, preview: demoPreview(payload) } : previous.result);
     }
 
-    const configurationError = checkConfiguration(env);
-    if (configurationError) return jsonResponse({ error: configurationError }, 503);
+    const runtime = registrationRuntimeStatus(env);
+    if (runtime.status === "misconfigured") {
+      return jsonResponse({ error: "Přihlášky jsou dočasně nedostupné kvůli neúplnému nastavení." }, 503);
+    }
+
+    if (runtime.status === "configured") {
+      try {
+        if (!payload.turnstileToken || !(await verifyTurnstile(payload, request, url, env, fetchImpl))) {
+          return jsonResponse({ error: "Ověření proti spamu se nezdařilo. Obnovte formulář a zkuste to znovu." }, 403);
+        }
+      } catch (error) {
+        console.error("Turnstile verification failed", { error: String(error) });
+        return jsonResponse({ error: "Ověření proti spamu je dočasně nedostupné. Zkuste to prosím později." }, 503);
+      }
+    }
 
     const receiptId = `SOKOL-${submissionTime.getUTCFullYear()}-${payload.submissionId.slice(0, 8).toUpperCase()}`;
-    const emailConfigured = Boolean(env.RESEND_API_KEY);
-    const sheetConfigured = Boolean(env.GOOGLE_SHEETS_WEBHOOK_URL);
+    const emailConfigured = runtime.status === "configured";
+    const sheetConfigured = runtime.status === "configured";
 
     if (!emailConfigured && !sheetConfigured) {
       const result = {
@@ -291,25 +355,30 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
 
     state.receipts.set(payload.submissionId, { state: "processing", createdAt: timestamp });
     try {
-      if (emailConfigured) await deliverEmails(payload, receiptId, env, fetchImpl);
-      if (sheetConfigured) await appendGoogleSheet(payload, receiptId, eventPolicy, env, fetchImpl, submissionTime);
+      const reservation = await reserveGoogleSheet(payload, receiptId, eventPolicy, env, fetchImpl, submissionTime);
+      if (reservation.status === "full") {
+        state.receipts.delete(payload.submissionId);
+        return jsonResponse({ error: "Kapacita této akce je již naplněna." }, 409);
+      }
+      await deliverEmails(payload, receiptId, env, fetchImpl);
+
+      const result = {
+        ok: true,
+        mode: "live",
+        receiptId,
+        capacityRemaining: Number.isInteger(reservation.capacityRemaining) ? reservation.capacityRemaining : undefined,
+        delivery: {
+          organizerEmail: "sent",
+          participantEmail: "sent",
+          googleSheet: reservation.status === "duplicate" ? "duplicate" : "saved",
+        },
+      };
+      state.receipts.set(payload.submissionId, { state: "complete", result, createdAt: timestamp });
+      return jsonResponse(result, reservation.status === "duplicate" ? 200 : 201);
     } catch (error) {
       state.receipts.delete(payload.submissionId);
       console.error("Registration delivery failed", { receiptId, error: String(error) });
       return jsonResponse({ error: "Přihlášku se nepodařilo bezpečně doručit. Data nebyla potvrzena jako uložená." }, 502);
     }
-
-    const result = {
-      ok: true,
-      mode: "live",
-      receiptId,
-      delivery: {
-        organizerEmail: emailConfigured ? "sent" : "not_configured",
-        participantEmail: emailConfigured ? "sent" : "not_configured",
-        googleSheet: sheetConfigured ? "saved" : "not_configured",
-      },
-    };
-    state.receipts.set(payload.submissionId, { state: "complete", result, createdAt: timestamp });
-    return jsonResponse(result, 201);
   };
 }

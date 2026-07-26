@@ -761,6 +761,18 @@
     @apply cursor-not-allowed opacity-60;
   }
 
+  .turnstile-shell {
+    @apply grid gap-3 border border-zinc-300 bg-zinc-50 p-4;
+  }
+
+  .turnstile-shell > strong {
+    @apply text-sm font-black text-zinc-950;
+  }
+
+  .turnstile-shell > div {
+    @apply min-h-[65px] max-w-full overflow-hidden;
+  }
+
   .status-message {
     @apply flex items-center gap-2 border p-4 text-sm font-semibold;
   }

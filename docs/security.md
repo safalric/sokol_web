@@ -9,17 +9,18 @@ Prohlížeč komunikuje pouze se same-origin endpointy `/api/calendar` a `/api/r
 - HTTPS je povinné; nezabezpečené POST požadavky se odmítají.
 - API vyžaduje JSON, platný same-origin `Origin` a odmítá `Sec-Fetch-Site: cross-site`.
 - Požadavek má limit 12 kB, omezenou sadu polí a syntaktickou i sémantickou validaci.
-- Honeypot se zahodí bez doručení, klient má loading stav a server používá rate limit i idempotentní ID.
-- Název akce musí být v serverovém allowlistu.
+- Honeypot se zahodí bez doručení, časová past odmítne nereálně rychlé odeslání a server používá rate limit i idempotentní ID.
+- Ostrý režim vyžaduje ověřený Cloudflare Turnstile token svázaný s aktuální doménou a akcí formuláře.
+- Název akce musí být v serverovém allowlistu s platnou uzávěrkou a číselnou kapacitou.
 - Výstup do HTML e-mailu se kontextově kóduje a hodnoty pro Sheets jsou chráněny proti formula injection.
 - Zdravotní text se neposílá e-mailem. Ostré uložení vyžaduje omezenou Sheets evidenci a explicitní provozní přepínač.
-- Apps Script znovu kontroluje délku, secret, počet sloupců, duplicity a nebezpečné začátky buněk.
+- Apps Script pod zámkem znovu kontroluje délku, secret, počet sloupců, duplicity, kapacitu a nebezpečné začátky buněk.
 
-In-memory rate limit a idempotence chrání jednotlivou instanci workeru. Před vysokozátěžovým veřejným spuštěním je vhodné doplnit distribuované úložiště limitů nebo spravovaný anti-bot mechanismus.
+In-memory rate limit a idempotence chrání jednotlivou instanci workeru. Napříč instancemi ochranu doplňuje Turnstile a atomická kontrola kapacity i duplicit v Google Sheets.
 
 ## Hlavičky
 
-Worker nastavuje HSTS, CSP bez `unsafe-inline`, zákaz rámování vlastního webu a objektů, omezená oprávnění prohlížeče, ochranu MIME typu a bezpečnou referrer policy. Vložené rámce jsou omezené výhradně na mapový náhled z `www.openstreetmap.org`.
+Worker nastavuje HSTS, CSP bez `unsafe-inline`, zákaz rámování vlastního webu a objektů, omezená oprávnění prohlížeče, ochranu MIME typu a bezpečnou referrer policy. Vložené rámce jsou omezené na mapový náhled z `www.openstreetmap.org` a ochranu formuláře z `challenges.cloudflare.com`.
 
 ## Provoz
 
@@ -27,5 +28,6 @@ Worker nastavuje HSTS, CSP bez `unsafe-inline`, zákaz rámování vlastního we
 2. Omezit Google API klíč na Calendar API a konkrétní projekt.
 3. Omezit přístup k tabulce na pověřené organizátory a pravidelně jej kontrolovat.
 4. Rotovat webhook secret a API klíče při změně správce nebo podezření na únik.
-5. Monitorovat anonymizované chyby podle ID přihlášky; nelogovat obsah formuláře.
-6. Spouštět `pnpm qa` a `pnpm audit --prod` před každým nasazením.
+5. Pravidelně kontrolovat kapacitu, datum uzávěrky a termín výmazu každé akce.
+6. Monitorovat anonymizované chyby podle ID přihlášky; nelogovat obsah formuláře.
+7. Spouštět `pnpm qa` a `pnpm audit --prod` před každým nasazením.
