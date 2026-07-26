@@ -1,4 +1,5 @@
-import { Mail } from "lucide-react";
+import { ExternalLink, Mail } from "lucide-react";
+import { socialLinks } from "../data/siteContent";
 import { SokolLogo } from "./SokolLogo";
 
 type FooterProps = {
@@ -21,6 +22,14 @@ export function Footer({ onNavigate }: FooterProps) {
             <Mail className="h-4 w-4" aria-hidden="true" />
             sokoldoudleby@seznam.cz
           </a>
+          <div className="footer-socials" aria-label="Sociální sítě">
+            {socialLinks.map((item) => (
+              <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer" aria-label={item.label}>
+                {item.shortLabel}
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
+            ))}
+          </div>
           <span className="footer-ico">IČO 15040020</span>
         </div>
 

@@ -19,7 +19,7 @@ In-memory rate limit a idempotence chrání jednotlivou instanci workeru. Před 
 
 ## Hlavičky
 
-Worker nastavuje HSTS, CSP bez `unsafe-inline`, zákaz rámování a objektů, omezená oprávnění prohlížeče, ochranu MIME typu a bezpečnou referrer policy.
+Worker nastavuje HSTS, CSP bez `unsafe-inline`, zákaz rámování vlastního webu a objektů, omezená oprávnění prohlížeče, ochranu MIME typu a bezpečnou referrer policy. Vložené rámce jsou omezené výhradně na mapový náhled z `www.openstreetmap.org`.
 
 ## Provoz
 

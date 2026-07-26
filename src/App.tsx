@@ -19,7 +19,7 @@ export function App() {
   useEffect(() => {
     document.title =
       currentPath === "/"
-        ? "TJ Sokol Doudleby nad Orlicí"
+        ? "TJ Sokol Doudleby nad Orlicí – Sport a cvičení pro všechny"
         : `${PAGE_TITLES[currentPath]} | TJ Sokol Doudleby nad Orlicí`;
   }, [currentPath]);
 

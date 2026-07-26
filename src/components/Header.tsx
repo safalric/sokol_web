@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ComponentType } from "react";
-import { memberApplicationUrl, navigation, secondaryNavigation } from "../data/siteContent";
+import { memberApplicationUrl, navigation, secondaryNavigation, socialLinks } from "../data/siteContent";
 import { SokolLogo } from "./SokolLogo";
 
 type HeaderProps = {
@@ -160,6 +160,14 @@ export function Header({ currentPath, onNavigate }: HeaderProps) {
             </summary>
             <div className="more-menu-panel">
               {secondaryNavigation.map((item) => renderLink(item, "more-menu-link"))}
+              <div className="more-menu-socials" aria-label="Sociální sítě">
+                {socialLinks.map((item) => (
+                  <a key={item.href} className="more-menu-link" href={item.href} target="_blank" rel="noopener noreferrer">
+                    <span>{item.shortLabel}</span>
+                    <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
+                ))}
+              </div>
             </div>
           </details>
           <a className="header-cta" href={memberApplicationUrl} target="_blank" rel="noopener noreferrer">
@@ -187,6 +195,14 @@ export function Header({ currentPath, onNavigate }: HeaderProps) {
         <nav ref={mobileNavRef} id="mobile-navigation" className="mobile-nav" aria-label="Mobilní navigace">
           <div className="mobile-nav-group">{navigation.map(renderMobileLink)}</div>
           <div className="mobile-nav-group mobile-nav-secondary">{secondaryNavigation.map(renderMobileLink)}</div>
+          <div className="mobile-social-links" aria-label="Sociální sítě">
+            {socialLinks.map((item) => (
+              <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer">
+                {item.shortLabel}
+                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              </a>
+            ))}
+          </div>
           <a
             className="mobile-cta"
             href={memberApplicationUrl}

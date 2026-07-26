@@ -1,4 +1,4 @@
-import { AlertCircle, CalendarDays, ChevronLeft, ChevronRight, Clock, Loader2, MapPin, RefreshCw } from "lucide-react";
+import { AlertCircle, CalendarDays, ChevronLeft, ChevronRight, Clock, Grid2X2, List, Loader2, MapPin, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fetchCalendar, type CalendarEvent, type CalendarResponse } from "../services/calendar";
 
@@ -25,6 +25,7 @@ export function EventCalendar() {
   const [calendar, setCalendar] = useState<CalendarResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<"grid" | "list">("grid");
   const activeRequest = useRef<AbortController | null>(null);
 
   const load = useCallback(async (period?: { year: number; month: number }) => {
@@ -70,13 +71,37 @@ export function EventCalendar() {
             <span className="demo-badge">{calendar?.source === "google" ? "Google Kalendář" : "Demo API"}</span>
             <h2>{monthLabel}</h2>
           </div>
-          <div className="calendar-controls">
-            <button type="button" aria-label="Předchozí měsíc" disabled={!period || loading || period.year <= 2020} onClick={() => changeMonth(-1)}>
-              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-            </button>
-            <button type="button" aria-label="Následující měsíc" disabled={!period || loading || period.year >= 2035} onClick={() => changeMonth(1)}>
-              <ChevronRight className="h-5 w-5" aria-hidden="true" />
-            </button>
+          <div className="calendar-toolbar-actions">
+            <div className="calendar-view-toggle" aria-label="Zobrazení kalendáře">
+              <button
+                type="button"
+                className={view === "grid" ? "calendar-view-active" : undefined}
+                aria-pressed={view === "grid"}
+                title="Mřížka"
+                onClick={() => setView("grid")}
+              >
+                <Grid2X2 className="h-4 w-4" aria-hidden="true" />
+                <span>Mřížka</span>
+              </button>
+              <button
+                type="button"
+                className={view === "list" ? "calendar-view-active" : undefined}
+                aria-pressed={view === "list"}
+                title="Seznam"
+                onClick={() => setView("list")}
+              >
+                <List className="h-4 w-4" aria-hidden="true" />
+                <span>Seznam</span>
+              </button>
+            </div>
+            <div className="calendar-controls">
+              <button type="button" aria-label="Předchozí měsíc" disabled={!period || loading || period.year <= 2020} onClick={() => changeMonth(-1)}>
+                <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+              </button>
+              <button type="button" aria-label="Následující měsíc" disabled={!period || loading || period.year >= 2035} onClick={() => changeMonth(1)}>
+                <ChevronRight className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -94,7 +119,7 @@ export function EventCalendar() {
 
         {!error && period ? (
           <>
-            <div className="calendar-desktop">
+            <div className={view === "grid" ? "calendar-desktop" : "calendar-desktop calendar-view-hidden"}>
               <div className="calendar-weekdays" aria-hidden="true">
                 {weekDays.map((day) => <span key={day}>{day}</span>)}
               </div>
@@ -117,24 +142,27 @@ export function EventCalendar() {
               </div>
             </div>
 
-            <div className="calendar-mobile">
+            <div className={view === "grid" ? "calendar-mobile" : "calendar-view-hidden"}>
               {events.length > 0 ? events.map((event) => <CalendarListItem key={event.id} event={event} />) : <CalendarEmpty />}
+            </div>
+            <div className={view === "list" ? "calendar-list-view" : "calendar-view-hidden"}>
+              {events.length > 0 ? events.map((event) => <CalendarListItem key={`list-${event.id}`} event={event} />) : <CalendarEmpty />}
             </div>
           </>
         ) : null}
       </section>
 
       <aside className="calendar-agenda">
-        <p className="eyebrow text-sokol-red">Nejbližší položky</p>
-        <h2>Program v přehledu</h2>
+        <p className="eyebrow text-sokol-red">Přehled kategorií</p>
+        <h2>Jak číst kalendář</h2>
         <p className="calendar-disclaimer">
           {calendar?.demo
             ? "Kalendář běží přes funkční API s ukázkovými daty. Po připojení veřejného Google Kalendáře se obsah začne načítat automaticky."
             : "Program se načítá z veřejného kalendáře jednoty. Změny se mohou projevit s krátkým zpožděním."}
         </p>
-        <div className="calendar-agenda-list">
-          {!loading && !error && events.length === 0 ? <CalendarEmpty /> : null}
-          {events.map((event) => <CalendarListItem key={`agenda-${event.id}`} event={event} />)}
+        <div className="calendar-legend">
+          <span className="category-label category-training">Tréninky</span>
+          <span className="category-label category-event">Výlety a akce</span>
         </div>
       </aside>
     </div>

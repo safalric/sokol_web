@@ -8,7 +8,7 @@ export const SECURITY_HEADERS = {
     "connect-src 'self'",
     "media-src 'self'",
     "object-src 'none'",
-    "frame-src 'none'",
+    "frame-src https://www.openstreetmap.org",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

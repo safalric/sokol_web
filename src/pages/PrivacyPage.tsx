@@ -35,8 +35,8 @@ const privacySections = [
     text: "Můžete žádat přístup, opravu, výmaz, omezení zpracování, přenositelnost tam, kde se uplatní, a vznést námitku. Dobrovolný souhlas lze kdykoli odvolat. Žádost bude vyřízena bez zbytečného odkladu, zpravidla nejpozději do jednoho měsíce.",
   },
   {
-    title: "Cookies a automatizace",
-    text: "Aplikační kód nepoužívá analytické ani marketingové cookies, reklamní profilování ani automatizované rozhodování. Případné technicky nezbytné prvky hostingové služby musí být před ostrým spuštěním znovu ověřeny a popsány.",
+    title: "Cookies, mapa a automatizace",
+    text: "Aplikační kód nepoužívá analytické ani marketingové cookies, reklamní profilování ani automatizované rozhodování. Kontaktní stránka načítá mapový náhled od OpenStreetMap; provozovatel mapy při tom může obdržet IP adresu a technické údaje požadavku. Odkaz na Google Mapy se otevře pouze na výslovný pokyn návštěvníka.",
   },
 ];
 

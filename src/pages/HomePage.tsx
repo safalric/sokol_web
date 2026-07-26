@@ -1,8 +1,12 @@
-import { AlertTriangle, ArrowRight, CalendarDays, Info, Megaphone } from "lucide-react";
+import { AlertTriangle, ArrowRight, Expand, Info, Megaphone } from "lucide-react";
+import { useState } from "react";
+import { PosterLightbox } from "../components/PosterLightbox";
 import { PosterAction, Section } from "../components/PagePrimitives";
-import { events, notices, quickLinks } from "../data/siteContent";
+import { events, notices, quickLinks, type SiteEvent } from "../data/siteContent";
 
 export function HomePage({ onNavigate }: { onNavigate: (href: string) => void }) {
+  const [activePoster, setActivePoster] = useState<SiteEvent | null>(null);
+
   return (
     <>
       <section className="hero-clean">
@@ -64,13 +68,18 @@ export function HomePage({ onNavigate }: { onNavigate: (href: string) => void })
         <div className="poster-grid">
           {events.map((event) => (
             <article key={event.title} className="poster-card">
-              <div className="poster-visual">
-                <span>{event.category}</span>
-                <div className="poster-date">
-                  <CalendarDays className="h-9 w-9" aria-hidden="true" />
-                  <strong>{event.date}</strong>
-                </div>
-              </div>
+              <button
+                className="poster-preview-button"
+                type="button"
+                aria-label={`Zvětšit plakát k akci ${event.title}`}
+                onClick={() => setActivePoster(event)}
+              >
+                <img src={event.posterPreviewUrl} alt={`Náhled plakátu k akci ${event.title}`} />
+                <span className="poster-preview-overlay">
+                  <Expand className="h-5 w-5" aria-hidden="true" />
+                  Zvětšit plakát
+                </span>
+              </button>
               <div className="poster-content">
                 <span className="demo-badge">{event.status}</span>
                 <h3>{event.title}</h3>
@@ -84,6 +93,9 @@ export function HomePage({ onNavigate }: { onNavigate: (href: string) => void })
           ))}
         </div>
       </Section>
+      {activePoster ? (
+        <PosterLightbox event={activePoster} onClose={() => setActivePoster(null)} onNavigate={onNavigate} />
+      ) : null}
     </>
   );
 }

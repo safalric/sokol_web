@@ -12,6 +12,19 @@ import {
 
 export const memberApplicationUrl = "https://www.ecz-sokol.cz/clen/prihlaska";
 
+export const socialLinks = [
+  {
+    label: "Facebook TJ Sokol Doudleby nad Orlicí",
+    shortLabel: "Facebook",
+    href: "https://www.facebook.com/TJ-Sokol-Doudleby-nad-Orlic%C3%AD-1547925445429424",
+  },
+  {
+    label: "Instagram České obce sokolské",
+    shortLabel: "Instagram Sokol",
+    href: "https://www.instagram.com/ceskaobecsokolska/",
+  },
+] as const;
+
 export const navigation = [
   { label: "Úvod", href: "/" },
   { label: "Cvičení / Oddíly", href: "/cviceni" },
@@ -153,6 +166,7 @@ export const events = [
       "Rodinný výlet pro děti, rodiče i členy jednoty. Počítá se s lehčí trasou, společným obědem a návratem odpoledne.",
     registration: true,
     posterUrl: "/posters/sokolsky-vylet-2026.pdf",
+    posterPreviewUrl: "/posters/sokolsky-vylet-2026.png",
   },
   {
     title: "Sokolský běh republiky",
@@ -165,6 +179,7 @@ export const events = [
     description: "Komunitní běh pro všechny věkové kategorie. Připravujeme tratě pro děti i dospělé.",
     registration: false,
     posterUrl: "/posters/sokolsky-beh-republiky-2026.pdf",
+    posterPreviewUrl: "/posters/sokolsky-beh-republiky-2026.png",
   },
   {
     title: "Letní tábor",
@@ -177,8 +192,11 @@ export const events = [
     description: "Informační karta pro budoucí tábor. Později doplníme termín, cenu a pokyny pro rodiče.",
     registration: false,
     posterUrl: "/posters/letni-tabor-2027.pdf",
+    posterPreviewUrl: "/posters/letni-tabor-2027.png",
   },
 ];
+
+export type SiteEvent = (typeof events)[number];
 
 export const gallery = [
   { title: "Cvičení dětí", meta: "pohybová všestrannost", tone: "red" },

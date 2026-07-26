@@ -222,6 +222,7 @@ test("API and HTML responses include security headers", async () => {
   assert.equal(api.headers.get("X-Content-Type-Options"), "nosniff");
   assert.equal(html.headers.get("X-Frame-Options"), "DENY");
   assert.match(html.headers.get("Content-Security-Policy"), /frame-ancestors 'none'/);
+  assert.match(html.headers.get("Content-Security-Policy"), /frame-src https:\/\/www\.openstreetmap\.org/);
   assert.doesNotMatch(html.headers.get("Content-Security-Policy"), /unsafe-inline/);
   assert.equal(html.headers.get("Cross-Origin-Opener-Policy"), "same-origin");
 });

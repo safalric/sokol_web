@@ -1,4 +1,4 @@
-import { Camera, ExternalLink, MapPin } from "lucide-react";
+import { Camera, ExternalLink } from "lucide-react";
 import { InfoRow, PageShell } from "../components/PagePrimitives";
 import {
   coachContacts,
@@ -97,7 +97,7 @@ export function GalleryPage() {
       <div className="gallery-grid">
         {gallery.map((item, index) => (
           <article key={item.title} className={`gallery-card gallery-${item.tone}`}>
-            <img className="gallery-watermark" src="/brand/sokol-symbol-rgb.png" alt="" aria-hidden="true" />
+            <span className="gallery-watermark" aria-hidden="true" />
             <div className="gallery-number">{String(index + 1).padStart(2, "0")}</div>
             <div>
               <span className="gallery-demo-label">Demo album</span>
@@ -140,6 +140,8 @@ export function HistoryPage() {
 export function ContactPage({ onNavigate }: { onNavigate: (href: string) => void }) {
   const mapUrl =
     "https://www.google.com/maps/search/?api=1&query=%C5%A0vermova%20528%2C%20517%2042%20Doudleby%20nad%20Orlic%C3%AD";
+  const mapPreviewUrl =
+    "https://www.openstreetmap.org/export/embed.html?bbox=16.25037%2C50.10361%2C16.26237%2C50.11061&layer=mapnik&marker=50.10711%2C16.25637";
 
   return (
     <PageShell title="Kontakt">
@@ -151,18 +153,42 @@ export function ContactPage({ onNavigate }: { onNavigate: (href: string) => void
           </dl>
           <button className="btn-outline mt-6" type="button" onClick={() => onNavigate("/gdpr")}>Ochrana osobních údajů</button>
         </article>
-        <div className="map-placeholder">
-          <div className="map-marker"><MapPin className="h-8 w-8" aria-hidden="true" /></div>
-          <div>
-            <strong>Sídlo jednoty</strong>
-            <span>Švermova 528, 517 42 Doudleby nad Orlicí</span>
-          </div>
-          <a className="btn-outline inline-flex items-center gap-2" href={mapUrl} target="_blank" rel="noopener noreferrer">
-            Otevřít v mapě
-            <ExternalLink className="h-4 w-4" aria-hidden="true" />
-          </a>
-        </div>
+        <figure className="map-preview">
+          <iframe
+            src={mapPreviewUrl}
+            title="Mapa sídla TJ Sokol Doudleby nad Orlicí"
+            loading="lazy"
+            referrerPolicy="no-referrer"
+          />
+          <figcaption className="map-preview-caption">
+            <div>
+              <strong>Sídlo jednoty</strong>
+              <span>Švermova 528, 517 42 Doudleby nad Orlicí</span>
+              <small>
+                Mapová data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>
+              </small>
+            </div>
+            <a className="btn-outline inline-flex items-center justify-center gap-2" href={mapUrl} target="_blank" rel="noopener noreferrer">
+              Otevřít v mapě
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            </a>
+          </figcaption>
+        </figure>
       </div>
+      <section className="contact-leadership" aria-labelledby="contact-leadership-heading">
+        <p className="eyebrow text-sokol-red">Kontaktní osoby</p>
+        <h2 id="contact-leadership-heading" className="section-title">Vedení jednoty</h2>
+        <div className="contact-leadership-grid">
+          {leadership.map((person) => (
+            <article key={`contact-${person.role}-${person.name}`} className="person-row">
+              <strong>{person.role}</strong>
+              <span>{person.name}</span>
+              <a href={`tel:${person.phone.replace(/\s/g, "")}`}>{person.phone}</a>
+              {person.email ? <a href={`mailto:${person.email}`}>{person.email}</a> : null}
+            </article>
+          ))}
+        </div>
+      </section>
     </PageShell>
   );
 }

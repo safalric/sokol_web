@@ -188,7 +188,10 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
     setSuccessResult(null);
 
     try {
-      const result = await submitEventRegistration(toPayload(values, submissionId));
+      const [result] = await Promise.all([
+        submitEventRegistration(toPayload(values, submissionId)),
+        new Promise<void>((resolve) => window.setTimeout(resolve, 1000)),
+      ]);
       setStatus("success");
       setSuccessResult(result);
       setValues(initialValues(eventName));
@@ -360,7 +363,11 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
       {status === "success" ? (
         <StatusMessage
           tone="success"
-          message={successResult?.mode === "live" ? `Přihláška byla bezpečně doručena. ID: ${successResult.receiptId}` : `Přihláška prošla serverovou kontrolou v demo režimu. ID: ${successResult?.receiptId ?? "demo"}. Žádná data nebyla uložena ani odeslána.`}
+          message={
+            successResult?.mode === "live"
+              ? "Přihláška byla úspěšně odeslána. Potvrzení bylo zasláno na e-mail."
+              : "Demo přihláška byla úspěšně zkontrolována. V ostrém provozu by potvrzení přišlo na e-mail; žádná data nebyla uložena ani odeslána."
+          }
         />
       ) : null}
       {status === "success" && successResult?.preview ? (

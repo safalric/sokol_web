@@ -7,8 +7,7 @@ export function SokolLogo({ compact = false }: SokolLogoProps) {
     <img
       className={compact ? "sokol-logo sokol-logo-compact" : "sokol-logo"}
       src="/brand/sokol-symbol-rgb.png"
-      alt=""
-      aria-hidden="true"
+      alt="Logo TJ Sokol Doudleby nad Orlicí"
     />
   );
 }

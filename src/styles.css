@@ -63,7 +63,7 @@
   }
 
   .brand-lockup {
-    @apply flex items-center gap-3 border-0 bg-transparent p-0 text-left;
+    @apply flex items-center gap-3 border-0 bg-transparent p-0 text-left transition-all duration-200 hover:opacity-80;
   }
 
   .brand-copy {
@@ -92,7 +92,7 @@
   }
 
   .nav-link {
-    @apply inline-flex min-h-10 items-center gap-1 border-0 bg-transparent px-2.5 py-2 text-sm font-bold text-zinc-950 no-underline transition hover:bg-zinc-100 hover:text-sokol-red;
+    @apply inline-flex min-h-10 items-center gap-1 border-0 bg-transparent px-2.5 py-2 text-sm font-bold text-zinc-950 no-underline transition-all duration-200 hover:bg-zinc-100 hover:text-sokol-red;
   }
 
   .nav-link-active {
@@ -100,7 +100,7 @@
   }
 
   .menu-button {
-    @apply grid h-11 w-11 shrink-0 place-items-center border border-zinc-400 bg-white text-zinc-950 transition hover:border-sokol-red hover:text-sokol-red lg:hidden;
+    @apply grid h-11 w-11 shrink-0 place-items-center border border-zinc-400 bg-white text-zinc-950 transition-all duration-200 hover:border-sokol-red hover:bg-red-50 hover:text-sokol-red lg:hidden;
   }
 
   .mobile-nav {
@@ -116,7 +116,7 @@
   }
 
   .mobile-link {
-    @apply flex min-h-12 items-center gap-3 border-l-4 border-transparent bg-transparent px-3 py-3 text-left font-semibold text-zinc-900 no-underline transition hover:border-zinc-300 hover:bg-zinc-100 hover:text-sokol-red;
+    @apply flex min-h-12 items-center gap-3 border-l-4 border-transparent bg-transparent px-3 py-3 text-left font-semibold text-zinc-900 no-underline transition-all duration-200 hover:border-zinc-300 hover:bg-zinc-100 hover:text-sokol-red;
   }
 
   .mobile-link svg {
@@ -133,7 +133,7 @@
 
   .mobile-cta,
   .header-cta {
-    @apply inline-flex items-center justify-center gap-2 bg-sokol-red px-4 py-2.5 text-sm font-bold text-white no-underline transition hover:bg-red-800;
+    @apply inline-flex items-center justify-center gap-2 border border-sokol-red bg-sokol-red px-4 py-2.5 text-sm font-bold text-white no-underline transition-all duration-200 hover:border-red-800 hover:bg-red-800;
   }
 
   .mobile-cta {
@@ -162,15 +162,27 @@
   }
 
   .more-menu-link {
-    @apply px-3 py-2.5 text-sm font-bold text-zinc-900 no-underline hover:bg-zinc-100 hover:text-sokol-red;
+    @apply flex items-center justify-between gap-3 px-3 py-2.5 text-sm font-bold text-zinc-900 no-underline transition-all duration-200 hover:bg-zinc-100 hover:text-sokol-red;
   }
 
   .more-menu-link-active {
     @apply bg-zinc-100 text-sokol-red;
   }
 
+  .more-menu-socials {
+    @apply mt-2 grid border-t border-zinc-200 pt-2;
+  }
+
+  .mobile-social-links {
+    @apply grid grid-cols-2 gap-2 border-t border-zinc-200 pt-3;
+  }
+
+  .mobile-social-links a {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 border border-zinc-300 bg-white px-3 py-2 text-sm font-bold text-zinc-900 no-underline transition-all duration-200 hover:border-sokol-blue hover:bg-blue-50 hover:text-sokol-blue;
+  }
+
   .hero-clean {
-    @apply bg-[#bd0f2b] text-white;
+    @apply bg-sokol-red text-white;
   }
 
   .hero-inner {
@@ -211,7 +223,7 @@
   }
 
   .quick-card {
-    @apply flex min-h-20 items-center justify-between gap-4 rounded border border-zinc-300 bg-white px-5 py-4 text-left font-bold text-zinc-950 shadow-sm transition hover:-translate-y-0.5 hover:border-sokol-red hover:shadow-soft;
+    @apply flex min-h-20 items-center justify-between gap-4 rounded border border-zinc-300 bg-white px-5 py-4 text-left font-bold text-zinc-950 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-sokol-red hover:shadow-soft;
   }
 
   .section {
@@ -247,7 +259,19 @@
   .simple-card,
   .event-card,
   .department-card {
-    @apply min-w-0 rounded border border-zinc-300 bg-white p-6 shadow-sm;
+    @apply min-w-0 rounded border border-zinc-300 bg-white p-6 shadow-sm transition-all duration-200;
+  }
+
+  @media (hover: hover) {
+    .simple-card:hover,
+    .event-card:hover,
+    .department-card:hover,
+    .coach-card:hover,
+    .gallery-card:hover,
+    .history-story:hover,
+    .timeline-item:hover {
+      @apply -translate-y-0.5 border-zinc-400 shadow-soft;
+    }
   }
 
   .content-card h2,
@@ -354,19 +378,19 @@
   }
 
   .btn-primary {
-    @apply max-w-full whitespace-normal border border-sokol-red bg-sokol-red px-5 py-3 text-center text-sm font-bold leading-5 text-white transition hover:bg-red-800;
+    @apply max-w-full whitespace-normal border border-sokol-red bg-sokol-red px-5 py-3 text-center text-sm font-bold leading-5 text-white transition-all duration-200 hover:border-red-800 hover:bg-red-800 hover:shadow-md;
   }
 
   .btn-outline {
-    @apply border border-zinc-950 bg-transparent px-5 py-3 text-center text-sm font-bold text-zinc-950 transition hover:bg-zinc-950 hover:text-white;
+    @apply border border-zinc-950 bg-transparent px-5 py-3 text-center text-sm font-bold text-zinc-950 transition-all duration-200 hover:bg-zinc-950 hover:text-white hover:shadow-md;
   }
 
   .btn-outline-light {
-    @apply border border-white bg-transparent px-5 py-3 text-center text-sm font-bold text-white transition hover:bg-white hover:text-sokol-red;
+    @apply border border-white bg-transparent px-5 py-3 text-center text-sm font-bold text-white transition-all duration-200 hover:bg-white hover:text-sokol-red hover:shadow-md;
   }
 
   .text-link {
-    @apply mt-5 inline-flex border-0 bg-transparent p-0 text-sm font-bold text-sokol-red underline-offset-4 hover:underline;
+    @apply mt-5 inline-flex border-0 bg-transparent p-0 text-sm font-bold text-sokol-red underline-offset-4 transition-all duration-200 hover:text-red-800 hover:underline;
   }
 
   .poster-grid {
@@ -374,29 +398,35 @@
   }
 
   .poster-card {
-    @apply grid overflow-hidden rounded border border-zinc-300 bg-white shadow-sm sm:grid-cols-[0.42fr_0.58fr] lg:grid-cols-1 lg:grid-rows-[224px_1fr];
+    @apply grid min-w-0 overflow-hidden rounded border border-zinc-300 bg-white shadow-sm transition-all duration-200;
   }
 
-  .poster-visual {
-    @apply grid min-h-52 content-between gap-8 bg-sokol-red p-6 text-white;
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-      linear-gradient(135deg, rgba(0, 0, 0, 0.08), transparent 55%);
-    background-size: 100% 28px, 100% 100%;
+  @media (hover: hover) {
+    .poster-card:hover {
+      @apply -translate-y-0.5 border-sokol-red shadow-soft;
+    }
   }
 
-  .poster-visual span {
-    @apply text-xs font-black uppercase tracking-[0.14em];
+  .poster-preview-button {
+    @apply relative block h-64 w-full overflow-hidden border-0 border-b border-zinc-300 bg-zinc-100 p-0 text-left;
   }
 
-  .poster-date {
-    @apply grid min-w-0 gap-4 border-l-4 border-white pl-4;
+  .poster-preview-button img {
+    @apply h-full w-full object-cover object-top transition-all duration-200;
   }
 
-  .poster-date strong {
-    @apply block min-w-0 max-w-full font-sans text-2xl font-black uppercase leading-tight;
-    letter-spacing: 0;
-    overflow-wrap: anywhere;
+  .poster-preview-overlay {
+    @apply absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 bg-zinc-950/90 px-4 py-3 text-sm font-bold text-white transition-all duration-200;
+  }
+
+  @media (hover: hover) {
+    .poster-preview-button:hover img {
+      @apply scale-[1.02];
+    }
+
+    .poster-preview-button:hover .poster-preview-overlay {
+      @apply bg-sokol-red;
+    }
   }
 
   .poster-content {
@@ -424,11 +454,52 @@
   }
 
   .poster-download-button {
-    @apply inline-flex w-fit items-center gap-2 border-0 bg-transparent p-0 text-left text-sm font-bold text-zinc-900 underline decoration-zinc-400 underline-offset-4 hover:text-sokol-red;
+    @apply inline-flex w-fit items-center gap-2 border-0 bg-transparent p-0 text-left text-sm font-bold text-zinc-900 underline decoration-zinc-400 underline-offset-4 transition-all duration-200 hover:text-sokol-red;
   }
 
   .poster-download span {
     @apply text-xs font-semibold leading-5 text-zinc-600;
+  }
+
+  .poster-lightbox {
+    @apply m-auto max-h-[94vh] w-[min(94vw,980px)] max-w-none overflow-visible border-0 bg-transparent p-0;
+  }
+
+  .poster-lightbox::backdrop {
+    background: rgba(9, 9, 11, 0.82);
+    backdrop-filter: blur(4px);
+  }
+
+  .poster-lightbox-panel {
+    @apply relative grid max-h-[94vh] overflow-auto border border-white/20 bg-white shadow-2xl md:grid-cols-[minmax(300px,0.9fr)_minmax(300px,0.7fr)];
+  }
+
+  .poster-lightbox-close {
+    @apply absolute right-3 top-3 z-10 grid h-11 w-11 place-items-center border border-zinc-300 bg-white text-zinc-950 shadow-md transition-all duration-200 hover:border-sokol-red hover:bg-sokol-red hover:text-white;
+  }
+
+  .poster-lightbox-image-wrap {
+    @apply grid min-h-0 place-items-center bg-zinc-900 p-3 sm:p-5;
+  }
+
+  .poster-lightbox-image-wrap img {
+    @apply max-h-[76vh] w-full object-contain;
+  }
+
+  .poster-lightbox-content {
+    @apply flex min-w-0 flex-col justify-center p-6 sm:p-8;
+  }
+
+  .poster-lightbox-content h2 {
+    @apply mt-4 font-display text-4xl uppercase leading-none text-zinc-950;
+  }
+
+  .poster-lightbox-content p {
+    @apply mt-4 font-semibold leading-7 text-zinc-700;
+  }
+
+  .poster-lightbox-actions {
+    @apply mt-7 grid gap-3;
   }
 
   .check-row {
@@ -463,7 +534,7 @@
   }
 
   .coach-card {
-    @apply border border-zinc-300 bg-white p-5 shadow-sm;
+    @apply border border-zinc-300 bg-white p-5 shadow-sm transition-all duration-200;
   }
 
   .coach-card h3 {
@@ -503,7 +574,7 @@
   }
 
   .gallery-card {
-    @apply relative flex min-h-56 flex-col justify-between overflow-hidden rounded border border-zinc-200 p-6 text-white shadow-sm;
+    @apply relative flex min-h-56 flex-col justify-between overflow-hidden rounded border border-zinc-200 p-6 text-white shadow-sm transition-all duration-200;
   }
 
   .gallery-card p {
@@ -515,7 +586,8 @@
   }
 
   .gallery-watermark {
-    @apply absolute -right-8 -top-8 h-44 w-44 object-contain opacity-20 grayscale brightness-0 invert;
+    @apply absolute -right-8 -top-8 h-44 w-44 bg-contain bg-center bg-no-repeat opacity-20 grayscale brightness-0 invert;
+    background-image: url("/brand/sokol-symbol-rgb.png");
   }
 
   .gallery-card > div:last-child {
@@ -555,7 +627,7 @@
   }
 
   .timeline-item {
-    @apply grid gap-5 border border-zinc-300 border-l-8 border-l-sokol-red bg-white p-6 shadow-sm md:grid-cols-[160px_1fr];
+    @apply grid gap-5 border border-zinc-300 border-l-8 border-l-sokol-red bg-white p-6 shadow-sm transition-all duration-200 md:grid-cols-[160px_1fr];
   }
 
   .timeline-year {
@@ -567,7 +639,7 @@
   }
 
   .history-story {
-    @apply border border-zinc-300 bg-white p-6 shadow-sm;
+    @apply border border-zinc-300 bg-white p-6 shadow-sm transition-all duration-200;
   }
 
   .history-story h2 {
@@ -578,21 +650,51 @@
     @apply mt-4 leading-7 text-zinc-800;
   }
 
-  .map-placeholder {
-    @apply grid min-h-72 place-items-center gap-5 rounded border border-zinc-300 bg-[linear-gradient(90deg,#e5e7eb_1px,transparent_1px),linear-gradient(#e5e7eb_1px,transparent_1px)] bg-[size:28px_28px] p-6 text-center text-zinc-800;
+  .map-preview {
+    @apply grid min-h-[420px] min-w-0 overflow-hidden rounded border border-zinc-300 bg-white shadow-sm;
+    grid-template-rows: minmax(300px, 1fr) auto;
   }
 
-  .map-placeholder > div:not(.map-marker) {
-    @apply grid gap-1 bg-white px-4 py-3 shadow-sm;
+  .map-preview iframe {
+    @apply h-full min-h-[300px] w-full border-0 bg-zinc-100;
   }
 
-  .map-placeholder strong,
-  .map-placeholder span {
+  .map-preview-caption {
+    @apply flex flex-col gap-4 border-t border-zinc-300 bg-white p-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .map-preview-caption > div {
+    @apply grid min-w-0 gap-1;
+  }
+
+  .map-preview-caption strong,
+  .map-preview-caption span,
+  .map-preview-caption small {
     @apply block;
   }
 
-  .map-marker {
-    @apply grid h-16 w-16 place-items-center rounded-full bg-sokol-red text-white shadow-soft;
+  .map-preview-caption strong {
+    @apply font-bold text-zinc-950;
+  }
+
+  .map-preview-caption span {
+    @apply text-sm text-zinc-700;
+  }
+
+  .map-preview-caption small {
+    @apply mt-1 text-xs text-zinc-500;
+  }
+
+  .map-preview-caption small a {
+    @apply font-semibold text-zinc-700 underline underline-offset-2 transition-all duration-200 hover:text-sokol-red;
+  }
+
+  .contact-leadership {
+    @apply mt-10;
+  }
+
+  .contact-leadership-grid {
+    @apply mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3;
   }
 
   .registration-form {
@@ -616,7 +718,7 @@
   }
 
   .form-input {
-    @apply w-full border border-zinc-400 bg-white px-3 py-3 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-500 focus:border-sokol-red focus:ring-2 focus:ring-sokol-red/25;
+    @apply w-full border border-zinc-400 bg-white px-3 py-3 text-sm text-zinc-950 outline-none transition-all duration-200 placeholder:text-zinc-500 hover:border-zinc-600 focus:border-sokol-red focus:ring-2 focus:ring-sokol-red/25;
   }
 
   .form-input[aria-invalid="true"] {
@@ -624,7 +726,7 @@
   }
 
   .consent-field {
-    @apply flex items-start gap-3 border border-zinc-300 bg-white p-4 text-sm leading-6 text-zinc-800;
+    @apply flex items-start gap-3 border border-zinc-300 bg-white p-4 text-sm leading-6 text-zinc-800 transition-all duration-200 hover:border-zinc-500 hover:bg-zinc-50;
   }
 
   .consent-field input {
@@ -690,7 +792,7 @@
   }
 
   .calendar-toolbar {
-    @apply flex items-center justify-between gap-4 border-b border-zinc-200 pb-5;
+    @apply flex flex-col items-stretch justify-between gap-4 border-b border-zinc-200 pb-5 sm:flex-row sm:items-center;
   }
 
   .calendar-toolbar h2,
@@ -703,7 +805,23 @@
   }
 
   .calendar-controls button {
-    @apply grid h-11 w-11 place-items-center border border-zinc-400 bg-white text-zinc-950 transition hover:border-sokol-red hover:text-sokol-red disabled:cursor-not-allowed disabled:opacity-35;
+    @apply grid h-11 w-11 place-items-center border border-zinc-400 bg-white text-zinc-950 transition-all duration-200 hover:border-sokol-red hover:bg-red-50 hover:text-sokol-red disabled:cursor-not-allowed disabled:opacity-35;
+  }
+
+  .calendar-toolbar-actions {
+    @apply flex flex-wrap items-center justify-between gap-3 sm:justify-end;
+  }
+
+  .calendar-view-toggle {
+    @apply hidden border border-zinc-400 bg-white p-1 md:flex;
+  }
+
+  .calendar-view-toggle button {
+    @apply inline-flex min-h-9 items-center gap-2 border-0 bg-transparent px-3 py-2 text-xs font-bold text-zinc-700 transition-all duration-200 hover:bg-zinc-100 hover:text-zinc-950;
+  }
+
+  .calendar-view-toggle .calendar-view-active {
+    @apply bg-zinc-950 text-white hover:bg-zinc-950 hover:text-white;
   }
 
   .calendar-live-status {
@@ -759,6 +877,14 @@
     @apply mt-5 grid gap-3 md:hidden;
   }
 
+  .calendar-list-view {
+    @apply mt-5 grid gap-3 sm:grid-cols-2;
+  }
+
+  .calendar-view-hidden {
+    display: none !important;
+  }
+
   .calendar-agenda {
     @apply h-fit;
   }
@@ -767,12 +893,18 @@
     @apply mt-4 text-sm leading-6 text-zinc-700;
   }
 
-  .calendar-agenda-list {
-    @apply mt-5 grid gap-3;
+  .calendar-legend {
+    @apply mt-5 flex flex-wrap gap-2 border-t border-zinc-200 pt-5;
   }
 
   .calendar-list-item {
-    @apply rounded border border-zinc-300 bg-zinc-50 p-4;
+    @apply rounded border border-zinc-300 bg-zinc-50 p-4 transition-all duration-200;
+  }
+
+  @media (hover: hover) {
+    .calendar-list-item:hover {
+      @apply border-zinc-500 bg-white shadow-sm;
+    }
   }
 
   .calendar-list-heading {
@@ -816,7 +948,7 @@
   }
 
   .footer-brand {
-    @apply flex items-center gap-3 border-0 bg-transparent p-0 text-left;
+    @apply flex items-center gap-3 border-0 bg-transparent p-0 text-left transition-all duration-200 hover:opacity-80;
   }
 
   .footer-brand strong {
@@ -828,7 +960,15 @@
   }
 
   .footer-contact {
-    @apply flex items-center gap-2 text-sm font-semibold text-white underline-offset-4 hover:underline;
+    @apply flex items-center gap-2 text-sm font-semibold text-white underline-offset-4 transition-all duration-200 hover:text-red-200 hover:underline;
+  }
+
+  .footer-socials {
+    @apply flex flex-wrap gap-x-4 gap-y-2;
+  }
+
+  .footer-socials a {
+    @apply inline-flex items-center gap-1.5 text-xs font-bold text-zinc-200 underline-offset-4 transition-all duration-200 hover:text-white hover:underline;
   }
 
   .footer-ico {
@@ -840,7 +980,7 @@
   }
 
   .footer-links button {
-    @apply border-0 bg-transparent p-0 text-left text-sm font-bold text-white underline underline-offset-4;
+    @apply border-0 bg-transparent p-0 text-left text-sm font-bold text-white underline underline-offset-4 transition-all duration-200 hover:text-red-200;
   }
 
   .footer-meta {
