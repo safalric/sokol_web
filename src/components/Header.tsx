@@ -15,6 +15,7 @@ import {
 import { useEffect, useRef, useState, type ComponentType } from "react";
 import { memberApplicationUrl, navigation, secondaryNavigation, socialLinks } from "../data/siteContent";
 import { SokolLogo } from "./SokolLogo";
+import { ThemeToggle } from "./ThemeToggle";
 
 type HeaderProps = {
   currentPath: string;
@@ -176,18 +177,21 @@ export function Header({ currentPath, onNavigate }: HeaderProps) {
           </a>
         </nav>
 
-        <button
-          ref={menuButtonRef}
-          type="button"
-          className="menu-button"
-          aria-label={isOpen ? "Zavřít navigaci" : "Otevřít navigaci"}
-          aria-expanded={isOpen}
-          aria-controls="mobile-navigation"
-          title={isOpen ? "Zavřít menu" : "Otevřít menu"}
-          onClick={() => setIsOpen((current) => !current)}
-        >
-          {isOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
-        </button>
+        <div className="header-actions">
+          <ThemeToggle />
+          <button
+            ref={menuButtonRef}
+            type="button"
+            className="menu-button"
+            aria-label={isOpen ? "Zavřít navigaci" : "Otevřít navigaci"}
+            aria-expanded={isOpen}
+            aria-controls="mobile-navigation"
+            title={isOpen ? "Zavřít menu" : "Otevřít menu"}
+            onClick={() => setIsOpen((current) => !current)}
+          >
+            {isOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
+          </button>
+        </div>
         </div>
       </header>
 

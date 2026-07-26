@@ -5,6 +5,7 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    color-scheme: light;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -101,6 +102,14 @@
 
   .menu-button {
     @apply grid h-11 w-11 shrink-0 place-items-center border border-zinc-400 bg-white text-zinc-950 transition-all duration-200 hover:border-sokol-red hover:bg-red-50 hover:text-sokol-red lg:hidden;
+  }
+
+  .header-actions {
+    @apply flex shrink-0 items-center gap-2;
+  }
+
+  .theme-toggle {
+    @apply grid h-11 w-11 shrink-0 place-items-center border border-zinc-400 bg-white text-zinc-950 transition-all duration-200 hover:border-sokol-blue hover:bg-blue-50 hover:text-sokol-blue;
   }
 
   .mobile-nav {
@@ -997,5 +1006,373 @@
 
   .footer-meta {
     @apply text-xs text-zinc-400;
+  }
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] .bg-sokol-paper {
+  background: #0c0f14;
+  color: #e7e9ed;
+}
+
+html[data-theme="dark"] .text-sokol-ink {
+  color: #e7e9ed;
+}
+
+html[data-theme="dark"] :focus-visible {
+  outline-color: #7eb9ff;
+}
+
+html[data-theme="dark"] .site-header {
+  border-color: #e33a4f;
+  background: rgb(18 21 26 / 96%);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 38%);
+}
+
+html[data-theme="dark"] .brand-copy,
+html[data-theme="dark"] .nav-link,
+html[data-theme="dark"] .menu-button,
+html[data-theme="dark"] .theme-toggle,
+html[data-theme="dark"] .mobile-link,
+html[data-theme="dark"] .more-menu-link,
+html[data-theme="dark"] .mobile-social-links a {
+  color: #f7f7f8;
+}
+
+html[data-theme="dark"] .menu-button,
+html[data-theme="dark"] .theme-toggle,
+html[data-theme="dark"] .more-menu-panel,
+html[data-theme="dark"] .mobile-nav,
+html[data-theme="dark"] .mobile-social-links a {
+  border-color: #424852;
+  background: #15191f;
+}
+
+html[data-theme="dark"] .nav-link:hover,
+html[data-theme="dark"] .more-menu-link:hover,
+html[data-theme="dark"] .mobile-link:hover,
+html[data-theme="dark"] .menu-button:hover,
+html[data-theme="dark"] .theme-toggle:hover,
+html[data-theme="dark"] .mobile-social-links a:hover,
+html[data-theme="dark"] .more-menu[open] summary,
+html[data-theme="dark"] .more-menu-active summary {
+  background: #242a32;
+  color: #ff737b;
+}
+
+html[data-theme="dark"] .nav-link-active,
+html[data-theme="dark"] .more-menu-link-active,
+html[data-theme="dark"] .mobile-link-active {
+  border-color: #e33a4f;
+  background: #32191d;
+  color: #ff7d85;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .mobile-nav,
+html[data-theme="dark"] .mobile-nav-secondary,
+html[data-theme="dark"] .more-menu-socials,
+html[data-theme="dark"] .mobile-social-links {
+  border-color: #343a43;
+}
+
+html[data-theme="dark"] .mobile-link svg {
+  color: #aeb5bf;
+}
+
+html[data-theme="dark"] .mobile-link-active svg {
+  color: #ff737b;
+}
+
+html[data-theme="dark"] .section,
+html[data-theme="dark"] main {
+  background: #0c0f14;
+}
+
+html[data-theme="dark"] .page-band,
+html[data-theme="dark"] .section-white {
+  border-color: #303640;
+  background: #11151a;
+}
+
+html[data-theme="dark"] .quick-card,
+html[data-theme="dark"] .content-card,
+html[data-theme="dark"] .simple-card,
+html[data-theme="dark"] .event-card,
+html[data-theme="dark"] .department-card,
+html[data-theme="dark"] .poster-card,
+html[data-theme="dark"] .coach-card,
+html[data-theme="dark"] .application-preview,
+html[data-theme="dark"] .timeline-item,
+html[data-theme="dark"] .history-story,
+html[data-theme="dark"] .map-preview,
+html[data-theme="dark"] .registration-form,
+html[data-theme="dark"] .calendar-panel,
+html[data-theme="dark"] .calendar-agenda,
+html[data-theme="dark"] .privacy-summary {
+  border-color: #3a414b;
+  background: #15191f;
+  color: #e7e9ed;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 18%);
+}
+
+html[data-theme="dark"] .quick-card:hover,
+html[data-theme="dark"] .simple-card:hover,
+html[data-theme="dark"] .event-card:hover,
+html[data-theme="dark"] .department-card:hover,
+html[data-theme="dark"] .poster-card:hover,
+html[data-theme="dark"] .coach-card:hover,
+html[data-theme="dark"] .timeline-item:hover,
+html[data-theme="dark"] .history-story:hover {
+  border-color: #69717d;
+  background: #1b2027;
+}
+
+html[data-theme="dark"] .section-title,
+html[data-theme="dark"] .page-heading h1,
+html[data-theme="dark"] .content-card h2,
+html[data-theme="dark"] .simple-card h3,
+html[data-theme="dark"] .event-card h2,
+html[data-theme="dark"] .event-card h3,
+html[data-theme="dark"] .department-card h2,
+html[data-theme="dark"] .poster-content h3,
+html[data-theme="dark"] .poster-lightbox-content h2,
+html[data-theme="dark"] .coach-card h3,
+html[data-theme="dark"] .history-story h2,
+html[data-theme="dark"] .timeline-item h2,
+html[data-theme="dark"] .map-preview-caption strong,
+html[data-theme="dark"] .registration-heading h3,
+html[data-theme="dark"] .field-label,
+html[data-theme="dark"] .turnstile-shell > strong,
+html[data-theme="dark"] .calendar-toolbar h2,
+html[data-theme="dark"] .calendar-agenda h2,
+html[data-theme="dark"] .calendar-list-item h3,
+html[data-theme="dark"] .info-row dd,
+html[data-theme="dark"] .privacy-summary strong {
+  color: #f8f8f9;
+}
+
+html[data-theme="dark"] .page-intro,
+html[data-theme="dark"] .lead,
+html[data-theme="dark"] .content-card p,
+html[data-theme="dark"] .simple-card p,
+html[data-theme="dark"] .event-card p,
+html[data-theme="dark"] .department-card p,
+html[data-theme="dark"] .poster-content p,
+html[data-theme="dark"] .poster-lightbox-content p,
+html[data-theme="dark"] .history-story p,
+html[data-theme="dark"] .timeline-item p,
+html[data-theme="dark"] .coach-card p,
+html[data-theme="dark"] .check-row,
+html[data-theme="dark"] .map-preview-caption span,
+html[data-theme="dark"] .calendar-live-status,
+html[data-theme="dark"] .calendar-disclaimer,
+html[data-theme="dark"] .calendar-list-item p,
+html[data-theme="dark"] .calendar-empty,
+html[data-theme="dark"] .poster-download span,
+html[data-theme="dark"] .form-note,
+html[data-theme="dark"] .consent-field {
+  color: #c5cad2;
+}
+
+html[data-theme="dark"] .info-row dt,
+html[data-theme="dark"] .card-date,
+html[data-theme="dark"] .calendar-weekdays span,
+html[data-theme="dark"] .calendar-day-number,
+html[data-theme="dark"] .map-preview-caption small,
+html[data-theme="dark"] .text-zinc-600 {
+  color: #aeb5bf;
+}
+
+html[data-theme="dark"] .text-sokol-red,
+html[data-theme="dark"] .text-link,
+html[data-theme="dark"] .info-row dd a,
+html[data-theme="dark"] .person-row a,
+html[data-theme="dark"] .coach-card a,
+html[data-theme="dark"] .privacy-summary a {
+  color: #ff737b;
+}
+
+html[data-theme="dark"] .text-sokol-blue {
+  color: #7eb9ff;
+}
+
+html[data-theme="dark"] .btn-outline {
+  border-color: #d0d5dc;
+  color: #f7f7f8;
+}
+
+html[data-theme="dark"] .btn-outline:hover {
+  border-color: #ffffff;
+  background: #f7f7f8;
+  color: #111318;
+}
+
+html[data-theme="dark"] .demo-badge {
+  background: #e3e5e8;
+  color: #171a1f;
+}
+
+html[data-theme="dark"] .notice-label,
+html[data-theme="dark"] .calendar-day-empty,
+html[data-theme="dark"] .calendar-list-item,
+html[data-theme="dark"] .turnstile-shell {
+  border-color: #3a414b;
+  background: #1b2027;
+  color: #e7e9ed;
+}
+
+html[data-theme="dark"] .calendar-list-item:hover {
+  border-color: #69717d;
+  background: #222831;
+}
+
+html[data-theme="dark"] .person-row,
+html[data-theme="dark"] .form-note {
+  border-color: #4a4040;
+  background: #231e1e;
+}
+
+html[data-theme="dark"] .magnifier {
+  border-color: #e33a4f;
+  background: #1b2027;
+}
+
+html[data-theme="dark"] .magnifier p {
+  border-color: #5b2a30;
+  color: #d7dbe1;
+}
+
+html[data-theme="dark"] .poster-preview-button,
+html[data-theme="dark"] .poster-lightbox-image-wrap {
+  border-color: #3a414b;
+  background: #090b0e;
+}
+
+html[data-theme="dark"] .poster-lightbox-panel,
+html[data-theme="dark"] .poster-lightbox-close {
+  border-color: #424852;
+  background: #15191f;
+  color: #f7f7f8;
+}
+
+html[data-theme="dark"] .poster-lightbox-close:hover {
+  border-color: #e33a4f;
+  background: #d32f2f;
+}
+
+html[data-theme="dark"] .map-preview iframe {
+  background: #1b2027;
+  filter: brightness(0.78) contrast(1.12) saturate(0.82);
+}
+
+html[data-theme="dark"] .map-preview-caption {
+  border-color: #3a414b;
+  background: #15191f;
+}
+
+html[data-theme="dark"] .registration-heading,
+html[data-theme="dark"] .calendar-toolbar,
+html[data-theme="dark"] .calendar-weekdays span,
+html[data-theme="dark"] .calendar-day,
+html[data-theme="dark"] .calendar-legend {
+  border-color: #363d47;
+}
+
+html[data-theme="dark"] .form-input,
+html[data-theme="dark"] .consent-field,
+html[data-theme="dark"] .calendar-controls button,
+html[data-theme="dark"] .calendar-view-toggle {
+  border-color: #555d68;
+  background: #11151a;
+  color: #f1f2f4;
+}
+
+html[data-theme="dark"] .form-input::placeholder {
+  color: #8f98a4;
+}
+
+html[data-theme="dark"] .form-input:hover,
+html[data-theme="dark"] .consent-field:hover,
+html[data-theme="dark"] .calendar-controls button:hover {
+  border-color: #ff737b;
+  background: #1d2229;
+}
+
+html[data-theme="dark"] .form-input[aria-invalid="true"],
+html[data-theme="dark"] .status-error {
+  border-color: #9d3b46;
+  background: #3a171c;
+  color: #ffd0d4;
+}
+
+html[data-theme="dark"] .status-success {
+  border-color: #287452;
+  background: #123426;
+  color: #bdf7d7;
+}
+
+html[data-theme="dark"] .demo-callout,
+html[data-theme="dark"] .form-privacy-context,
+html[data-theme="dark"] .email-preview,
+html[data-theme="dark"] .calendar-chip-event,
+html[data-theme="dark"] .category-event {
+  border-color: #2f6598;
+  background: #132a40;
+  color: #c9e6ff;
+}
+
+html[data-theme="dark"] .legal-draft {
+  border-color: #8f6b28;
+  background: #342812;
+  color: #ffe0a3;
+}
+
+html[data-theme="dark"] .calendar-chip-training,
+html[data-theme="dark"] .category-training,
+html[data-theme="dark"] .mobile-link-active {
+  background: #3a171c;
+  color: #ffd0d4;
+}
+
+html[data-theme="dark"] .calendar-view-toggle button {
+  color: #c5cad2;
+}
+
+html[data-theme="dark"] .calendar-view-toggle button:hover {
+  background: #242a32;
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .calendar-view-toggle .calendar-view-active {
+  background: #e3e5e8;
+  color: #171a1f;
+}
+
+html[data-theme="dark"] .privacy-complaint,
+html[data-theme="dark"] .site-footer {
+  border-color: #e33a4f;
+  background: #080a0d;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  body,
+  .site-header,
+  .page-band,
+  .section,
+  .section-white,
+  .content-card,
+  .simple-card,
+  .event-card,
+  .department-card,
+  .poster-card,
+  .registration-form,
+  .calendar-panel,
+  .calendar-agenda {
+    transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
   }
 }
