@@ -49,7 +49,7 @@ export function PrivacyPage() {
           Přihlašovací systém technicky podporuje demo i ostrý režim. Níže uvedený text je věcný návrh informační povinnosti; před aktivací skutečného ukládání jej musí schválit vedení jednoty a právník včetně právních titulů, lhůt a smluv s dodavateli.
         </p>
       </div>
-      <div className="privacy-summary" aria-label="Rychlé shrnutí">
+      <div className="privacy-summary" role="region" aria-label="Rychlé shrnutí">
         <strong>Stav formuláře</strong>
         <span>Aktuální provozní režim je vždy uveden přímo u přihlašovacího formuláře</span>
         <strong>Kontakt správce</strong>

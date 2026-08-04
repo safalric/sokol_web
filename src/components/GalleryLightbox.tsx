@@ -40,6 +40,8 @@ export function GalleryLightbox({
     <dialog
       ref={dialogRef}
       className="gallery-lightbox"
+      role="dialog"
+      aria-modal="true"
       aria-labelledby="gallery-lightbox-title"
       aria-describedby="gallery-lightbox-meta"
       onCancel={(event) => {

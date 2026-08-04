@@ -163,7 +163,7 @@ export function Header({ currentPath, onNavigate }: HeaderProps) {
             </summary>
             <div className="more-menu-panel">
               {secondaryNavigation.map((item) => renderLink(item, "more-menu-link"))}
-              <div className="more-menu-socials" aria-label="Sociální sítě">
+              <div className="more-menu-socials" role="group" aria-label="Sociální sítě">
                 {socialLinks.map((item) => (
                   <a key={item.href} className="more-menu-link" href={item.href} target="_blank" rel="noopener noreferrer">
                     <span>{item.shortLabel}</span>
@@ -201,7 +201,7 @@ export function Header({ currentPath, onNavigate }: HeaderProps) {
         <nav ref={mobileNavRef} id="mobile-navigation" className="mobile-nav" aria-label="Mobilní navigace">
           <div className="mobile-nav-group">{navigation.map(renderMobileLink)}</div>
           <div className="mobile-nav-group mobile-nav-secondary">{secondaryNavigation.map(renderMobileLink)}</div>
-          <div className="mobile-social-links" aria-label="Sociální sítě">
+          <div className="mobile-social-links" role="group" aria-label="Sociální sítě">
             {socialLinks.map((item) => (
               <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer">
                 {item.shortLabel}

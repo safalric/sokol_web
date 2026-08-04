@@ -10,12 +10,18 @@ type PosterLightboxProps = {
 
 export function PosterLightbox({ event, onClose, onNavigate }: PosterLightboxProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const dialog = dialogRef.current;
+    const previousOverflow = document.body.style.overflow;
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    document.body.style.overflow = "hidden";
     if (dialog && !dialog.open) dialog.showModal();
     return () => {
+      document.body.style.overflow = previousOverflow;
       if (dialog?.open) dialog.close();
+      window.requestAnimationFrame(() => openerRef.current?.focus());
     };
   }, []);
 
@@ -28,6 +34,8 @@ export function PosterLightbox({ event, onClose, onNavigate }: PosterLightboxPro
     <dialog
       ref={dialogRef}
       className="poster-lightbox"
+      role="dialog"
+      aria-modal="true"
       aria-labelledby="poster-lightbox-title"
       onCancel={(eventObject) => {
         eventObject.preventDefault();
@@ -35,6 +43,12 @@ export function PosterLightbox({ event, onClose, onNavigate }: PosterLightboxPro
       }}
       onClick={(eventObject) => {
         if (eventObject.currentTarget === eventObject.target) onClose();
+      }}
+      onKeyDown={(eventObject) => {
+        if (eventObject.key === "Escape") {
+          eventObject.preventDefault();
+          onClose();
+        }
       }}
     >
       <div className="poster-lightbox-panel">

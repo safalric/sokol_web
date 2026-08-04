@@ -22,7 +22,7 @@ export function Footer({ onNavigate }: FooterProps) {
             <Mail className="h-4 w-4" aria-hidden="true" />
             sokoldoudleby@seznam.cz
           </a>
-          <div className="footer-socials" aria-label="Sociální sítě">
+          <div className="footer-socials" role="group" aria-label="Sociální sítě">
             {socialLinks.map((item) => (
               <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer" aria-label={item.label}>
                 {item.shortLabel}

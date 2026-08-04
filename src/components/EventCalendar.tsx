@@ -72,7 +72,7 @@ export function EventCalendar() {
             <h2>{monthLabel}</h2>
           </div>
           <div className="calendar-toolbar-actions">
-            <div className="calendar-view-toggle" aria-label="Zobrazení kalendáře">
+            <div className="calendar-view-toggle" role="group" aria-label="Zobrazení kalendáře">
               <button
                 type="button"
                 className={view === "grid" ? "calendar-view-active" : undefined}
@@ -94,7 +94,7 @@ export function EventCalendar() {
                 <span>Seznam</span>
               </button>
             </div>
-            <div className="calendar-controls">
+            <div className="calendar-controls" role="group" aria-label="Přepínání měsíců">
               <button type="button" aria-label="Předchozí měsíc" disabled={!period || loading || period.year <= 2020} onClick={() => changeMonth(-1)}>
                 <ChevronLeft className="h-5 w-5" aria-hidden="true" />
               </button>

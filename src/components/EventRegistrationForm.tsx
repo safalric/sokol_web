@@ -245,12 +245,12 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
   };
 
   return (
-    <form className="registration-form" noValidate autoComplete="on" onSubmit={handleSubmit}>
+    <form className="registration-form" noValidate autoComplete="on" aria-labelledby="registration-form-title" onSubmit={handleSubmit}>
       <div className="registration-heading">
         <ShieldCheck className="h-6 w-6 text-sokol-red" aria-hidden="true" />
         <div>
           <p>Bezpečná online přihláška</p>
-          <h3>{eventName}</h3>
+          <h3 id="registration-form-title">{eventName}</h3>
         </div>
       </div>
 
@@ -423,7 +423,7 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
         />
       ) : null}
       {status === "success" && successResult?.preview ? (
-        <div className="email-preview" aria-label="Náhled demo e-mailů">
+        <div className="email-preview" role="region" aria-label="Náhled demo e-mailů">
           <strong>Náhled e-mailů</strong>
           <span>Organizátor: {successResult.preview.organizer.to} · {successResult.preview.organizer.subject}</span>
           <span>Účastník: {successResult.preview.participant.to} · {successResult.preview.participant.subject}</span>

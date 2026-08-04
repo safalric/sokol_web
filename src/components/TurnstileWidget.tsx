@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 
 type TurnstileApi = {
   render: (element: HTMLElement, options: Record<string, unknown>) => string;
@@ -49,6 +49,7 @@ type TurnstileWidgetProps = {
 };
 
 export function TurnstileWidget({ siteKey, resetKey, onToken, onError }: TurnstileWidgetProps) {
+  const headingId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const onTokenRef = useRef(onToken);
@@ -68,7 +69,7 @@ export function TurnstileWidget({ siteKey, resetKey, onToken, onError }: Turnsti
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
           action: "event-registration",
-          theme: "light",
+          theme: "auto",
           size: "flexible",
           callback: (token: string) => onTokenRef.current(token),
           "expired-callback": () => onTokenRef.current(""),
@@ -94,8 +95,8 @@ export function TurnstileWidget({ siteKey, resetKey, onToken, onError }: Turnsti
   }, [resetKey]);
 
   return (
-    <div className="turnstile-shell">
-      <strong>Ochrana proti spamu</strong>
+    <div className="turnstile-shell" role="group" aria-labelledby={headingId}>
+      <strong id={headingId}>Ochrana proti spamu</strong>
       <div ref={containerRef} />
     </div>
   );
