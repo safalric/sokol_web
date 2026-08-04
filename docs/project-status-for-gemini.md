@@ -1,262 +1,168 @@
 # Úplný stav projektu pro předání do Gemini
 
-Audit odpovídá repozitáři a nasazené verzi ověřené dne 4. srpna 2026. Dokument rozlišuje technickou implementaci od skutečně aktivních externích služeb a od obsahu, který ještě musí potvrdit TJ Sokol Doudleby nad Orlicí.
+Stav byl znovu ověřen 4. srpna 2026 proti větvi `main` repozitáře `safalric/sokol_web`. Tento dokument rozlišuje hotový kód, demo provoz a kroky, které vyžadují rozhodnutí nebo účty TJ Sokol Doudleby nad Orlicí.
 
-## 1. Jednověté hodnocení
+## 1. Přesné hodnocení
 
-Web je technicky vyspělý, responzivní a nasazený prezentační prototyp s hotovým demo API, ale ještě není veřejně přístupný ani připravený k ostrému přijímání přihlášek, protože chybí reálná provozní data, externí účty, právní schválení a produkční integrace.
+Repozitář je technicky připravený produkční základ: má samostatnou 404, dynamická metadata, zabezpečené Worker API, responzivní a přístupné UI, CI a 50 automatizovaných testů. Veřejný ostrý provoz však ještě není dokončený, protože hosting je neveřejný, externí integrace nemají produkční účty a část obsahu i GDPR procesu čeká na schválení vedením.
 
-## 2. Ověřená identifikace verze
+Správné označení aktuálního stavu je: **produkčně připravený kód v bezpečném demo režimu, před předáním externích přístupů a finálním obsahovým schválením**.
+
+## 2. Repozitář a hosting
 
 - GitHub: `https://github.com/safalric/sokol_web`
-- GitHub viditelnost: veřejný repozitář
-- Výchozí větev: `main`
-- GitHub commit: `8a69569b276b80407daa86289b5ed047bc2118f4`
-- Commit message: `feat: complete optimized gallery and poster experience`
-- Nasazená adresa: `https://tj-sokol-doudleby.tomas-saf.chatgpt.site`
-- Nasazená Sites verze: 23
-- Interní commit nasazené Sites verze: `802bfc2845df2388a5251c3918d19ab05265bfee`
-- Strom souborů nasazené verze odpovídá GitHub commitu `8a69569`.
-- Hosting je aktivní, ale přístup je `custom`: povolen je 1 uživatel, 0 skupin a 0 externích návštěvníků.
-- Důsledek: web nyní není veřejně dostupný z libovolného počítače bez autorizovaného přihlášení.
+- Větev: `main`
+- Lokální hlavní kopie: `C:\Users\tomik\Desktop\TJ-Sokol-Doudleby-Web-komplet-2026-07-23`
+- OpenAI Sites projekt: `appgprj_6a5f8c6d09cc8191afb5ea2aed94739a`
+- Adresa náhledu: `https://tj-sokol-doudleby.tomas-saf.chatgpt.site`
+- Přístup hostingu je `custom`: web není veřejně dostupný bez autorizace.
+- Vlastní doména dosud není připojená.
+- Aktuální commit se vždy zjistí příkazem `git rev-parse HEAD`; finální hash je uveden také v závěrečném předávacím reportu po pushi.
 
-## 3. Použitá technologie a architektura
+## 3. Technologie a architektura
 
-- React 19
-- TypeScript
-- Vite 6
-- Tailwind CSS 3
-- Lucide React ikony
-- pnpm a `pnpm-lock.yaml`
-- Cloudflare Worker-kompatibilní serverový výstup pro OpenAI Sites
-- Klient je SPA s History API a fallbackem všech HTML cest na `index.html`.
-- Serverové endpointy jsou stejného původu: `/api/health`, `/api/registration-config`, `/api/calendar` a `/api/registrations`.
-- Obsah není napojený na CMS. Je uložený v TypeScriptu a JSON souborech v repozitáři.
-- Není použita databáze. Pro budoucí ostré přihlášky je připraven Google Sheets webhook.
+- React 19, TypeScript, Vite 6 a Tailwind CSS 3.
+- Lucide React pro ikony.
+- pnpm 11.9.0 určený v `packageManager` a uzamčené závislosti v `pnpm-lock.yaml`.
+- Cloudflare Worker kompatibilní serverový výstup pro OpenAI Sites.
+- SPA routing přes History API bez další router knihovny.
+- Seznam veřejných rout a SEO dat má jediný zdroj v `src/data/site-routes.json`.
+- Same-origin API: `/api/health`, `/api/registration-config`, `/api/calendar`, `/api/registrations`.
+- Obsah je spravovaný v TypeScriptu a JSON; CMS ani databáze nejsou součástí projektu.
+- Produkční evidence přihlášek je připravená přes chráněný Google Sheets webhook.
 
-## 4. Přesný stav jednotlivých cest
+## 4. Veřejné cesty
 
 | Cesta | Stav | Obsah |
 | --- | --- | --- |
-| `/` | Hotová prezentace, demo obsah | Hero, CTA, rychlé odkazy, tři ukázkové aktuality, tři plakáty |
-| `/o-nas` | Hotová s dodanými daty | Popis jednoty, 7 členek vedení, 12 kontaktů na cvičitele |
-| `/cviceni` | UI hotové, data nepotvrzená | 7 oddílů; časy, místa a přiřazení jsou označené jako demo |
-| `/akce` | UI a demo formulář hotové | 3 ukázkové akce, formulář pro Sokolský výlet |
-| `/kalendar` | Funkční demo API | Mřížka/seznam, přepínání měsíců, demo data, připravené Google API |
-| `/prihlaska` | Hotová externí navigace | Odkaz na oficiální eČlen přihlášku České obce sokolské |
-| `/fotogalerie` | Hotová | 5 alb, 13 fotografií, filtry a lightbox |
-| `/historie` | Hotová z dodaných podkladů | 7 bodů časové osy a 3 delší tematické bloky |
-| `/kontakt` | Hotová s dodanými daty | IČ, e-mail, datová schránka, 2 adresy, mapa, vedení |
-| `/gdpr` | Technický návrh, čeká na právní schválení | 9 informačních částí a odkaz na ÚOOÚ |
+| `/` | Hotové UI, ukázkové aktuality | Hero, CTA, rychlé odkazy, aktuality a plakáty |
+| `/o-nas` | Hotová s dodanými kontakty | Jednota, vedení a cvičitelé |
+| `/cviceni` | Hotové UI, nepotvrzený rozvrh | Sedm oddílů a kontaktní údaje |
+| `/akce` | Hotové UI, demo akce | Karty akcí a přihláška |
+| `/kalendar` | Funkční demo API | Mřížka, seznam, měsíce a kategorie |
+| `/prihlaska` | Hotová | Odkaz na oficiální eČlen přihlášku ČOS |
+| `/fotogalerie` | Hotová | Pět alb, filtry a lightbox |
+| `/historie` | Hotová z dodaných podkladů | Časová osa a tematické bloky |
+| `/kontakt` | Hotová s dodanými údaji | IČO, adresy, datová schránka, mapa a vedení |
+| `/gdpr` | Technicky hotová, právně neschválená | Informační povinnost a práva subjektů |
+| `/dotace` | Transparentní prázdný stav | Nezobrazuje smyšlená data bez podkladů |
 
-Neexistuje samostatná stránka 404. Neznámá cesta se normalizuje na úvodní stránku.
+Neznámá cesta vykreslí samostatnou responzivní stránku „Stránka nenalezena“. Worker vrací pro známé HTML cesty HTTP 200 a pro neznámé HTTP 404. 404 má `noindex, follow` a canonical na původní neznámou adresu.
 
-## 5. Společné uživatelské rozhraní
+## 5. SEO a metadata
 
-- Responzivní hlavička s hlavní navigací a nabídkou „Více“.
-- Mobilní hamburger menu s ikonami, blokováním scrollu, přesunem fokusu a zavřením klávesou Escape.
-- Kompaktní patička bez duplicitní kompletní navigace; obsahuje identitu, e-mail, sociální sítě, IČO, GDPR a copyright.
-- Oficiální dodaný obrazový symbol Sokola je použitý v hlavičce, patičce a faviconě.
-- Textový lockup „Sokol Doudleby“ je sestavený v CSS, nejde o dodaný kompletní oficiální logotyp.
-- Barevná paleta obsahuje červenou `#D32F2F`, modrou `#1976D2`, bílou, světle šedou a tmavé neutrální barvy.
-- Tmavý režim je hotový, respektuje systémové nastavení a volbu ukládá do `localStorage` pod klíčem `sokol-theme`.
-- Oficiální sokolský font není implementován. Nadpisy používají systémový fallback `Impact`, `Arial Narrow`, `Haettenschweiler`, `Arial`.
-- Běžný text používá `Arial`, `Helvetica` a systémový sans-serif.
-- Header obsahuje Facebook a Instagram v nabídce „Více“ a v mobilním menu; footer obsahuje oba odkazy přímo.
+- Každá z 11 veřejných cest má vlastní title, description, page title a canonical cestu.
+- Za běhu se aktualizují title, description, robots, OpenGraph title/description/URL, Twitter title/description a canonical.
+- Jsou přítomné `public/robots.txt` a `public/sitemap.xml`.
+- Obrázky mají alt texty; OpenGraph používá `og.png`.
+- Metadata jsou dynamická na klientu. Základní HTML je stále SPA shell s metadata homepage, nikoli server-side render každé podstránky. Pro vyhledávače bez JavaScriptu je to známé omezení.
+- Schema.org JSON-LD zatím není doplněné.
+
+## 6. Uživatelské rozhraní
+
+- Responzivní hlavička, hlavní navigace, nabídka „Více“ a mobilní hamburger menu.
+- Mobilní menu má `aria-expanded`, blokování scrollu, Escape a návrat fokusu.
+- Kompaktní patička bez duplikované kompletní navigace.
+- Oficiální dodaný symbol Sokola je v hlavičce, patičce a faviconě.
+- Oficiální licencovaný sokolský font nebyl dodaný. Nadpisy a text mají odolné lokální fallback řetězce bez závislosti na externím font CDN.
+- Světlý a tmavý režim respektují systémové nastavení a volbu ukládají pod `sokol-theme`.
+- Facebook a Instagram jsou v hlavičce i patičce.
 - Instagram: `https://www.instagram.com/sokoldoudlebyno/`
 - Facebook: `https://www.facebook.com/TJ-Sokol-Doudleby-nad-Orlic%C3%AD-1547925445429424`
 - Členská přihláška: `https://www.ecz-sokol.cz/clen/prihlaska`
 
-## 6. Obsah, který je skutečně doplněný
+## 7. Fotogalerie a plakáty
 
-- Název: TJ Sokol Doudleby nad Orlicí
-- IČ: 15040020
-- E-mail: `sokoldoudleby@seznam.cz`
-- Datová schránka: `c7sy84v`
-- Korespondenční adresa: Na Benátkách 131, 517 42 Doudleby nad Orlicí
-- Sídlo: Švermova 528, 517 42 Doudleby nad Orlicí
-- Vedení: Monika Šafaříková, Lenka Divíšková, Daniela Vařeková, Michaela Podolská, Kateřina Lásková, Radka Suchomelová a Marta Šimperská.
-- Cvičitelé: Jana Florianová, Radka Suchomelová, Monika Šafaříková, Vlasta Lacinová, Daniela Šafaříková, Jan Merganc, Matyáš Leimer, Barbora Pitter, Veronika Šlajová, Matěj Řehák, Valerie Forštová a Monika Šimperská.
-- Kontaktní stránka neobsahuje bankovní spojení.
-- Nikde v aplikačním obsahu není nabídka pronájmu sokolovny.
-- Nikde není Lorem Ipsum.
-- Historie vychází z podkladů dodaných uživatelem; nebyla nezávisle historicky ověřena.
-- Mapa používá vložený OpenStreetMap náhled a externí odkaz na hledání adresy v Google Maps.
+- Galerie: 13 fotografií v pěti albech.
+- Pro každou fotografii existuje WebP náhled a větší WebP varianta, celkem 26 souborů a 2 932 990 B.
+- Náhledy se načítají líně, velká varianta až po otevření.
+- Manifest obsahuje ID, album, titul, rok, alt text a rozměry.
+- Filtry používají tab pattern a podporují šipky, Home a End.
+- Lightbox podporuje Escape, předchozí/další, klávesové šipky, kliknutí na pozadí, swipe, zamknutí scrollu a návrat fokusu.
+- Plakáty: tři PNG náhledy a tři PDF, celkem 668 123 B.
+- Plakátový lightbox obsahuje stažení PDF a přechod k přihlášce.
+- Kontrast stahování funguje ve světlém i tmavém režimu.
+- Fotografie a obsah plakátů musí před veřejným spuštěním schválit vedení, zvlášť u dětí.
 
-## 7. Obsah, který je stále ukázkový nebo nepotvrzený
+## 8. Kalendář
 
-- Všechny 3 aktuality na homepage jsou výslovně označené jako ukázkové.
-- Všech 7 oddílů má `demo: true`.
-- U oddílů Rodiče a děti, Předškoláci a Všestrannost chybí potvrzený kontakt.
-- U Fit dance děti chybí potvrzený den a čas.
-- U ostatních oddílů nejsou potvrzené časy, místa ani správnost přiřazení uvedených cvičitelů.
-- Sokolský výlet 19. září 2026 je ukázkový termín.
-- Sokolský běh republiky v říjnu 2026 je ukázkový obsah.
-- Letní tábor v červenci 2027 je ukázkový obsah; chybí přesný termín, místo, cena a pokyny.
-- Všechny 3 plakáty samy uvádějí, že jde o ukázkové podklady čekající na potvrzení vedením.
+- `GET /api/calendar` podporuje demo a Google Calendar režim.
+- Neúplná konfigurace vrací demo data s `configurationWarning`, kódem varování a obecnými názvy chybějících schopností.
+- Kompletní konfigurace používá veřejný Google Calendar a pětiminutovou cache.
+- Při výpadku Google API systém bezpečně vrátí demo data s varováním.
+- Klíče zůstávají pouze ve Worker prostředí a nemají prefix `VITE_`.
+- Produkční Google Calendar ID a API klíč zatím nejsou dodané.
 
-## 8. Fotogalerie
+## 9. Přihlášky na akce
 
-- Stav: technicky hotová a nasazená.
-- Alba: Atletika 3, Volejbal 3, Capoeira 3, Všestrannost 3, Floriteam 1.
-- Celkem: 13 fotografií, 13 náhledů a 13 velkých variant.
-- Formát: WebP.
-- Celková velikost galerie: 2 932 990 B.
-- Náhledy se načítají líně; velká fotografie až po otevření lightboxu.
-- Manifest obsahuje ID, album, titul, rok, český alt popis a rozměry obou variant.
-- Filtry používají přístupný tab pattern a podporují šipky, Home a End.
-- Lightbox podporuje tlačítka, šipky klávesnice, Escape, kliknutí na pozadí a dotykový swipe.
-- Po zavření se fokus vrací na původní fotografii.
-- Fotografie jsou převzaté z dříve veřejné galerie původního webu.
-- Před ostrým veřejným spuštěním musí vedení znovu potvrdit oprávnění k jejich zveřejnění, zejména u fotografií dětí.
-- Není implementované nahrávání, mazání ani správa galerie přes administraci.
+- `POST /api/registrations` podporuje demo a ostrý režim.
+- Demo validuje celý požadavek, ale osobní ani zdravotní údaje neukládá a neposílá.
+- Ostrý režim se aktivuje jen při kompletní konfiguraci e-mailu, úložiště a antispamu. Částečná konfigurace bezpečně zůstane v demu.
+- Pole: akce, účastník, datum narození, zákonný zástupce, e-mail, telefon, zdravotní údaj, organizační poznámka, souhlasy a honeypot.
+- U nezletilého je vyžadovaný zástupce a potvrzení oprávnění.
+- GDPR potvrzení je povinné; mediální souhlas je nepovinný.
+- Zdravotní údaj vyžaduje samostatný výslovný souhlas.
+- Zdravotní text se nikdy neposílá e-mailem.
+- Omezené uložení zdravotního údaje je povolené jen s `REGISTRATION_HEALTH_DATA_ENABLED=true`.
+- Tok rezervuje kapacitu v Google Sheets před odesláním dvou e-mailů.
+- Organizátor dostane provozní souhrn bez zdravotního textu; účastník potvrzení.
+- Produkční Resend, Sheets a Turnstile účty zatím nejsou připojené.
 
-## 9. Plakátovací plocha
+## 10. Bezpečnostní model
 
-- Stav komponent a souborů: technicky hotový demo obsah.
-- 3 PNG náhledy a 3 odpovídající PDF soubory.
-- Celková velikost plakátových souborů: 668 123 B.
-- Karty se na mobilu skládají do jednoho sloupce.
-- Plakát lze otevřít v lightboxu, zavřít, stáhnout v PDF a přejít na detail akce.
-- Kontrast tlačítka ke stažení je opravený i v tmavém režimu.
-- Obsah a termíny plakátů nejsou schválené jako reálné.
-
-## 10. Kalendář
-
-- Endpoint: `GET /api/calendar`.
-- UI podporuje mřížku a seznam, předchozí/následující měsíc a kategorie Trénink / Akce.
-- Povolený rozsah měsíců je 2020 až 2035.
-- Je připravené čtení veřejného Google Calendar API a převod časů do `Europe/Prague`.
-- Google odpověď se cachuje 5 minut.
-- Při chybě Google API se zobrazí demo data s varováním.
-- Aktuální živý stav 4. srpna 2026: `calendar: demo`.
-- Aktuální odpověď používá srpen 2026 a vrací jednu demo událost „Rodiče a děti“ dne 25. srpna 2026.
-- Google Calendar ID ani API klíč nejsou na hostingu nastavené.
-- Demo JSON obsahuje 7 událostí od srpna do října 2026.
-
-## 11. Přihláška na akci
-
-- Endpoint: `POST /api/registrations`.
-- Konfigurační endpoint: `GET /api/registration-config`.
-- Aktuální živý stav: `registrations: demo`, `healthData: disabled`, Turnstile site key je `null`.
-- Demo odeslání provede frontendovou i serverovou validaci a vytvoří pouze maskovaný náhled e-mailů.
-- V demo režimu se žádné osobní ani zdravotní údaje neukládají ani neposílají.
-- Jediná povolená akce je Sokolský výlet do Orlických hor dne 19. září 2026.
-- Ukázková kapacita je 30 míst, uzávěrka 18. září 2026 v 18:00 a kontrola výmazu 19. října 2026.
-- Pole: název akce, účastník, datum narození, zákonný zástupce, e-mail, telefon, zdravotní omezení, organizační poznámka a skrytý honeypot.
-- U nezletilého se dynamicky vyžaduje zákonný zástupce a potvrzení oprávnění dítě přihlásit.
-- Potvrzení seznámení s GDPR je povinné.
-- Mediální souhlas je samostatný a nepovinný.
-- Pokud je vyplněný zdravotní údaj, vyžaduje se samostatný výslovný souhlas.
-- Tlačítko se při odesílání deaktivuje a nejméně 1 sekundu ukazuje stav načítání.
-- Klient má timeout 15 sekund, načtení konfigurace timeout 8 sekund.
-- Produkční režim vyžaduje současně Resend, Google Sheets webhook a Cloudflare Turnstile. Částečná konfigurace formulář zablokuje.
-- Produkční tok nejprve atomicky rezervuje místo v Sheets, potom odešle e-mail organizátorovi a účastníkovi.
-- Zdravotní text se záměrně neposílá e-mailem.
-- Apps Script příklad je v repozitáři, ale není nasazený ani připojený ke skutečné tabulce.
-
-## 12. Připravené zabezpečení
-
-- Vynucení HTTPS mimo localhost; GET/HEAD se přesměruje 308, nezabezpečený POST se odmítne.
-- HSTS: 2 roky, `includeSubDomains`, `preload`.
-- CSP bez `unsafe-inline`; povoluje pouze vlastní zdroje, OpenStreetMap iframe a Cloudflare Turnstile.
-- `X-Frame-Options: DENY`, `frame-ancestors 'none'`, `nosniff`, bezpečný Referrer-Policy, omezený Permissions-Policy a COOP.
-- Kontrola `Origin` a odmítnutí `Sec-Fetch-Site: cross-site`.
-- Pouze JSON, allowlist polí, maximální tělo 12 kB.
-- Normalizace NFKC, odstranění řídicích znaků a délkové limity.
-- HTML escaping e-mailů a ochrana buněk proti Google Sheets formula injection.
-- Honeypot `website_hp`.
-- Časová past minimálně 3 sekundy.
-- Rate limit 5 pokusů za 10 minut na klientský klíč.
+- HTTPS redirect 308 mimo localhost; nezabezpečený zápis se odmítne.
+- HSTS, CSP, `frame-ancestors 'none'`, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, COOP a CORP.
+- Same-origin kontrola přes Origin a Sec-Fetch-Site.
+- Povolený pouze JSON, allowlist polí a maximální tělo 12 kB.
+- NFKC normalizace, odstranění řídicích znaků a limity délek.
+- HTML escaping pro e-mail a ochrana proti formula injection v Sheets.
+- Honeypot, minimální čas vyplnění, Turnstile a rate limit 5 požadavků za 10 minut.
 - Idempotentní submission ID a Resend idempotency keys.
-- Turnstile v ostrém režimu ověřuje action a hostname.
-- Důležitý limit: rate limit a lokální receipt cache jsou pouze v paměti jedné worker instance. Globální kapacitu a duplicity má v ostrém režimu jistit Google Sheets Apps Script.
-- `pnpm audit --prod` dne 4. srpna 2026: žádná známá zranitelnost.
-- HTTPS a HSTS jsou ověřené na úrovni aplikace. Výhradní povolení pouze TLS 1.3 nebylo ověřeno a je vlastností hostingové platformy, ne tohoto repozitáře.
+- Konfigurační endpoint zpřístupní jen veřejný Turnstile site key, nikdy secret.
+- Rate limit a lokální receipt cache jsou v paměti jedné Worker instance. Globální kapacitu a duplicity musí v ostrém režimu atomicky hlídat Sheets webhook nebo budoucí trvalé úložiště.
+- Repo nemůže samo vynutit výhradně TLS 1.3; verze TLS je odpovědnost hostingové platformy.
+- Scan nenašel produkční tajné klíče ani serverové proměnné s prefixem `VITE_`.
+- `pnpm audit` i `pnpm audit --prod` nehlásí známé zranitelnosti.
 
-## 13. GDPR a soukromí
+## 11. Přístupnost a responzivita
 
-- Web neobsahuje analytiku, marketingové skripty ani reklamní profilování.
-- Jediný lokálně ukládaný údaj aplikace je preference barevného režimu.
-- Mapa OpenStreetMap se načítá jako externí iframe a může poskytovateli předat IP a technické údaje.
-- V ostrém režimu by byl externím poskytovatelem také Cloudflare Turnstile, Resend a Google.
-- GDPR stránka popisuje správce, účely, zdravotní údaje, fotografie, nezletilé, uchování, příjemce, práva, mapu a automatizaci.
-- Jde výslovně o návrh informační povinnosti, nikoli právní stanovisko.
-- Před ostrým provozem chybí schválení právních titulů, dob uchování, zpracovatelských smluv, předávání mimo EHP, procesu žádostí subjektů údajů a incident response.
-- Chybí provozně schválený proces mazání a určený odpovědný správce.
-- Cookie banner není implementovaný. Při současné absenci analytických a marketingových cookies nemusí být automaticky nutný, ale použití externí mapy a budoucího Turnstile musí posoudit právník.
+- Skip link, sémantické nadpisy, alt texty a dekorativní ikony `aria-hidden`.
+- Viditelné `focus-visible` rámečky v obou režimech.
+- Dialogy mají modální role, popisky, Escape a správu fokusu.
+- Kalendářové ovladače a sociální skupiny mají přístupná jména.
+- Turnstile skupina má stabilní popisek a automatické téma.
+- Prohlížečový audit ověřil 12 stavů (11 cest + 404) na šířkách 375, 390, 768 a 1280 px: 48 kontrol bez horizontálního přetékání, chybějícího H1, alt textu nebo duplicitního ID.
+- Světlý i tmavý režim prošly cíleným kontrastním měřením WCAG AA bez zachycené chyby.
+- Manuálně prošly mobilní menu, plakátový lightbox a galerie včetně klávesnice a návratu fokusu.
+- Konzole prohlížeče při auditu neobsahovala chyby.
+- Neproběhl nezávislý audit se skutečnou čtečkou obrazovky ani BrowserStack test v Safari a Firefoxu.
 
-## 14. SEO, přístupnost a výkon
+## 12. Automatizované kontroly
 
-- `lang="cs"`, UTF-8, viewport meta, favicon, meta description, canonical, OpenGraph, Twitter card a vlastní `og.png` jsou přítomné.
-- Titulek dokumentu se mění podle klientské cesty.
-- Meta description, canonical URL a OpenGraph URL jsou statické a ukazují vždy na homepage; nejsou specifické pro podstránky.
-- Není sitemap.xml, robots.txt, schema.org strukturované JSON-LD ani server-side rendering.
-- SPA vrací stejný HTML základ pro všechny podstránky, což omezuje plnohodnotné SEO podstránek.
-- Všechny aplikační obrázky mají alt text; dekorativní ikony jsou převážně `aria-hidden`.
-- Je implementovaný skip link, focus management, klávesové ovládání menu a lightboxů a respektování `prefers-reduced-motion`.
-- Nebyl proveden nezávislý WCAG/axe audit ani test se skutečnou čtečkou obrazovky.
-- Nebyl proveden BrowserStack test v Safari a Firefoxu; manuální vizuální test proběhl v Chromium prostředí.
-- Poslední cílený test galerie a plakátů proběhl při 1280 × 720 a 390 × 844 bez horizontálního přetékání.
-- Produkční build: HTML 2,17 kB, CSS 85,66 kB (gzip 10,80 kB), JS 279,57 kB (gzip 85,42 kB).
-- Veřejné soubory mají celkem 5 494 883 B.
+`pnpm qa` spouští:
 
-## 15. Automatizované testy
+1. `tsc --noEmit`
+2. 24 Vitest testů
+3. 26 Node Worker/API a asset testů
+4. Produkční Vite a Worker build
 
-Poslední `pnpm qa` dne 4. srpna 2026 prošlo: 25 testů, 0 chyb, TypeScript bez chyb a produkční build úspěšný.
+Celkem: **50 testů, 50 úspěšných, 0 chyb**.
 
-Testy pokrývají:
+Pokrytí zahrnuje 404 routing a HTTP status, metadata všech rout, SPA navigaci, galerii, plakáty, dark mode, Calendar API, demo/ostrý režim registrací, validaci, nezletilé, zdravotní souhlas, honeypot, cross-origin, neočekávaná pole, časovou past, rate limit, idempotenci, kapacitu, Turnstile, e-maily, Sheets, XSS escaping, formula injection a bezpečnostní hlavičky.
 
-- manifest galerie, album reference, unikátní ID, alt popisy, rozměry, WebP formát a velikostní limity,
-- existenci a velikost PNG/PDF plakátů a lazy loading markup,
-- uložení a inicializaci světlého/tmavého režimu,
-- výběr a filtraci demo měsíce kalendáře,
-- převod Google Calendar odpovědi a fallback při chybě,
-- formulářovou validaci, nezletilé a zdravotní souhlas,
-- honeypot, původ požadavku, nepovolená pole, časovou past a rate limit,
-- demo režim a idempotenci,
-- simulovaný ostrý tok e-mailů a Google Sheets,
-- kapacitu, Turnstile, HTML escaping a pojistku zdravotních dat,
-- nezveřejnění tajného Turnstile klíče,
-- bezpečnostní hlavičky a odmítnutí nepovolených HTTP metod.
+GitHub Actions `.github/workflows/ci.yml` při pushi a pull requestu do `main` spouští instalaci s frozen lockfile, TypeScript, Vitest, Worker testy, build a audit produkčních závislostí.
 
-Automatizované testy nepokrývají pixelovou podobu všech podstránek, reálné externí účty, doručitelnost skutečného e-mailu, skutečný Google Sheets dokument, skutečný Google Calendar, Safari, Firefox ani právní správnost textů.
+## 13. Obsahový audit
 
-## 16. Co přesně chybí k ostrému dokončení
+- Nula výskytů nabídky pronájmu sokolovny.
+- Nula výskytů Lorem Ipsum.
+- Nula TODO, FIXME a HACK markerů v aplikačním stromu.
+- Kontaktní stránka neobsahuje bankovní spojení.
+- Reálné kontakty, IČO, datová schránka a adresy odpovídají dodaným podkladům.
+- Aktuality, rozvrh oddílů a demo akce jsou stále jasně označené jako ukázkové nebo nepotvrzené.
+- Historie vychází z uživatelem dodaného textu a nebyla nezávisle historicky ověřena.
 
-### Kritické blokátory
-
-1. Změnit přístup webu z jednoho povoleného uživatele na schválený veřejný nebo jiný cílový režim.
-2. Rozhodnout a nastavit vlastní doménu; nyní se používá `chatgpt.site`.
-3. Dodat a potvrdit skutečné rozvrhy, místa, přiřazení cvičitelů, aktuality a akce.
-4. Nahradit nebo schválit ukázkové plakáty a termíny.
-5. Získat potvrzení práv ke zveřejnění fotografií.
-6. Právně schválit GDPR text, procesy, dodavatele a doby uchování.
-7. Založit ověřenou odesílací doménu a Resend účet.
-8. Založit chráněnou Google tabulku, nasadit Apps Script a nastavit přístupy a výmaz.
-9. Založit produkční Cloudflare Turnstile widget.
-10. Připojit samostatný veřejný Google Kalendář.
-11. Provést end-to-end test ostrého toku výhradně s fiktivními údaji.
-
-### Důležité technické dokončení
-
-1. Dodat licenci a soubor skutečného sokolského fontu, nebo schválit současný systémový font.
-2. Doplnit route-specific metadata, sitemap, robots a případně strukturovaná data.
-3. Přidat 404 stránku.
-4. Rozhodnout, zda má být obsah dlouhodobě spravovaný v kódu, nebo přes CMS/admin rozhraní.
-5. Doplnit CI workflow pro automatické spuštění testů při pushi.
-6. Přidat monitoring anonymizovaných provozních chyb bez logování formulářových dat.
-7. Projít nezávislý accessibility audit a test v Safari/Firefoxu.
-
-### Volitelné rozšíření
-
-- CMS pro aktuality, oddíly, akce a plakáty.
-- Administrace a upload galerie.
-- Privacy-friendly analytika po právním posouzení.
-- Automatické optimalizování nově nahraných fotografií.
-- CI/CD nasazení z GitHubu.
-
-## 17. Potřebné produkční proměnné
+## 14. Proměnné ostrého provozu
 
 - `GOOGLE_CALENDAR_ID`
 - `GOOGLE_CALENDAR_API_KEY`
@@ -269,8 +175,28 @@ Automatizované testy nepokrývají pixelovou podobu všech podstránek, reáln�
 - `TURNSTILE_SECRET_KEY`
 - `REGISTRATION_HEALTH_DATA_ENABLED=true` pouze po právním a provozním schválení
 
-Tajné hodnoty nesmějí být vložené do repozitáře ani proměnných s prefixem `VITE_`.
+Bezpečný a okomentovaný vzor je v `.env.example`. Skutečné hodnoty nesmějí být commitnuté.
 
-## 18. Přesný závěr pro dalšího agenta
+## 15. Co zbývá vedení a správci
 
-Nepopisuj projekt jako hotový produkční web. Přesné označení je „nasazený a důkladně otestovaný prezentační prototyp s připravenou bezpečnou serverovou architekturou“. Vizuální web, galerie, plakáty, kontakty, historie, navigace, dark mode a demo API jsou funkční. Veřejný přístup, reálný obsah, oficiální font, Google Calendar, e-mailové doručování, Google Sheets, Turnstile a právně schválené GDPR procesy dokončené nejsou.
+1. Schválit veřejný přístup hostingu a vlastní doménu.
+2. Potvrdit rozvrh, místa, cvičitele, aktuality, akce a plakáty.
+3. Potvrdit oprávnění ke zveřejnění všech fotografií.
+4. Schválit nebo dodat licencovaný sokolský font.
+5. Nechat právně schválit GDPR text, právní tituly, dodavatele, doby uchování, výmaz a incident response.
+6. Založit ověřenou odesílací doménu a Resend.
+7. Založit chráněnou Google tabulku a nasadit webhook s omezenými rolemi.
+8. Založit Cloudflare Turnstile a veřejný Google Kalendář.
+9. Nastavit serverové secrets mimo repozitář.
+10. Provést end-to-end zkoušku ostrého toku pouze s fiktivními údaji.
+11. Doplnit monitoring anonymizovaných provozních chyb bez formulářových dat.
+12. Provést právní, Safari/Firefox a screen-reader akceptaci před veřejným spuštěním.
+
+## 16. Známé hranice
+
+- Není CMS ani administrace galerie.
+- Není připojený reálný e-mail, Google Sheets, Turnstile ani Google Calendar.
+- Není analytika ani marketingové cookies.
+- GDPR text není právní stanovisko.
+- Server-side rendering a JSON-LD nejsou součástí současné architektury.
+- Veřejnost web dosud nevidí kvůli přístupovému režimu hostingu.

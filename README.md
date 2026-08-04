@@ -9,7 +9,7 @@ pnpm install
 pnpm dev
 ```
 
-Kompletní kontrola typů, API testů a produkčního sestavení:
+Kompletní kontrola typů, 50 automatizovaných testů a produkčního sestavení:
 
 ```bash
 pnpm qa
@@ -27,12 +27,15 @@ pnpm preview:worker
 - `src/components/` obsahuje sdílené komponenty a formuláře.
 - `src/config/` obsahuje sdílená pravidla klienta.
 - `src/data/` obsahuje veřejný obsah, demo kalendář a povolené akce.
+- `src/data/site-routes.json` je jediný registr veřejných cest a jejich SEO metadat.
 - `src/data/gallery.json` je jediný manifest alb, popisků a rozměrů fotografií.
 - `public/gallery/` obsahuje malé WebP náhledy a větší varianty načítané až v lightboxu.
 - `src/services/` je jediná klientská vrstva pro same-origin API.
 - `server/` odděluje HTTP zabezpečení, kalendář a zpracování přihlášek.
-- `tests/` ověřuje API, bezpečnostní hlavičky a kritická pravidla formuláře.
+- `tests/vitest/` ověřuje routing, 404, metadata a manipulace formuláře.
+- Ostatní testy v `tests/` ověřují API, assety, bezpečnostní hlavičky a kritická pravidla formuláře.
 - `docs/` popisuje integrace, bezpečnost a kroky před ostrým provozem.
+- `.github/workflows/ci.yml` spouští stejnou kontrolu při pushi a pull requestu do `main`.
 
 ## Provozní režimy
 
@@ -40,7 +43,7 @@ Bez tajných proměnných běží kalendář a přihlášky v transparentním de
 
 Ostrý režim se aktivuje pouze serverovými proměnnými prostředí. Klíče nesmí mít prefix `VITE_` a nesmí být commitnuty. Zdravotní údaje mají samostatnou pojistku `REGISTRATION_HEALTH_DATA_ENABLED=true` a nikdy se neposílají e-mailem.
 
-Podrobnosti jsou v [integrations.md](docs/integrations.md), [security.md](docs/security.md) a [privacy-go-live.md](docs/privacy-go-live.md).
+Podrobnosti jsou v [integrations.md](docs/integrations.md), [security.md](docs/security.md), [privacy-go-live.md](docs/privacy-go-live.md) a [final-production-readiness-report.md](docs/final-production-readiness-report.md).
 
 ## Fotogalerie a plakáty
 
