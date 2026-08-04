@@ -1,4 +1,4 @@
-import { handleCalendar } from "./calendar-api.js";
+import { calendarRuntimeStatus, handleCalendar } from "./calendar-api.js";
 import { isLocalRequest, jsonResponse, staticResponse, withSecurityHeaders } from "./http-security.js";
 import { createRegistrationHandler, registrationRuntimeStatus } from "./registration-api.js";
 
@@ -44,19 +44,27 @@ export function createWorker({
       if (url.pathname === "/api/health") {
         if (request.method !== "GET") return methodNotAllowed(["GET"]);
         const registration = registrationRuntimeStatus(env);
+        const calendar = calendarRuntimeStatus(env);
         return jsonResponse({
           ok: true,
-          calendar: env.GOOGLE_CALENDAR_ID && env.GOOGLE_CALENDAR_API_KEY ? "google" : "demo",
+          calendar: calendar.status,
           registrations: registration.status,
-          healthData: env.REGISTRATION_HEALTH_DATA_ENABLED === "true" ? "enabled" : "disabled",
+          healthData: registration.status === "configured" && env.REGISTRATION_HEALTH_DATA_ENABLED === "true" ? "enabled" : "disabled",
+          configurationWarnings: {
+            calendar: calendar.configurationWarning,
+            registrations: registration.configurationWarning,
+          },
         });
       }
       if (url.pathname === "/api/registration-config") {
         if (request.method !== "GET") return methodNotAllowed(["GET"]);
         const registration = registrationRuntimeStatus(env);
         return jsonResponse({
-          mode: registration.status === "configured" ? "live" : registration.status === "demo" ? "demo" : "unavailable",
+          mode: registration.status === "configured" ? "live" : "demo",
           turnstileSiteKey: registration.turnstileSiteKey,
+          configurationWarning: registration.configurationWarning,
+          missingCapabilities: registration.missingCapabilities,
+          warning: registration.warning,
         });
       }
       if (url.pathname === "/api/calendar") {

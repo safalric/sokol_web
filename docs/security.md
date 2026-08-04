@@ -4,6 +4,8 @@
 
 Prohlížeč komunikuje pouze se same-origin endpointy `/api/calendar` a `/api/registrations`. Přístupové klíče pro Google a Resend existují jen v runtime prostředí serverového workeru. Repo neobsahuje produkční tajné hodnoty.
 
+Neúplná produkční konfigurace neaktivuje žádnou část doručování. API zůstane v demo režimu, vrátí pouze obecné názvy chybějících schopností a nikdy nezveřejní názvy ani hodnoty tajných proměnných.
+
 ## Přihlášky
 
 - HTTPS je povinné; nezabezpečené POST požadavky se odmítají.

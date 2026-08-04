@@ -14,6 +14,9 @@ export type CalendarResponse = {
   events: CalendarEvent[];
   updatedAt: string;
   warning?: string;
+  warningCode?: "missing_configuration" | "provider_unavailable";
+  configurationWarning?: boolean;
+  missingCapabilities?: string[];
 };
 
 export async function fetchCalendar(period?: { year: number; month: number }, signal?: AbortSignal) {

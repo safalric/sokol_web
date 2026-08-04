@@ -408,7 +408,7 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
           : clientConfig.mode === "live"
             ? "Přihlášku kontroluje zabezpečené serverové API. Po rezervaci místa bude odesláno potvrzení a údaje se uloží do omezené evidence organizátora."
             : clientConfig.mode === "demo"
-              ? "Aktuálně běží demo režim: vytvoří se pouze náhled potvrzovacích e-mailů a žádné osobní ani zdravotní údaje se neukládají ani neposílají."
+              ? `${clientConfig.warning ?? "Aktuálně běží demo režim."} Vytvoří se pouze náhled potvrzovacích e-mailů a žádné osobní ani zdravotní údaje se neukládají ani neposílají.`
               : "Přihlašovací systém je dočasně nedostupný kvůli neúplnému provoznímu nastavení."}
       </div>
 

@@ -223,18 +223,32 @@ async function reserveGoogleSheet(payload, receiptId, eventPolicy, env, fetchImp
 }
 
 export function registrationRuntimeStatus(env) {
-  const emailValues = [env.RESEND_API_KEY, env.REGISTRATION_FROM_EMAIL, env.REGISTRATION_ORGANIZER_EMAIL];
-  const sheetValues = [env.GOOGLE_SHEETS_WEBHOOK_URL, env.GOOGLE_SHEETS_WEBHOOK_SECRET];
-  const turnstileValues = [env.TURNSTILE_SITE_KEY, env.TURNSTILE_SECRET_KEY];
-  const deliveryValues = [...emailValues, ...sheetValues];
-  const deliveryCount = deliveryValues.filter(Boolean).length;
-  const turnstileCount = turnstileValues.filter(Boolean).length;
+  const groups = {
+    email: [env.RESEND_API_KEY, env.REGISTRATION_FROM_EMAIL, env.REGISTRATION_ORGANIZER_EMAIL],
+    storage: [env.GOOGLE_SHEETS_WEBHOOK_URL, env.GOOGLE_SHEETS_WEBHOOK_SECRET],
+    antispam: [env.TURNSTILE_SITE_KEY, env.TURNSTILE_SECRET_KEY],
+  };
+  const missingCapabilities = Object.entries(groups)
+    .filter(([, values]) => values.some((value) => !value))
+    .map(([name]) => name);
 
-  if (deliveryCount === 0 && turnstileCount === 0) return { status: "demo", turnstileSiteKey: null };
-  if (deliveryCount !== deliveryValues.length || turnstileCount !== turnstileValues.length) {
-    return { status: "misconfigured", turnstileSiteKey: null };
+  if (missingCapabilities.length > 0) {
+    return {
+      status: "demo",
+      turnstileSiteKey: null,
+      configurationWarning: true,
+      missingCapabilities,
+      warning: "Přihlášky běží v demo režimu, protože nejsou kompletně nastavené všechny produkční služby.",
+    };
   }
-  return { status: "configured", turnstileSiteKey: env.TURNSTILE_SITE_KEY };
+
+  return {
+    status: "configured",
+    turnstileSiteKey: env.TURNSTILE_SITE_KEY,
+    configurationWarning: false,
+    missingCapabilities: [],
+    warning: null,
+  };
 }
 
 async function verifyTurnstile(payload, request, url, env, fetchImpl) {
@@ -294,7 +308,12 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
     pruneState(state, timestamp);
     const key = clientKey(request);
     const attempts = state.rateLimits.get(key) || [];
-    if (attempts.length >= REGISTRATION_LIMIT) return jsonResponse({ error: "Příliš mnoho pokusů. Zkuste to znovu za několik minut." }, 429);
+    if (attempts.length >= REGISTRATION_LIMIT) {
+      const retryAfter = Math.max(1, Math.ceil((REGISTRATION_WINDOW_MS - (timestamp - attempts[0])) / 1_000));
+      const response = jsonResponse({ error: "Příliš mnoho pokusů. Zkuste to znovu za několik minut." }, 429);
+      response.headers.set("Retry-After", String(retryAfter));
+      return response;
+    }
     attempts.push(timestamp);
     state.rateLimits.set(key, attempts);
 
@@ -320,10 +339,6 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
     }
 
     const runtime = registrationRuntimeStatus(env);
-    if (runtime.status === "misconfigured") {
-      return jsonResponse({ error: "Přihlášky jsou dočasně nedostupné kvůli neúplnému nastavení." }, 503);
-    }
-
     if (runtime.status === "configured") {
       try {
         if (!payload.turnstileToken || !(await verifyTurnstile(payload, request, url, env, fetchImpl))) {
@@ -344,6 +359,8 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
         ok: true,
         mode: "demo",
         receiptId,
+        configurationWarning: runtime.configurationWarning,
+        warning: runtime.warning,
         delivery: { organizerEmail: "preview", participantEmail: "preview", googleSheet: "not_configured" },
       };
       state.receipts.set(payload.submissionId, { state: "complete", result, createdAt: timestamp });

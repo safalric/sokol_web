@@ -1,5 +1,20 @@
 import { jsonResponse } from "./http-security.js";
 
+export function calendarRuntimeStatus(env) {
+  const missingCapabilities = [];
+  if (!env.GOOGLE_CALENDAR_ID) missingCapabilities.push("calendar_id");
+  if (!env.GOOGLE_CALENDAR_API_KEY) missingCapabilities.push("calendar_api");
+
+  return missingCapabilities.length === 0
+    ? { status: "google", configurationWarning: false, missingCapabilities: [], warning: null }
+    : {
+      status: "demo",
+      configurationWarning: true,
+      missingCapabilities,
+      warning: "Kalendář běží v demo režimu, protože není kompletně připojený veřejný Google Kalendář jednoty.",
+    };
+}
+
 function getPeriod(url, calendarEvents, now) {
   const yearValue = url.searchParams.get("year");
   const monthValue = url.searchParams.get("month");
@@ -87,11 +102,21 @@ async function getGoogleEvents(period, env, fetchImpl) {
 export async function handleCalendar(url, env, calendarEvents, fetchImpl, now) {
   const period = getPeriod(url, calendarEvents, now);
   if (!period) return jsonResponse({ error: "Neplatný rok nebo měsíc." }, 400);
+  const runtime = calendarRuntimeStatus(env);
 
-  if (env.GOOGLE_CALENDAR_ID && env.GOOGLE_CALENDAR_API_KEY) {
+  if (runtime.status === "google") {
     try {
       const events = await getGoogleEvents(period, env, fetchImpl);
-      return jsonResponse({ source: "google", demo: false, period, events, updatedAt: now().toISOString() }, 200, "public, max-age=300");
+      return jsonResponse({
+        source: "google",
+        demo: false,
+        period,
+        events,
+        updatedAt: now().toISOString(),
+        configurationWarning: false,
+        missingCapabilities: [],
+        warning: null,
+      }, 200, "public, max-age=300");
     } catch {
       const events = calendarEvents.filter((event) => event.date.startsWith(`${period.year}-${String(period.month).padStart(2, "0")}`));
       return jsonResponse({
@@ -100,11 +125,23 @@ export async function handleCalendar(url, env, calendarEvents, fetchImpl, now) {
         period,
         events,
         updatedAt: now().toISOString(),
+        configurationWarning: false,
+        warningCode: "provider_unavailable",
         warning: "Google Kalendář je dočasně nedostupný. Zobrazujeme náhradní ukázková data.",
       });
     }
   }
 
   const events = calendarEvents.filter((event) => event.date.startsWith(`${period.year}-${String(period.month).padStart(2, "0")}`));
-  return jsonResponse({ source: "demo", demo: true, period, events, updatedAt: now().toISOString() });
+  return jsonResponse({
+    source: "demo",
+    demo: true,
+    period,
+    events,
+    updatedAt: now().toISOString(),
+    configurationWarning: runtime.configurationWarning,
+    warningCode: "missing_configuration",
+    missingCapabilities: runtime.missingCapabilities,
+    warning: runtime.warning,
+  });
 }

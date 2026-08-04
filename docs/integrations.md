@@ -18,7 +18,7 @@ Při výpadku Google API se endpoint bezpečně vrátí k demo datům a návšt�
 
 Nastavte `RESEND_API_KEY`, `REGISTRATION_FROM_EMAIL` z ověřené domény a `REGISTRATION_ORGANIZER_EMAIL`. Server odešle jeden e-mail organizátorovi a jeden účastníkovi. Každý požadavek používá idempotency key odvozený z ID odeslání. Obsah zdravotní poznámky se záměrně neposílá e-mailem.
 
-Produkční režim se aktivuje pouze tehdy, když jsou současně nastaveny e-mail, Google Sheets i Turnstile. Částečné nastavení formulář bezpečně zablokuje, aby návštěvník nedostal potvrzení bez uložené rezervace.
+Produkční režim se aktivuje pouze tehdy, když jsou současně nastaveny e-mail, Google Sheets i Turnstile. Chybějící nebo částečné nastavení bezpečně ponechá formulář v demo režimu s viditelným varováním; nic se neuloží ani neodešle. Návštěvník proto nikdy nedostane falešné produkční potvrzení bez uložené rezervace.
 
 ## Google Sheets
 

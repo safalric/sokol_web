@@ -266,13 +266,23 @@ test("registration config exposes only the public Turnstile site key", async () 
   const worker = createTestWorker();
   const live = await worker.fetch(new Request("https://sokol.example/api/registration-config"), liveEnv);
   const liveBody = await live.json();
-  assert.deepEqual(liveBody, { mode: "live", turnstileSiteKey: "turnstile-site-key" });
+  assert.deepEqual(liveBody, {
+    mode: "live",
+    turnstileSiteKey: "turnstile-site-key",
+    configurationWarning: false,
+    missingCapabilities: [],
+    warning: null,
+  });
   assert.doesNotMatch(JSON.stringify(liveBody), /secret/i);
 
-  const unavailable = await worker.fetch(new Request("https://sokol.example/api/registration-config"), {
+  const fallback = await worker.fetch(new Request("https://sokol.example/api/registration-config"), {
     RESEND_API_KEY: "partial",
   });
-  assert.equal((await unavailable.json()).mode, "unavailable");
+  const fallbackBody = await fallback.json();
+  assert.equal(fallbackBody.mode, "demo");
+  assert.equal(fallbackBody.configurationWarning, true);
+  assert.deepEqual(fallbackBody.missingCapabilities.sort(), ["antispam", "email", "storage"]);
+  assert.doesNotMatch(JSON.stringify(fallbackBody), /partial|RESEND_API_KEY|secret/i);
 });
 
 test("API and HTML responses include security headers", async () => {

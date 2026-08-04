@@ -25,6 +25,8 @@ export type EventRegistrationResult = {
   mode: "demo" | "live" | "discarded";
   receiptId?: string;
   capacityRemaining?: number;
+  configurationWarning?: boolean;
+  warning?: string | null;
   delivery?: {
     organizerEmail: DeliveryState;
     participantEmail: DeliveryState;
@@ -39,6 +41,9 @@ export type EventRegistrationResult = {
 export type RegistrationClientConfig = {
   mode: "demo" | "live" | "unavailable";
   turnstileSiteKey: string | null;
+  configurationWarning?: boolean;
+  missingCapabilities?: string[];
+  warning?: string | null;
 };
 
 function isLocalhost() {
