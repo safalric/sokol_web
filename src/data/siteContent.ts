@@ -37,6 +37,7 @@ export const secondaryNavigation = [
   { label: "O nás", href: "/o-nas" },
   { label: "Fotogalerie", href: "/fotogalerie" },
   { label: "Historie", href: "/historie" },
+  { label: "Dotace", href: "/dotace" },
 ];
 
 export const quickLinks = [

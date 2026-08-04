@@ -1,0 +1,68 @@
+[
+  {
+    "path": "/",
+    "title": "TJ Sokol Doudleby nad Orlicí – Sport a cvičení pro všechny",
+    "pageTitle": "Úvod",
+    "description": "TJ Sokol Doudleby nad Orlicí nabízí sport, pravidelné cvičení, výlety a komunitní akce pro děti i dospělé."
+  },
+  {
+    "path": "/o-nas",
+    "title": "O nás | TJ Sokol Doudleby nad Orlicí",
+    "pageTitle": "O nás",
+    "description": "Poznejte TJ Sokol Doudleby nad Orlicí, vedení jednoty, cvičitele a lidi, kteří pečují o místní sokolskou komunitu."
+  },
+  {
+    "path": "/cviceni",
+    "title": "Cvičení a oddíly | TJ Sokol Doudleby nad Orlicí",
+    "pageTitle": "Cvičení",
+    "description": "Přehled cvičení a sportovních oddílů TJ Sokol Doudleby nad Orlicí pro děti, rodiče, žactvo i další věkové skupiny."
+  },
+  {
+    "path": "/akce",
+    "title": "Akce a tábory | TJ Sokol Doudleby nad Orlicí",
+    "pageTitle": "Akce",
+    "description": "Výlety, komunitní akce, sportovní setkání a tábory pořádané TJ Sokol Doudleby nad Orlicí."
+  },
+  {
+    "path": "/kalendar",
+    "title": "Kalendář akcí a tréninků | TJ Sokol Doudleby nad Orlicí",
+    "pageTitle": "Kalendář",
+    "description": "Aktuální kalendář tréninků, výletů a společných akcí TJ Sokol Doudleby nad Orlicí."
+  },
+  {
+    "path": "/prihlaska",
+    "title": "Přihláška do Sokola | TJ Sokol Doudleby nad Orlicí",
+    "pageTitle": "Přihláška",
+    "description": "Informace a bezpečný odkaz na oficiální členskou přihlášku do TJ Sokol Doudleby nad Orlicí v systému eČlen."
+  },
+  {
+    "path": "/fotogalerie",
+    "title": "Fotogalerie | TJ Sokol Doudleby nad Orlicí",
+    "pageTitle": "Fotogalerie",
+    "description": "Archiv fotografií z tréninků, vystoupení, turnajů a společných akcí TJ Sokol Doudleby nad Orlicí."
+  },
+  {
+    "path": "/historie",
+    "title": "Historie jednoty | TJ Sokol Doudleby nad Orlicí",
+    "pageTitle": "Historie",
+    "description": "Historie TJ Sokol Doudleby nad Orlicí od vzniku samostatné jednoty v roce 1899 po obnovení sokolské činnosti."
+  },
+  {
+    "path": "/kontakt",
+    "title": "Kontakty | TJ Sokol Doudleby nad Orlicí",
+    "pageTitle": "Kontakt",
+    "description": "Kontaktní údaje, vedení, sídlo a mapa TJ Sokol Doudleby nad Orlicí."
+  },
+  {
+    "path": "/gdpr",
+    "title": "Ochrana osobních údajů | TJ Sokol Doudleby nad Orlicí",
+    "pageTitle": "Ochrana osobních údajů",
+    "description": "Informace o zpracování osobních údajů, souhlasech, právech účastníků a kontaktu správce TJ Sokol Doudleby nad Orlicí."
+  },
+  {
+    "path": "/dotace",
+    "title": "Dotace a podpora | TJ Sokol Doudleby nad Orlicí",
+    "pageTitle": "Dotace a podpora",
+    "description": "Přehled zveřejněných dotačních programů, podpory a souvisejících dokumentů TJ Sokol Doudleby nad Orlicí."
+  }
+]

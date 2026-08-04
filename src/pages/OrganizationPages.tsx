@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, FileText, Landmark } from "lucide-react";
 import { InfoRow, PageShell } from "../components/PagePrimitives";
 import {
   coachContacts,
@@ -164,6 +164,29 @@ export function ContactPage({ onNavigate }: { onNavigate: (href: string) => void
           ))}
         </div>
       </section>
+    </PageShell>
+  );
+}
+
+export function GrantsPage() {
+  return (
+    <PageShell title="Dotace a podpora">
+      <div className="grant-layout">
+        <article className="content-card">
+          <Landmark className="mb-4 h-7 w-7 text-sokol-red" aria-hidden="true" />
+          <h2>Transparentní přehled podpory</h2>
+          <p>
+            Na této stránce budou zveřejňovány ověřené informace o dotačních programech, poskytovatelích podpory a souvisejících povinných dokumentech jednoty.
+          </p>
+        </article>
+        <div className="grant-empty" role="status">
+          <FileText className="h-8 w-8" aria-hidden="true" />
+          <div>
+            <h2>Aktuálně bez zveřejněných dokumentů</h2>
+            <p>Vedení jednoty zatím nedodalo žádné dotační údaje určené k publikaci. Stránka proto nezobrazuje neověřená nebo smyšlená data.</p>
+          </div>
+        </div>
+      </div>
     </PageShell>
   );
 }

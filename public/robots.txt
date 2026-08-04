@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tj-sokol-doudleby.tomas-saf.chatgpt.site/sitemap.xml

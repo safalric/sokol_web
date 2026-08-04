@@ -20,10 +20,12 @@ export function createWorker({
   staticEntries,
   calendarEvents,
   registrationEvents = [],
+  appRoutes = ["/"],
   fetchImpl = fetch,
   now = () => new Date(),
 }) {
   const assets = new Map(staticEntries);
+  const knownHtmlRoutes = new Set(appRoutes);
   const handleRegistration = createRegistrationHandler({ fetchImpl, now, registrationEvents });
 
   return {
@@ -74,7 +76,8 @@ export function createWorker({
       const asset = assets.get(url.pathname);
       if (asset) return staticResponse(decodeBase64(asset.content), asset.contentType, 200, request.method);
       if ((request.headers.get("Accept") || "").includes("text/html")) {
-        return staticResponse(indexHtml, "text/html; charset=utf-8", 200, request.method);
+        const normalizedPath = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, "") : url.pathname;
+        return staticResponse(indexHtml, "text/html; charset=utf-8", knownHtmlRoutes.has(normalizedPath) ? 200 : 404, request.method);
       }
       if (env.ASSETS) return withSecurityHeaders(await env.ASSETS.fetch(request));
       return staticResponse("Not found", "text/plain; charset=utf-8", 404, request.method);

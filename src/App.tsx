@@ -3,10 +3,12 @@ import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
 import { GalleryPage } from "./pages/GalleryPage";
 import { HomePage } from "./pages/HomePage";
-import { AboutPage, ContactPage, HistoryPage, MemberApplicationPage } from "./pages/OrganizationPages";
+import { AboutPage, ContactPage, GrantsPage, HistoryPage, MemberApplicationPage } from "./pages/OrganizationPages";
+import { NotFoundPage } from "./pages/NotFoundPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
 import { CalendarPage, EventsPage, ExercisePage } from "./pages/ProgramPages";
-import { normalizePath, PAGE_TITLES } from "./routes";
+import { applyRouteMetadata } from "./seo";
+import { normalizePath, NOT_FOUND_PATH } from "./routes";
 
 export function App() {
   const [currentPath, setCurrentPath] = useState(() => normalizePath(window.location.pathname));
@@ -18,17 +20,14 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    document.title =
-      currentPath === "/"
-        ? "TJ Sokol Doudleby nad Orlicí – Sport a cvičení pro všechny"
-        : `${PAGE_TITLES[currentPath]} | TJ Sokol Doudleby nad Orlicí`;
+    applyRouteMetadata(currentPath);
   }, [currentPath]);
 
   const navigate = (href: string) => {
     const nextPath = normalizePath(href);
     if (nextPath === currentPath) return;
 
-    window.history.pushState({}, "", nextPath);
+    window.history.pushState({}, "", href);
     setCurrentPath(nextPath);
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     window.requestAnimationFrame(() => {
@@ -52,6 +51,8 @@ export function App() {
         {currentPath === "/historie" ? <HistoryPage /> : null}
         {currentPath === "/kontakt" ? <ContactPage onNavigate={navigate} /> : null}
         {currentPath === "/gdpr" ? <PrivacyPage /> : null}
+        {currentPath === "/dotace" ? <GrantsPage /> : null}
+        {currentPath === NOT_FOUND_PATH ? <NotFoundPage onNavigate={navigate} /> : null}
       </main>
       <Footer onNavigate={navigate} />
     </div>

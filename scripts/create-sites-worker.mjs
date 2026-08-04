@@ -7,6 +7,7 @@ const distDir = join(process.cwd(), "dist");
 const indexHtml = await readFile(join(process.cwd(), "dist", "index.html"), "utf8");
 const calendarEvents = JSON.parse(await readFile(join(process.cwd(), "src", "data", "calendar-events.json"), "utf8"));
 const registrationEvents = JSON.parse(await readFile(join(process.cwd(), "src", "data", "registration-events.json"), "utf8"));
+const appRoutes = JSON.parse(await readFile(join(process.cwd(), "src", "data", "site-routes.json"), "utf8")).map((route) => route.path);
 
 async function collectFiles(dir) {
   const entries = await Promise.all(
@@ -72,12 +73,14 @@ const INDEX_HTML = ${JSON.stringify(indexHtml)};
 const ASSETS = new Map(${JSON.stringify(staticEntries)});
 const CALENDAR_EVENTS = ${JSON.stringify(calendarEvents)};
 const REGISTRATION_EVENTS = ${JSON.stringify(registrationEvents)};
+const APP_ROUTES = ${JSON.stringify(appRoutes)};
 
 export default createWorker({
   indexHtml: INDEX_HTML,
   staticEntries: ASSETS,
   calendarEvents: CALENDAR_EVENTS,
   registrationEvents: REGISTRATION_EVENTS,
+  appRoutes: APP_ROUTES,
 });
 `,
 );

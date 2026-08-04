@@ -7,6 +7,7 @@ import {
   Home,
   Images,
   Info,
+  Landmark,
   MapPin,
   Menu,
   PartyPopper,
@@ -31,6 +32,7 @@ const mobileNavigationIcons: Record<string, ComponentType<{ className?: string; 
   "/o-nas": Info,
   "/fotogalerie": Images,
   "/historie": History,
+  "/dotace": Landmark,
 };
 
 export function Header({ currentPath, onNavigate }: HeaderProps) {

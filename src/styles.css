@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --font-body: "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
+    --font-display: "Arial Narrow", "Roboto Condensed", "Franklin Gothic Condensed", Impact, Haettenschweiler, Arial, sans-serif;
+  }
+
   html {
     scroll-behavior: smooth;
     color-scheme: light;
@@ -25,7 +30,7 @@
   body {
     margin: 0;
     background: #f4f5f7;
-    font-family: Arial, Helvetica, system-ui, sans-serif;
+    font-family: var(--font-body);
     color: #1f2937;
   }
 
@@ -1556,5 +1561,148 @@ html[data-theme="dark"] .site-footer {
   .calendar-panel,
   .calendar-agenda {
     transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+  }
+}
+
+.not-found {
+  display: grid;
+  min-height: min(720px, calc(100svh - 150px));
+  place-items: center;
+  border-bottom: 1px solid #d4d4d8;
+  background: #ffffff;
+  padding: 3rem 1.25rem;
+}
+
+.not-found-inner {
+  display: grid;
+  width: min(100%, 960px);
+  align-items: center;
+  gap: 2rem;
+}
+
+.not-found-mark {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  border-left: 10px solid #d32f2f;
+  background: #111827;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.not-found-mark svg {
+  height: 3rem;
+  width: 3rem;
+  color: #ff5d68;
+  position: absolute;
+  right: 1.5rem;
+  top: 1.5rem;
+}
+
+.not-found-mark span {
+  font-family: var(--font-display);
+  font-size: clamp(5rem, 24vw, 10rem);
+  line-height: 0.8;
+}
+
+.not-found-copy h1 {
+  margin-top: 0.5rem;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 10vw, 4.5rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: #18181b;
+}
+
+.not-found-copy > p:not(.eyebrow) {
+  margin-top: 1.25rem;
+  max-width: 38rem;
+  color: #3f3f46;
+  line-height: 1.75;
+}
+
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.not-found-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.grant-layout {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.grant-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  border: 1px dashed #a1a1aa;
+  border-left: 6px solid #1976d2;
+  background: #ffffff;
+  padding: 1.5rem;
+  color: #3f3f46;
+}
+
+.grant-empty svg {
+  flex: none;
+  color: #1976d2;
+}
+
+.grant-empty h2 {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  line-height: 1;
+  text-transform: uppercase;
+  color: #18181b;
+}
+
+.grant-empty p {
+  margin-top: 0.75rem;
+  line-height: 1.7;
+}
+
+html[data-theme="dark"] .not-found {
+  border-color: #363d47;
+  background: #0c0f14;
+}
+
+html[data-theme="dark"] .not-found-copy h1,
+html[data-theme="dark"] .grant-empty h2 {
+  color: #f8f8f9;
+}
+
+html[data-theme="dark"] .not-found-copy > p:not(.eyebrow),
+html[data-theme="dark"] .grant-empty {
+  color: #c5cad2;
+}
+
+html[data-theme="dark"] .grant-empty {
+  border-color: #555d68;
+  border-left-color: #62a9ef;
+  background: #15191f;
+}
+
+html[data-theme="dark"] .grant-empty svg {
+  color: #8bc3fa;
+}
+
+@media (min-width: 768px) {
+  .not-found-inner {
+    grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+    gap: 3rem;
+  }
+
+  .grant-layout {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: stretch;
   }
 }

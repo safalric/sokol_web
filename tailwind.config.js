@@ -13,8 +13,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["Arial", "Helvetica", "system-ui", "sans-serif"],
-        display: ["Impact", "Arial Narrow", "Haettenschweiler", "Arial", "sans-serif"],
+        sans: ["var(--font-body)"],
+        display: ["var(--font-display)"],
       },
       boxShadow: {
         soft: "0 14px 35px rgba(31, 41, 55, 0.10)",
