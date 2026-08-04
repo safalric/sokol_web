@@ -2,6 +2,7 @@
   "name": "tj-sokol-doudleby-web",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "pnpm@11.9.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --configLoader native",
@@ -9,6 +10,7 @@
     "check": "tsc --noEmit",
     "preview": "vite preview --host 127.0.0.1 --configLoader native",
     "preview:worker": "node scripts/preview-worker.mjs",
+    "test": "pnpm test:api",
     "test:api": "node --test tests/*.test.mjs",
     "qa": "pnpm check && pnpm test:api && pnpm build"
   },
