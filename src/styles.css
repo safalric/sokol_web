@@ -276,7 +276,6 @@
     .event-card:hover,
     .department-card:hover,
     .coach-card:hover,
-    .gallery-card:hover,
     .history-story:hover,
     .timeline-item:hover {
       @apply -translate-y-0.5 border-zinc-400 shadow-soft;
@@ -288,7 +287,6 @@
   .event-card h2,
   .event-card h3,
   .department-card h2,
-  .gallery-card h2,
   .timeline-item h2 {
     @apply font-display text-3xl uppercase leading-none text-zinc-950;
   }
@@ -403,11 +401,11 @@
   }
 
   .poster-grid {
-    @apply grid gap-5 lg:grid-cols-3;
+    @apply grid gap-5 md:grid-cols-2 xl:grid-cols-3;
   }
 
   .poster-card {
-    @apply grid min-w-0 overflow-hidden rounded border border-zinc-300 bg-white shadow-sm transition-all duration-200;
+    @apply grid min-w-0 grid-rows-[auto_1fr] overflow-hidden rounded border border-zinc-300 bg-white shadow-sm transition-all duration-200;
   }
 
   @media (hover: hover) {
@@ -417,7 +415,7 @@
   }
 
   .poster-preview-button {
-    @apply relative block h-64 w-full overflow-hidden border-0 border-b border-zinc-300 bg-zinc-100 p-0 text-left;
+    @apply relative block aspect-[3/4] h-auto w-full overflow-hidden border-0 border-b border-zinc-300 bg-zinc-100 p-0 text-left;
   }
 
   .poster-preview-button img {
@@ -578,57 +576,164 @@
     @apply border-b border-red-200 py-1 font-semibold text-zinc-800;
   }
 
-  .gallery-grid {
-    @apply mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3;
+  .gallery-intro {
+    @apply flex items-start gap-3 border border-zinc-300 border-l-4 border-l-sokol-red bg-white p-4 text-zinc-700 shadow-sm;
   }
 
-  .gallery-card {
-    @apply relative flex min-h-56 flex-col justify-between overflow-hidden rounded border border-zinc-200 p-6 text-white shadow-sm transition-all duration-200;
+  .gallery-intro > svg {
+    @apply mt-0.5 shrink-0 text-sokol-red;
   }
 
-  .gallery-card p {
-    @apply mt-2 text-white/85;
+  .gallery-intro strong,
+  .gallery-intro span {
+    @apply block;
   }
 
-  .gallery-number {
-    @apply relative z-10 font-display text-6xl uppercase text-white/65;
+  .gallery-intro strong {
+    @apply text-zinc-950;
   }
 
-  .gallery-watermark {
-    @apply absolute -right-8 -top-8 h-44 w-44 bg-contain bg-center bg-no-repeat opacity-20 grayscale brightness-0 invert;
-    background-image: url("/brand/sokol-symbol-rgb.png");
+  .gallery-intro span {
+    @apply mt-1 text-sm leading-6;
   }
 
-  .gallery-card > div:last-child {
-    @apply relative z-10;
+  .gallery-toolbar {
+    @apply mt-8 flex flex-col gap-3 border-b border-zinc-300 pb-4 sm:flex-row sm:items-end sm:justify-between;
   }
 
-  .gallery-demo-label {
-    @apply mb-3 inline-flex rounded-sm bg-black/40 px-2 py-1 text-[11px] font-black uppercase tracking-[0.1em] text-white;
+  .gallery-tabs {
+    @apply flex max-w-full gap-2 overflow-x-auto pb-1;
+    scrollbar-width: thin;
   }
 
-  .gallery-red {
-    @apply bg-sokol-red;
+  .gallery-tab {
+    @apply inline-flex shrink-0 items-center gap-2 border border-zinc-400 bg-white px-4 py-2 text-sm font-bold text-zinc-800 transition-all duration-200 hover:border-sokol-red hover:text-sokol-red;
   }
 
-  .gallery-navy {
-    @apply bg-zinc-950;
+  .gallery-tab span {
+    @apply min-w-6 rounded-sm bg-zinc-200 px-1.5 py-0.5 text-center text-xs text-zinc-700;
   }
 
-  .gallery-sand {
-    @apply bg-[#985f39];
+  .gallery-tab-active {
+    @apply border-sokol-red bg-sokol-red text-white shadow-sm hover:text-white;
   }
 
-  .gallery-blue {
-    @apply bg-sokol-blue;
+  .gallery-tab-active span {
+    @apply bg-white/20 text-white;
   }
 
-  .gallery-green {
-    @apply bg-[#2f6f56];
+  .gallery-result-count {
+    @apply shrink-0 text-sm font-semibold text-zinc-600;
   }
 
-  .gallery-gray {
-    @apply bg-zinc-700;
+  .gallery-photo-grid {
+    @apply mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .gallery-photo-card {
+    @apply min-w-0 overflow-hidden rounded border border-zinc-300 bg-white shadow-sm transition-all duration-200;
+  }
+
+  @media (hover: hover) {
+    .gallery-photo-card:hover {
+      @apply -translate-y-0.5 border-sokol-red shadow-soft;
+    }
+  }
+
+  .gallery-photo-button {
+    @apply relative block aspect-[4/3] w-full overflow-hidden border-0 border-b border-zinc-300 bg-zinc-100 p-0 text-left;
+  }
+
+  .gallery-photo-button img {
+    @apply h-full w-full object-cover transition-all duration-200;
+  }
+
+  .gallery-photo-open {
+    @apply absolute bottom-3 right-3 inline-flex items-center gap-2 bg-zinc-950/90 px-3 py-2 text-xs font-bold text-white shadow-md transition-all duration-200;
+  }
+
+  @media (hover: hover) {
+    .gallery-photo-button:hover img {
+      @apply scale-[1.025];
+    }
+
+    .gallery-photo-button:hover .gallery-photo-open {
+      @apply bg-sokol-red;
+    }
+  }
+
+  .gallery-photo-card figcaption {
+    @apply flex min-h-24 items-start justify-between gap-4 p-4;
+  }
+
+  .gallery-photo-card figcaption span {
+    @apply text-xs font-black uppercase text-sokol-red;
+  }
+
+  .gallery-photo-card figcaption h2 {
+    @apply mt-1 text-base font-bold leading-5 text-zinc-950;
+  }
+
+  .gallery-photo-card figcaption time {
+    @apply shrink-0 text-sm font-semibold text-zinc-500;
+  }
+
+  .gallery-lightbox {
+    @apply m-auto max-h-[96vh] w-[min(96vw,1180px)] max-w-none overflow-visible border-0 bg-transparent p-0;
+  }
+
+  .gallery-lightbox::backdrop {
+    background: rgba(9, 9, 11, 0.9);
+    backdrop-filter: blur(5px);
+  }
+
+  .gallery-lightbox-panel {
+    @apply relative grid max-h-[96vh] grid-rows-[minmax(0,1fr)_auto] overflow-hidden border border-white/20 bg-zinc-950 shadow-2xl;
+  }
+
+  .gallery-lightbox-media {
+    @apply relative grid min-h-0 place-items-center overflow-hidden bg-zinc-950;
+  }
+
+  .gallery-lightbox-media img {
+    @apply max-h-[calc(96vh-96px)] max-w-full object-contain;
+  }
+
+  .gallery-lightbox-close,
+  .gallery-lightbox-nav {
+    @apply grid h-11 w-11 place-items-center border border-white/40 bg-zinc-950/85 text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:border-sokol-red hover:bg-sokol-red;
+  }
+
+  .gallery-lightbox-close {
+    @apply absolute right-3 top-3 z-20;
+  }
+
+  .gallery-lightbox-nav {
+    @apply absolute top-1/2 z-10 -translate-y-1/2;
+  }
+
+  .gallery-lightbox-previous {
+    @apply left-3;
+  }
+
+  .gallery-lightbox-next {
+    @apply right-3;
+  }
+
+  .gallery-lightbox-caption {
+    @apply flex min-h-24 items-center justify-between gap-5 border-t border-zinc-300 bg-white px-5 py-4 sm:px-7;
+  }
+
+  .gallery-lightbox-caption p {
+    @apply text-xs font-black uppercase text-sokol-red;
+  }
+
+  .gallery-lightbox-caption h2 {
+    @apply mt-1 text-lg font-bold leading-6 text-zinc-950 sm:text-xl;
+  }
+
+  .gallery-lightbox-caption > span {
+    @apply shrink-0 font-display text-2xl text-zinc-500;
   }
 
   .timeline {
@@ -1275,6 +1380,69 @@ html[data-theme="dark"] .poster-lightbox-close:hover {
   background: #d32f2f;
 }
 
+html[data-theme="dark"] .gallery-intro,
+html[data-theme="dark"] .gallery-photo-card,
+html[data-theme="dark"] .gallery-tab,
+html[data-theme="dark"] .gallery-lightbox-caption {
+  border-color: #3a414b;
+  background: #15191f;
+  color: #e7e9ed;
+}
+
+html[data-theme="dark"] .gallery-intro {
+  border-left-color: #e33a4f;
+}
+
+html[data-theme="dark"] .gallery-toolbar,
+html[data-theme="dark"] .gallery-photo-button,
+html[data-theme="dark"] .gallery-lightbox-caption {
+  border-color: #3a414b;
+}
+
+html[data-theme="dark"] .gallery-intro strong,
+html[data-theme="dark"] .gallery-photo-card figcaption h2,
+html[data-theme="dark"] .gallery-lightbox-caption h2 {
+  color: #f8f8f9;
+}
+
+html[data-theme="dark"] .gallery-intro span,
+html[data-theme="dark"] .gallery-result-count,
+html[data-theme="dark"] .gallery-photo-card figcaption time,
+html[data-theme="dark"] .gallery-lightbox-caption > span {
+  color: #aeb5bf;
+}
+
+html[data-theme="dark"] .gallery-tab {
+  color: #e7e9ed;
+}
+
+html[data-theme="dark"] .gallery-tab span {
+  background: #2a3038;
+  color: #c5cad2;
+}
+
+html[data-theme="dark"] .gallery-tab:hover {
+  border-color: #ff737b;
+  color: #ff737b;
+}
+
+html[data-theme="dark"] .gallery-tab-active,
+html[data-theme="dark"] .gallery-tab-active:hover {
+  border-color: #e33a4f;
+  background: #d32f2f;
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .gallery-tab-active span {
+  background: rgb(255 255 255 / 20%);
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .gallery-photo-card:hover {
+  border-color: #69717d;
+  background: #1b2027;
+}
+
 html[data-theme="dark"] .map-preview iframe {
   background: #1b2027;
   filter: brightness(0.78) contrast(1.12) saturate(0.82);
@@ -1380,6 +1548,10 @@ html[data-theme="dark"] .site-footer {
   .event-card,
   .department-card,
   .poster-card,
+  .gallery-intro,
+  .gallery-photo-card,
+  .gallery-tab,
+  .gallery-lightbox-caption,
   .registration-form,
   .calendar-panel,
   .calendar-agenda {

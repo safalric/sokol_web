@@ -42,7 +42,13 @@ export function PosterLightbox({ event, onClose, onNavigate }: PosterLightboxPro
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
         <div className="poster-lightbox-image-wrap">
-          <img src={event.posterPreviewUrl} alt={`Plakát k akci ${event.title}`} />
+          <img
+            src={event.posterPreviewUrl}
+            alt={`Plakát k akci ${event.title}`}
+            width={926}
+            height={1310}
+            decoding="async"
+          />
         </div>
         <div className="poster-lightbox-content">
           <span className="category-label category-event">{event.category}</span>

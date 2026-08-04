@@ -27,6 +27,8 @@ pnpm preview:worker
 - `src/components/` obsahuje sdílené komponenty a formuláře.
 - `src/config/` obsahuje sdílená pravidla klienta.
 - `src/data/` obsahuje veřejný obsah, demo kalendář a povolené akce.
+- `src/data/gallery.json` je jediný manifest alb, popisků a rozměrů fotografií.
+- `public/gallery/` obsahuje malé WebP náhledy a větší varianty načítané až v lightboxu.
 - `src/services/` je jediná klientská vrstva pro same-origin API.
 - `server/` odděluje HTTP zabezpečení, kalendář a zpracování přihlášek.
 - `tests/` ověřuje API, bezpečnostní hlavičky a kritická pravidla formuláře.
@@ -39,3 +41,9 @@ Bez tajných proměnných běží kalendář a přihlášky v transparentním de
 Ostrý režim se aktivuje pouze serverovými proměnnými prostředí. Klíče nesmí mít prefix `VITE_` a nesmí být commitnuty. Zdravotní údaje mají samostatnou pojistku `REGISTRATION_HEALTH_DATA_ENABLED=true` a nikdy se neposílají e-mailem.
 
 Podrobnosti jsou v [integrations.md](docs/integrations.md), [security.md](docs/security.md) a [privacy-go-live.md](docs/privacy-go-live.md).
+
+## Fotogalerie a plakáty
+
+Galerie načítá v přehledu pouze náhledy do šířky 640 px. Větší fotografie se stáhne až po otevření lightboxu. Každá fotografie musí mít v `gallery.json` vlastní ID, album, český popis `alt`, rozměry náhledu a rozměry velké varianty. Před zveřejněním nové fotografie musí vedení jednoty potvrdit oprávnění ke zveřejnění, zejména pokud jsou na snímku děti.
+
+Plakáty jsou uloženy v `public/posters/` jako kompaktní PNG náhled a odpovídající PDF ke stažení. Kontrola `pnpm qa` hlídá existenci, formát a maximální velikost obrazových souborů.

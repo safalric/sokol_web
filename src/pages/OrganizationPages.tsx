@@ -1,9 +1,8 @@
-import { Camera, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { InfoRow, PageShell } from "../components/PagePrimitives";
 import {
   coachContacts,
   contactDetails,
-  gallery,
   historyStories,
   historyTimeline,
   leadership,
@@ -82,30 +81,6 @@ export function MemberApplicationPage() {
             <p>Jednota: Doudleby nad Orlicí</p>
           </div>
         </article>
-      </div>
-    </PageShell>
-  );
-}
-
-export function GalleryPage() {
-  return (
-    <PageShell title="Fotogalerie">
-      <div className="demo-callout">
-        <Camera className="h-5 w-5" aria-hidden="true" />
-        <span>Galerie zatím používá označené ukázkové obálky. Skutečné fotografie budou doplněny po výběru a schválení jednotou.</span>
-      </div>
-      <div className="gallery-grid">
-        {gallery.map((item, index) => (
-          <article key={item.title} className={`gallery-card gallery-${item.tone}`}>
-            <span className="gallery-watermark" aria-hidden="true" />
-            <div className="gallery-number">{String(index + 1).padStart(2, "0")}</div>
-            <div>
-              <span className="gallery-demo-label">Demo album</span>
-              <h2>{item.title}</h2>
-              <p>{item.meta}</p>
-            </div>
-          </article>
-        ))}
       </div>
     </PageShell>
   );

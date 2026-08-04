@@ -198,15 +198,6 @@ export const events = [
 
 export type SiteEvent = (typeof events)[number];
 
-export const gallery = [
-  { title: "Cvičení dětí", meta: "pohybová všestrannost", tone: "red" },
-  { title: "Sokolské akce", meta: "setkání jednoty", tone: "navy" },
-  { title: "Výlety", meta: "společné zážitky", tone: "sand" },
-  { title: "Florbal", meta: "týmový sport", tone: "blue" },
-  { title: "Tábor", meta: "léto se Sokolem", tone: "green" },
-  { title: "Sokolovna", meta: "zázemí jednoty", tone: "gray" },
-];
-
 export const historyTimeline = [
   {
     year: "1862",

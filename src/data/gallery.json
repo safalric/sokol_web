@@ -1,0 +1,200 @@
+{
+  "albums": [
+    {
+      "id": "atletika",
+      "title": "Atletika",
+      "description": "Tréninky a společné závody mladých atletů."
+    },
+    {
+      "id": "volejbal",
+      "title": "Volejbal",
+      "description": "Turnaje, tréninky a společná setkání na hřišti."
+    },
+    {
+      "id": "capoeira",
+      "title": "Capoeira",
+      "description": "Vystoupení doudlebského oddílu na sokolské akademii."
+    },
+    {
+      "id": "vsestrannost",
+      "title": "Všestrannost",
+      "description": "Pohybová průprava, cvičení v tělocvičně a venkovní akce."
+    },
+    {
+      "id": "floriteam",
+      "title": "Floriteam",
+      "description": "Taneční vystoupení oddílu Floriteam."
+    }
+  ],
+  "photos": [
+    {
+      "id": "atletika-01",
+      "albumId": "atletika",
+      "title": "Společný trénink v tělocvičně",
+      "year": "2022",
+      "alt": "Skupina mladých atletek TJ Sokol Doudleby v tělocvičně za gymnastickým nářadím",
+      "thumbSrc": "/gallery/atletika/atletika-01-thumb.webp",
+      "largeSrc": "/gallery/atletika/atletika-01-large.webp",
+      "thumbWidth": 640,
+      "thumbHeight": 288,
+      "width": 1600,
+      "height": 721
+    },
+    {
+      "id": "atletika-02",
+      "albumId": "atletika",
+      "title": "Atletický tým na stadionu",
+      "year": "2022",
+      "alt": "Atletický tým TJ Sokol Doudleby v růžových dresech na venkovním stadionu",
+      "thumbSrc": "/gallery/atletika/atletika-02-thumb.webp",
+      "largeSrc": "/gallery/atletika/atletika-02-large.webp",
+      "thumbWidth": 640,
+      "thumbHeight": 576,
+      "width": 1600,
+      "height": 1441
+    },
+    {
+      "id": "atletika-03",
+      "albumId": "atletika",
+      "title": "Mladí atleti na dráze",
+      "year": "2022",
+      "alt": "Skupina dětského atletického oddílu TJ Sokol Doudleby na běžecké dráze",
+      "thumbSrc": "/gallery/atletika/atletika-03-thumb.webp",
+      "largeSrc": "/gallery/atletika/atletika-03-large.webp",
+      "thumbWidth": 640,
+      "thumbHeight": 572,
+      "width": 1600,
+      "height": 1430
+    },
+    {
+      "id": "volejbal-01",
+      "albumId": "volejbal",
+      "title": "Před začátkem tréninku",
+      "year": "2022",
+      "alt": "Děti a vedoucí před zahájením volejbalového tréninku v tělocvičně",
+      "thumbSrc": "/gallery/volejbal/volejbal-01-thumb.webp",
+      "largeSrc": "/gallery/volejbal/volejbal-01-large.webp",
+      "thumbWidth": 640,
+      "thumbHeight": 480,
+      "width": 1000,
+      "height": 750
+    },
+    {
+      "id": "volejbal-02",
+      "albumId": "volejbal",
+      "title": "Venkovní volejbalový turnaj",
+      "year": "2022",
+      "alt": "Volejbalový zápas dětí na venkovním antukovém hřišti",
+      "thumbSrc": "/gallery/volejbal/volejbal-02-thumb.webp",
+      "largeSrc": "/gallery/volejbal/volejbal-02-large.webp",
+      "thumbWidth": 640,
+      "thumbHeight": 480,
+      "width": 1000,
+      "height": 750
+    },
+    {
+      "id": "volejbal-03",
+      "albumId": "volejbal",
+      "title": "Vyhlášení turnaje",
+      "year": "2022",
+      "alt": "Vyhlášení dětského volejbalového turnaje na antukovém hřišti",
+      "thumbSrc": "/gallery/volejbal/volejbal-03-thumb.webp",
+      "largeSrc": "/gallery/volejbal/volejbal-03-large.webp",
+      "thumbWidth": 640,
+      "thumbHeight": 480,
+      "width": 1000,
+      "height": 750
+    },
+    {
+      "id": "capoeira-01",
+      "albumId": "capoeira",
+      "title": "Sokolská akademie",
+      "year": "2021",
+      "alt": "Společný nástup účastníků sokolské akademie ve sportovní hale",
+      "thumbSrc": "/gallery/capoeira/capoeira-01-thumb.webp",
+      "largeSrc": "/gallery/capoeira/capoeira-01-large.webp",
+      "thumbWidth": 640,
+      "thumbHeight": 433,
+      "width": 1600,
+      "height": 1082
+    },
+    {
+      "id": "capoeira-02",
+      "albumId": "capoeira",
+      "title": "Vystoupení capoeiry",
+      "year": "2021",
+      "alt": "Skupinové vystoupení capoeiry s barevnými prapory na sokolské akademii",
+      "thumbSrc": "/gallery/capoeira/capoeira-02-thumb.webp",
+      "largeSrc": "/gallery/capoeira/capoeira-02-large.webp",
+      "thumbWidth": 640,
+      "thumbHeight": 427,
+      "width": 1600,
+      "height": 1066
+    },
+    {
+      "id": "capoeira-03",
+      "albumId": "capoeira",
+      "title": "Ukázka pohybových prvků",
+      "year": "2021",
+      "alt": "Cvičenec předvádí akrobatický prvek během vystoupení capoeiry",
+      "thumbSrc": "/gallery/capoeira/capoeira-03-thumb.webp",
+      "largeSrc": "/gallery/capoeira/capoeira-03-large.webp",
+      "thumbWidth": 640,
+      "thumbHeight": 427,
+      "width": 1600,
+      "height": 1066
+    },
+    {
+      "id": "vsestrannost-01",
+      "albumId": "vsestrannost",
+      "title": "Pohybová průprava dětí",
+      "year": "2021",
+      "alt": "Děti s cvičitelkami při pohybové průpravě v tělocvičně",
+      "thumbSrc": "/gallery/vsestrannost/vsestrannost-01-thumb.webp",
+      "largeSrc": "/gallery/vsestrannost/vsestrannost-01-large.webp",
+      "thumbWidth": 640,
+      "thumbHeight": 480,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "id": "vsestrannost-02",
+      "albumId": "vsestrannost",
+      "title": "Cvičení s gymnastickými míči",
+      "year": "2021",
+      "alt": "Děti cvičí s barevnými gymnastickými míči v tělocvičně",
+      "thumbSrc": "/gallery/vsestrannost/vsestrannost-02-thumb.webp",
+      "largeSrc": "/gallery/vsestrannost/vsestrannost-02-large.webp",
+      "thumbWidth": 640,
+      "thumbHeight": 480,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "id": "vsestrannost-03",
+      "albumId": "vsestrannost",
+      "title": "Společná venkovní akce",
+      "year": "2022",
+      "alt": "Děti, rodiče a členové jednoty při společné venkovní sportovní akci",
+      "thumbSrc": "/gallery/vsestrannost/vsestrannost-03-thumb.webp",
+      "largeSrc": "/gallery/vsestrannost/vsestrannost-03-large.webp",
+      "thumbWidth": 640,
+      "thumbHeight": 480,
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "id": "floriteam-01",
+      "albumId": "floriteam",
+      "title": "Taneční vystoupení Floriteamu",
+      "year": "2021",
+      "alt": "Taneční skupina Floriteam během vystoupení v tělocvičně",
+      "thumbSrc": "/gallery/floriteam/floriteam-01-thumb.webp",
+      "largeSrc": "/gallery/floriteam/floriteam-01-large.webp",
+      "thumbWidth": 640,
+      "thumbHeight": 480,
+      "width": 640,
+      "height": 480
+    }
+  ]
+}

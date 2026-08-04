@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
+import { GalleryPage } from "./pages/GalleryPage";
 import { HomePage } from "./pages/HomePage";
-import { AboutPage, ContactPage, GalleryPage, HistoryPage, MemberApplicationPage } from "./pages/OrganizationPages";
+import { AboutPage, ContactPage, HistoryPage, MemberApplicationPage } from "./pages/OrganizationPages";
 import { PrivacyPage } from "./pages/PrivacyPage";
 import { CalendarPage, EventsPage, ExercisePage } from "./pages/ProgramPages";
 import { normalizePath, PAGE_TITLES } from "./routes";

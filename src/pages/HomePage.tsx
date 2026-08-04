@@ -74,7 +74,14 @@ export function HomePage({ onNavigate }: { onNavigate: (href: string) => void })
                 aria-label={`Zvětšit plakát k akci ${event.title}`}
                 onClick={() => setActivePoster(event)}
               >
-                <img src={event.posterPreviewUrl} alt={`Náhled plakátu k akci ${event.title}`} />
+                <img
+                  src={event.posterPreviewUrl}
+                  alt={`Náhled plakátu k akci ${event.title}`}
+                  width={926}
+                  height={1310}
+                  loading="lazy"
+                  decoding="async"
+                />
                 <span className="poster-preview-overlay">
                   <Expand className="h-5 w-5" aria-hidden="true" />
                   Zvětšit plakát
