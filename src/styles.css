@@ -69,11 +69,11 @@
   }
 
   .brand-lockup {
-    @apply flex items-center gap-3 border-0 bg-transparent p-0 text-left transition-all duration-200 hover:opacity-80;
+    @apply flex min-w-0 items-center gap-3 border-0 bg-transparent p-0 text-left transition-all duration-200 hover:opacity-80;
   }
 
   .brand-copy {
-    @apply block leading-none text-zinc-950;
+    @apply block min-w-0 leading-none text-zinc-950;
   }
 
   .brand-copy strong,
@@ -82,7 +82,7 @@
   }
 
   .brand-copy span {
-    @apply text-base sm:text-xl;
+    @apply max-w-36 text-sm leading-tight sm:max-w-none sm:whitespace-nowrap sm:text-lg xl:text-xl;
   }
 
   .sokol-logo {

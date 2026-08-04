@@ -150,7 +150,7 @@ export function Header({ currentPath, onNavigate }: HeaderProps) {
           <SokolLogo />
           <span className="brand-copy">
             <strong>Sokol</strong>
-            <span>Doudleby</span>
+            <span>Doudleby nad Orlicí</span>
           </span>
         </a>
 
