@@ -42,6 +42,9 @@ jobs:
       - name: Automaticke testy
         run: pnpm test
 
+      - name: Integracni testy Worker API
+        run: pnpm test:api
+
       - name: Produkcni build
         run: pnpm build
 

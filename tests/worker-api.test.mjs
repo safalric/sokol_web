@@ -77,6 +77,23 @@ test("calendar API chooses the first upcoming demo month", async () => {
   assert.equal(body.events.length, 1);
 });
 
+test("worker returns 200 for known HTML routes and 404 for unknown routes", async () => {
+  const worker = createWorker({
+    indexHtml: "<!doctype html><title>Test</title>",
+    staticEntries: [],
+    calendarEvents,
+    registrationEvents,
+    appRoutes: ["/", "/o-nas"],
+    now: fixedNow,
+  });
+  const headers = { Accept: "text/html" };
+  const known = await worker.fetch(new Request("https://sokol.example/o-nas", { headers }));
+  const unknown = await worker.fetch(new Request("https://sokol.example/neexistuje", { headers }));
+
+  assert.equal(known.status, 200);
+  assert.equal(unknown.status, 404);
+});
+
 test("calendar API filters a requested month and rejects invalid input", async () => {
   const worker = createTestWorker();
   const valid = await worker.fetch(new Request("https://sokol.example/api/calendar?year=2026&month=9"));
