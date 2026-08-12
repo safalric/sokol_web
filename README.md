@@ -9,7 +9,7 @@ pnpm install
 pnpm dev
 ```
 
-Kompletní kontrola typů, 50 automatizovaných testů a produkčního sestavení:
+Kompletní kontrola typů, automatizovaných testů a produkčního sestavení:
 
 ```bash
 pnpm qa
@@ -43,7 +43,7 @@ Bez tajných proměnných běží kalendář a přihlášky v transparentním de
 
 Ostrý režim se aktivuje pouze serverovými proměnnými prostředí. Klíče nesmí mít prefix `VITE_` a nesmí být commitnuty. Zdravotní údaje mají samostatnou pojistku `REGISTRATION_HEALTH_DATA_ENABLED=true` a nikdy se neposílají e-mailem.
 
-Podrobnosti jsou v [integrations.md](docs/integrations.md), [security.md](docs/security.md), [privacy-go-live.md](docs/privacy-go-live.md) a [final-production-readiness-report.md](docs/final-production-readiness-report.md).
+Podrobnosti jsou v [integrations.md](docs/integrations.md), [security.md](docs/security.md), [privacy-go-live.md](docs/privacy-go-live.md), [final-production-readiness-report.md](docs/final-production-readiness-report.md) a [go-live-handoff.md](docs/go-live-handoff.md).
 
 ## Fotogalerie a plakáty
 

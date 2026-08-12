@@ -16,18 +16,18 @@ Při výpadku Google API se endpoint bezpečně vrátí k demo datům a návšt�
 
 ## E-mail přes Resend
 
-Nastavte `RESEND_API_KEY`, `REGISTRATION_FROM_EMAIL` z ověřené domény a `REGISTRATION_ORGANIZER_EMAIL`. Server odešle jeden e-mail organizátorovi a jeden účastníkovi. Každý požadavek používá idempotency key odvozený z ID odeslání. Obsah zdravotní poznámky se záměrně neposílá e-mailem.
+Nastavte `RESEND_API_KEY`, `REGISTRATION_FROM_EMAIL` z ověřené domény, `REGISTRATION_TRIP_ORGANIZER_EMAIL` a `REGISTRATION_CAMP_ORGANIZER_EMAIL`. Obě cílové adresy mohou být stejné, ale musí být nastavené výslovně. Server odešle jeden e-mail příslušnému organizátorovi a jeden účastníkovi. Každý požadavek používá idempotency key odvozený z ID odeslání. Obsah zdravotní poznámky se záměrně neposílá e-mailem.
 
 Produkční režim se aktivuje pouze tehdy, když jsou současně nastaveny e-mail, Google Sheets i Turnstile. Chybějící nebo částečné nastavení bezpečně ponechá formulář v demo režimu s viditelným varováním; nic se neuloží ani neodešle. Návštěvník proto nikdy nedostane falešné produkční potvrzení bez uložené rezervace.
 
 ## Google Sheets
 
 1. Zkopírujte `server/google-sheets-webhook.example.gs` do Apps Script projektu připojeného k tabulce.
-2. Ve Script Properties nastavte `WEBHOOK_SECRET`, `SHEET_ID` a volitelně `SHEET_NAME`.
+2. Ve Script Properties nastavte `WEBHOOK_SECRET`, `SHEET_ID` a volitelně `TRIP_SHEET_NAME` a `CAMP_SHEET_NAME`.
 3. Skript publikujte jako Web App spuštěnou pod účtem správce a URL vložte do `GOOGLE_SHEETS_WEBHOOK_URL`.
 4. Stejný náhodný secret vložte do `GOOGLE_SHEETS_WEBHOOK_SECRET`.
 
-Apps Script používá zámek nad tabulkou, kontroluje ID přihlášky a před přidáním řádku atomicky ověří kapacitu konkrétní akce. Tím se zabrání duplicitám i překročení kapacity při souběžném odeslání. Přístup k tabulce musí být omezen jen na oprávněné osoby.
+Apps Script ukládá krátké výletové přihlášky do listu `Výlety` a rozšířené táborové přihlášky do listu `Tábory`; názvy lze změnit uvedenými Script Properties. Výletový list vůbec nemá sloupce pro zdravotní údaje. Skript používá zámek nad tabulkou, kontroluje ID přihlášky a před přidáním řádku atomicky ověří kapacitu konkrétní akce. Tím se zabrání duplicitám i překročení kapacity při souběžném odeslání. Přístup k táborovému listu musí být omezen jen na výslovně pověřené osoby.
 
 Akce povolené pro přihlášení, uzávěrka, kapacita a datum kontroly výmazu jsou v `src/data/registration-events.json`. Zdravotní údaje lze v ostrém režimu přijmout jen při současně nastavené tabulce a hodnotě `REGISTRATION_HEALTH_DATA_ENABLED=true`.
 

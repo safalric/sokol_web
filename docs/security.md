@@ -16,7 +16,8 @@ Neúplná produkční konfigurace neaktivuje žádnou část doručování. API 
 - Název akce musí být v serverovém allowlistu s platnou uzávěrkou a číselnou kapacitou.
 - Výstup do HTML e-mailu se kontextově kóduje a hodnoty pro Sheets jsou chráněny proti formula injection.
 - Zdravotní text se neposílá e-mailem. Ostré uložení vyžaduje omezenou Sheets evidenci a explicitní provozní přepínač.
-- Apps Script pod zámkem znovu kontroluje délku, secret, počet sloupců, duplicity, kapacitu a nebezpečné začátky buněk.
+- Apps Script pod zámkem znovu kontroluje délku, secret, typ přihlášky, přesné schéma a hlavičky listu, duplicity, kapacitu a nebezpečné začátky buněk. Výletový list vůbec nepřijímá zdravotní pole.
+- Odchozí volání Google Calendar, Google Sheets, Resend a Turnstile mají osmivteřinový timeout.
 
 In-memory rate limit a idempotence chrání jednotlivou instanci workeru. Napříč instancemi ochranu doplňuje Turnstile a atomická kontrola kapacity i duplicit v Google Sheets.
 
@@ -32,4 +33,4 @@ Worker nastavuje HSTS, CSP bez `unsafe-inline`, zákaz rámování vlastního we
 4. Rotovat webhook secret a API klíče při změně správce nebo podezření na únik.
 5. Pravidelně kontrolovat kapacitu, datum uzávěrky a termín výmazu každé akce.
 6. Monitorovat anonymizované chyby podle ID přihlášky; nelogovat obsah formuláře.
-7. Spouštět `pnpm qa` a `pnpm audit --prod` před každým nasazením.
+7. Spouštět `pnpm qa` a `pnpm audit --audit-level high` před každým nasazením.
