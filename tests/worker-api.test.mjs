@@ -38,7 +38,7 @@ function registration(overrides = {}) {
     website_hp: "",
     formStartedAt: fixedNow().getTime() - 60_000,
     turnstileToken: "verified-token",
-    consentVersion: "2026-07-26",
+    consentVersion: "2026-08-12",
     ...overrides,
   };
 }
@@ -129,16 +129,27 @@ test("calendar API falls back safely when Google fails", async () => {
   assert.match(body.warning, /Google/);
 });
 
-test("registration API validates fields, guardian declaration and explicit health consent", async () => {
+test("trip registration validates fields, guardian declaration and rejects health data", async () => {
   const worker = createTestWorker();
   const invalid = await postRegistration(worker, registration({ email: "bad", healthNote: "Alergie", healthConsent: false }));
   assert.equal(invalid.status, 422);
   const body = await invalid.json();
   assert.ok(body.fields.email);
-  assert.ok(body.fields.healthConsent);
+  assert.ok(body.fields.healthNote);
   const missingGuardian = await postRegistration(worker, registration({ guardianName: "", guardianDeclaration: false }));
   assert.equal(missingGuardian.status, 422);
   assert.ok((await missingGuardian.json()).fields.guardianDeclaration);
+});
+
+test("camp registration accepts health data only with explicit consent", async () => {
+  const worker = createTestWorker();
+  const eventName = registrationEvents.find((event) => event.registrationType === "camp").name;
+  const invalid = await postRegistration(worker, registration({ eventName, healthNote: "Alergie", healthConsent: false }));
+  assert.equal(invalid.status, 422);
+  assert.ok((await invalid.json()).fields.healthConsent);
+
+  const valid = await postRegistration(worker, registration({ eventName, healthNote: "Alergie", healthConsent: true }));
+  assert.equal(valid.status, 202);
 });
 
 test("honeypot registrations are discarded without delivery", async () => {
@@ -209,7 +220,8 @@ test("configured registration sends two emails and appends one sheet row", async
   const calls = [];
   const fetchImpl = successfulDeliveryFetch(calls);
   const env = { ...liveEnv, REGISTRATION_HEALTH_DATA_ENABLED: "true" };
-  const response = await postRegistration(createTestWorker({ fetchImpl }), registration({ healthNote: "Alergie", healthConsent: true, additionalNote: "=IMPORTXML(A1)" }), env);
+  const eventName = registrationEvents.find((event) => event.registrationType === "camp").name;
+  const response = await postRegistration(createTestWorker({ fetchImpl }), registration({ eventName, healthNote: "Alergie", healthConsent: true, additionalNote: "=IMPORTXML(A1)" }), env);
   assert.equal(response.status, 201);
   const responseBody = await response.json();
   assert.equal(responseBody.mode, "live");
@@ -220,10 +232,12 @@ test("configured registration sends two emails and appends one sheet row", async
   const organizerCall = calls.find((call) => call.url === "https://api.resend.com/emails");
   assert.ok(organizerCall.init.headers["Idempotency-Key"]);
   assert.doesNotMatch(organizerCall.init.body, /Alergie/);
+  assert.match(organizerCall.init.body, /Zdravotní údaje/);
   const sheetCall = calls.find((call) => call.url.includes("script.google.com"));
   const sheetBody = JSON.parse(sheetCall.init.body);
   assert.equal(sheetBody.action, "reserve");
-  assert.equal(sheetBody.capacity, 30);
+  assert.equal(sheetBody.registrationType, "camp");
+  assert.equal(sheetBody.capacity, 40);
   assert.equal(sheetBody.row[9], "'=IMPORTXML(A1)");
 });
 
@@ -271,11 +285,13 @@ test("organizer email HTML-encodes untrusted free text", async () => {
   const organizerPayload = JSON.parse(organizerCall.init.body);
   assert.doesNotMatch(organizerPayload.html, /<img/);
   assert.match(organizerPayload.html, /&lt;img/);
+  assert.doesNotMatch(organizerPayload.html, /Zdravotní údaje/);
 });
 
 test("live health data requires an explicitly enabled restricted store", async () => {
   const fetchImpl = successfulDeliveryFetch();
-  const response = await postRegistration(createTestWorker({ fetchImpl }), registration({ healthNote: "Alergie", healthConsent: true }), liveEnv);
+  const eventName = registrationEvents.find((event) => event.registrationType === "camp").name;
+  const response = await postRegistration(createTestWorker({ fetchImpl }), registration({ eventName, healthNote: "Alergie", healthConsent: true }), liveEnv);
   assert.equal(response.status, 503);
 });
 

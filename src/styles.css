@@ -832,6 +832,18 @@
     @apply mt-1 font-display text-3xl uppercase text-zinc-950;
   }
 
+  .registration-type-switch {
+    @apply my-5 grid grid-cols-2 border border-zinc-400 bg-zinc-100 p-1;
+  }
+
+  .registration-type-switch button {
+    @apply min-h-11 px-4 py-2 text-sm font-black text-zinc-700 transition-all duration-200 hover:bg-white hover:text-sokol-red focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sokol-red;
+  }
+
+  .registration-type-switch button[aria-pressed="true"] {
+    @apply bg-sokol-red text-white shadow-sm hover:bg-red-800 hover:text-white;
+  }
+
   .field-label {
     @apply mb-2 block text-sm font-bold text-zinc-950;
   }
@@ -1228,6 +1240,25 @@ html[data-theme="dark"] .privacy-summary {
   background: #15191f;
   color: #e7e9ed;
   box-shadow: 0 12px 28px rgb(0 0 0 / 18%);
+}
+
+html[data-theme="dark"] .registration-type-switch {
+  border-color: #545c68;
+  background: #0f1216;
+}
+
+html[data-theme="dark"] .registration-type-switch button {
+  color: #e7e9ed;
+}
+
+html[data-theme="dark"] .registration-type-switch button:hover {
+  background: #242a32;
+  color: #ff737b;
+}
+
+html[data-theme="dark"] .registration-type-switch button[aria-pressed="true"] {
+  background: #d71939;
+  color: #fff;
 }
 
 html[data-theme="dark"] .quick-card:hover,

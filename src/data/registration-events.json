@@ -1,10 +1,20 @@
 [
   {
     "name": "Sokolský výlet do Orlických hor",
+    "registrationType": "trip",
     "eventDate": "2026-09-19",
     "registrationOpen": true,
     "registrationClosesAt": "2026-09-18T18:00:00+02:00",
     "capacity": 30,
     "retentionReviewDate": "2026-10-19"
+  },
+  {
+    "name": "Letní tábor",
+    "registrationType": "camp",
+    "eventDate": "2027-07-01",
+    "registrationOpen": true,
+    "registrationClosesAt": "2027-06-20T18:00:00+02:00",
+    "capacity": 40,
+    "retentionReviewDate": "2027-08-31"
   }
 ]

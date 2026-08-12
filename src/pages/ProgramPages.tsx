@@ -1,4 +1,5 @@
 import { CalendarDays, CheckCircle2, Clock, Info, Mail, MapPin, Users } from "lucide-react";
+import { useState } from "react";
 import { EventCalendar } from "../components/EventCalendar";
 import { EventRegistrationForm } from "../components/EventRegistrationForm";
 import { InfoRow, PageShell } from "../components/PagePrimitives";
@@ -38,7 +39,15 @@ export function ExercisePage() {
 }
 
 export function EventsPage() {
-  const registrationEvent = events.find((event) => event.registration);
+  const registrationEvents = events.filter((event) => event.registration && event.registrationType);
+  const [selectedEventTitle, setSelectedEventTitle] = useState(registrationEvents[0]?.title ?? "");
+  const registrationEvent = registrationEvents.find((event) => event.title === selectedEventTitle) ?? registrationEvents[0];
+  const selectRegistrationEvent = (eventTitle: string, scrollToForm = false) => {
+    setSelectedEventTitle(eventTitle);
+    if (scrollToForm) {
+      window.requestAnimationFrame(() => document.getElementById("prihlaska-na-akci")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    }
+  };
 
   return (
     <PageShell title="Akce a tábory">
@@ -59,23 +68,48 @@ export function EventsPage() {
               <InfoRow icon={MapPin} label="Místo" value={event.place} />
               <InfoRow icon={Users} label="Kapacita" value={event.capacity} />
             </dl>
+            {event.registration && event.registrationType ? (
+              <button className="btn-secondary mt-5" type="button" onClick={() => selectRegistrationEvent(event.title, true)}>
+                {event.registrationType === "camp" ? "Přihlásit na tábor" : "Přihlásit na výlet"}
+              </button>
+            ) : null}
           </article>
         ))}
       </div>
       {registrationEvent ? (
-        <div className="mt-10 grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
+        <div id="prihlaska-na-akci" className="mt-10 scroll-mt-24 grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
           <article className="content-card">
             <span className="demo-badge">Funkční prototyp</span>
-            <h2 className="mt-4">Přihlášení na výlet</h2>
-            <p>Vyplňte kontaktní údaje účastníka a pouze nezbytné organizační informace.</p>
+            <h2 className="mt-4">Vyberte typ přihlášky</h2>
+            <div className="registration-type-switch" role="group" aria-label="Typ přihlášky">
+              {registrationEvents.map((event) => (
+                <button
+                  key={event.title}
+                  type="button"
+                  aria-pressed={registrationEvent?.title === event.title}
+                  onClick={() => selectRegistrationEvent(event.title)}
+                >
+                  {event.registrationType === "camp" ? "Tábor" : "Výlet"}
+                </button>
+              ))}
+            </div>
+            <p>
+              {registrationEvent?.registrationType === "camp"
+                ? "Táborová přihláška obsahuje také nepovinné zdravotní údaje a samostatný výslovný souhlas."
+                : "Jednodenní výlet má zkrácenou přihlášku bez zdravotních údajů a alergií."}
+            </p>
             <ul className="mt-5 grid gap-3 text-sm">
               <li className="check-row"><CheckCircle2 className="h-4 w-4" /> U nezletilých potvrzuje oprávnění zákonný zástupce</li>
-              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Zdravotní a mediální souhlasy jsou oddělené a dobrovolné</li>
+              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Rozsah údajů odpovídá typu a délce akce</li>
               <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Serverová validace, antispam a ochrana proti duplicitám</li>
               <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Demo náhled e-mailů bez ukládání osobních údajů</li>
             </ul>
           </article>
-          <EventRegistrationForm eventName={registrationEvent.title} />
+          <EventRegistrationForm
+            key={registrationEvent.title}
+            eventName={registrationEvent.title}
+            registrationType={registrationEvent.registrationType === "camp" ? "camp" : "trip"}
+          />
         </div>
       ) : null}
     </PageShell>

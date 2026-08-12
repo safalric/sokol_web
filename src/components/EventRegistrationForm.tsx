@@ -6,6 +6,7 @@ import {
   parseIsoBirthDate,
   REGISTRATION_CONSENT_VERSION,
   REGISTRATION_LIMITS,
+  type RegistrationType,
 } from "../config/registration";
 import {
   loadRegistrationConfig,
@@ -36,6 +37,7 @@ type FormErrors = Partial<Record<keyof FormValues | "submit", string>>;
 
 type EventRegistrationFormProps = {
   eventName: string;
+  registrationType: RegistrationType;
 };
 
 const initialValues = (eventName: string): FormValues => ({
@@ -65,7 +67,7 @@ function normalizeInput(value: string, maxLength = 300) {
     .slice(0, maxLength);
 }
 
-function validate(values: FormValues): FormErrors {
+function validate(values: FormValues, registrationType: RegistrationType): FormErrors {
   const errors: FormErrors = {};
 
   if (!normalizeInput(values.participantName, REGISTRATION_LIMITS.participantName)) {
@@ -109,14 +111,20 @@ function validate(values: FormValues): FormErrors {
     errors.privacyAcknowledged = "Potvrďte seznámení se zásadami ochrany osobních údajů.";
   }
 
-  if (normalizeInput(values.healthNote, REGISTRATION_LIMITS.healthNote) && !values.healthConsent) {
+  if (registrationType === "camp" && normalizeInput(values.healthNote, REGISTRATION_LIMITS.healthNote) && !values.healthConsent) {
     errors.healthConsent = "Pro zpracování zdravotních údajů je nutný výslovný souhlas.";
   }
 
   return errors;
 }
 
-function toPayload(values: FormValues, submissionId: string, formStartedAt: number, turnstileToken: string): EventRegistrationPayload {
+function toPayload(
+  values: FormValues,
+  registrationType: RegistrationType,
+  submissionId: string,
+  formStartedAt: number,
+  turnstileToken: string,
+): EventRegistrationPayload {
   return {
     submissionId,
     eventName: normalizeInput(values.eventName, 160),
@@ -125,11 +133,11 @@ function toPayload(values: FormValues, submissionId: string, formStartedAt: numb
     guardianName: normalizeInput(values.guardianName, REGISTRATION_LIMITS.guardianName),
     email: normalizeInput(values.email, REGISTRATION_LIMITS.email).toLowerCase(),
     phone: normalizeInput(values.phone, REGISTRATION_LIMITS.phone),
-    healthNote: normalizeInput(values.healthNote, REGISTRATION_LIMITS.healthNote),
+    healthNote: registrationType === "camp" ? normalizeInput(values.healthNote, REGISTRATION_LIMITS.healthNote) : "",
     additionalNote: normalizeInput(values.additionalNote, REGISTRATION_LIMITS.additionalNote),
     privacyAcknowledged: values.privacyAcknowledged,
     guardianDeclaration: values.guardianDeclaration,
-    healthConsent: values.healthConsent,
+    healthConsent: registrationType === "camp" && values.healthConsent,
     mediaConsent: values.mediaConsent,
     website_hp: normalizeInput(values.website_hp, 200),
     formStartedAt,
@@ -142,7 +150,7 @@ function createSubmissionId() {
   return crypto.randomUUID().replace(/-/g, "");
 }
 
-export function EventRegistrationForm({ eventName }: EventRegistrationFormProps) {
+export function EventRegistrationForm({ eventName, registrationType }: EventRegistrationFormProps) {
   const [values, setValues] = useState<FormValues>(() => initialValues(eventName));
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -154,6 +162,7 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const isSubmitting = status === "submitting";
   const participantIsMinor = isParticipantMinor(values.birthDate);
+  const isCampRegistration = registrationType === "camp";
 
   useEffect(() => {
     let active = true;
@@ -181,7 +190,7 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
       return;
     }
 
-    const nextErrors = validate(values);
+    const nextErrors = validate(values, registrationType);
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
@@ -221,7 +230,7 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
 
     try {
       const [result] = await Promise.all([
-        submitEventRegistration(toPayload(values, submissionId, formStartedAt, turnstileToken)),
+        submitEventRegistration(toPayload(values, registrationType, submissionId, formStartedAt, turnstileToken)),
         new Promise<void>((resolve) => window.setTimeout(resolve, 1000)),
       ]);
       setStatus("success");
@@ -249,7 +258,7 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
       <div className="registration-heading">
         <ShieldCheck className="h-6 w-6 text-sokol-red" aria-hidden="true" />
         <div>
-          <p>Bezpečná online přihláška</p>
+          <p>{isCampRegistration ? "Přihláška na tábor" : "Rychlá přihláška na výlet"}</p>
           <h3 id="registration-form-title">{eventName}</h3>
         </div>
       </div>
@@ -338,31 +347,35 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
         </ConsentField>
       ) : null}
 
-      <label className="field-label" htmlFor="healthNote">
-        Zdravotní omezení / Alergie <span className="font-normal text-zinc-600">(nepovinné)</span>
-      </label>
-      <textarea
-        id="healthNote"
-        className="form-input min-h-28 resize-y"
-        value={values.healthNote}
-        maxLength={REGISTRATION_LIMITS.healthNote}
-        onChange={(event) => updateField("healthNote", event.target.value)}
-      />
+      {isCampRegistration ? (
+        <>
+          <label className="field-label" htmlFor="healthNote">
+            Zdravotní omezení / Alergie <span className="font-normal text-zinc-600">(nepovinné)</span>
+          </label>
+          <textarea
+            id="healthNote"
+            className="form-input min-h-28 resize-y"
+            value={values.healthNote}
+            maxLength={REGISTRATION_LIMITS.healthNote}
+            onChange={(event) => updateField("healthNote", event.target.value)}
+          />
 
-      {values.healthNote.trim() ? (
-        <ConsentField
-          id="healthConsent"
-          required
-          checked={values.healthConsent}
-          error={errors.healthConsent}
-          onChange={(checked) => updateField("healthConsent", checked)}
-        >
-          Výslovně souhlasím se zpracováním výše uvedených údajů o zdravotním stavu výhradně pro bezpečnou organizaci této akce. Souhlas mohu kdykoli odvolat na e-mailu správce, aniž je dotčena zákonnost předchozího zpracování.
-        </ConsentField>
+          {values.healthNote.trim() ? (
+            <ConsentField
+              id="healthConsent"
+              required
+              checked={values.healthConsent}
+              error={errors.healthConsent}
+              onChange={(checked) => updateField("healthConsent", checked)}
+            >
+              Výslovně souhlasím se zpracováním výše uvedených údajů o zdravotním stavu výhradně pro bezpečnou organizaci tábora. Souhlas mohu kdykoli odvolat na e-mailu správce, aniž je dotčena zákonnost předchozího zpracování.
+            </ConsentField>
+          ) : null}
+        </>
       ) : null}
 
       <label className="field-label" htmlFor="additionalNote">
-        Organizační poznámka <span className="font-normal text-zinc-600">(nepovinné)</span>
+        {isCampRegistration ? "Organizační poznámka" : "Poznámka pro organizátora"} <span className="font-normal text-zinc-600">(nepovinné)</span>
       </label>
       <textarea
         id="additionalNote"
@@ -375,7 +388,9 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
       <div className="form-privacy-context">
         <strong>Jak s údaji naložíme</strong>
         <p>
-          Běžné údaje slouží pouze k vyřízení přihlášky a organizaci této akce. Zdravotní údaje a fotografie mají vlastní dobrovolné souhlasy. Podrobnosti, práva a kontakt správce najdete v zásadách.
+          {isCampRegistration
+            ? "Běžné údaje slouží pouze k vyřízení přihlášky a organizaci tábora. Zdravotní údaje a fotografie mají vlastní dobrovolné souhlasy."
+            : "Sbíráme jen údaje potřebné pro přihlášení a organizaci jednodenního výletu. Zdravotní údaje se v tomto formuláři nezpracovávají."} Podrobnosti, práva a kontakt správce najdete v zásadách.
         </p>
       </div>
 
@@ -408,7 +423,7 @@ export function EventRegistrationForm({ eventName }: EventRegistrationFormProps)
           : clientConfig.mode === "live"
             ? "Přihlášku kontroluje zabezpečené serverové API. Po rezervaci místa bude odesláno potvrzení a údaje se uloží do omezené evidence organizátora."
             : clientConfig.mode === "demo"
-              ? `${clientConfig.warning ?? "Aktuálně běží demo režim."} Vytvoří se pouze náhled potvrzovacích e-mailů a žádné osobní ani zdravotní údaje se neukládají ani neposílají.`
+              ? `${clientConfig.warning ?? "Aktuálně běží demo režim."} Vytvoří se pouze náhled potvrzovacích e-mailů a žádné osobní údaje se neukládají ani neposílají.`
               : "Přihlašovací systém je dočasně nedostupný kvůli neúplnému provoznímu nastavení."}
       </div>
 

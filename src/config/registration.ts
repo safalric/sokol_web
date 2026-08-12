@@ -1,4 +1,6 @@
-export const REGISTRATION_CONSENT_VERSION = "2026-07-26" as const;
+export const REGISTRATION_CONSENT_VERSION = "2026-08-12" as const;
+
+export type RegistrationType = "trip" | "camp";
 
 export const REGISTRATION_LIMITS = {
   participantName: 120,

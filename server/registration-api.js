@@ -1,6 +1,6 @@
 import { isLocalRequest, jsonResponse } from "./http-security.js";
 
-const CONSENT_VERSION = "2026-07-26";
+const CONSENT_VERSION = "2026-08-12";
 const REGISTRATION_LIMIT = 5;
 const REGISTRATION_WINDOW_MS = 10 * 60 * 1000;
 const MIN_FORM_COMPLETION_MS = 3_000;
@@ -68,6 +68,7 @@ function validateRegistration(input, now, registrationEvents) {
   const namePattern = /^[\p{L}\p{M} .'-]{2,120}$/u;
   const unexpectedFields = Object.keys(input).filter((field) => !ALLOWED_FIELDS.has(field));
   const eventPolicy = registrationEvents.find((event) => event.name === payload.eventName && event.registrationOpen === true);
+  const registrationType = eventPolicy?.registrationType;
 
   if (unexpectedFields.length) errors.request = "Požadavek obsahuje nepovolená pole.";
   if (!/^[a-zA-Z0-9_-]{16,80}$/.test(payload.submissionId)) errors.submissionId = "Neplatný identifikátor odeslání.";
@@ -75,7 +76,7 @@ function validateRegistration(input, now, registrationEvents) {
     errors.eventName = "Na tuto akci nyní nelze odeslat přihlášku.";
   } else {
     const closesAt = new Date(eventPolicy.registrationClosesAt);
-    if (!Number.isInteger(eventPolicy.capacity) || eventPolicy.capacity < 1 || Number.isNaN(closesAt.getTime())) {
+    if (!["trip", "camp"].includes(registrationType) || !Number.isInteger(eventPolicy.capacity) || eventPolicy.capacity < 1 || Number.isNaN(closesAt.getTime())) {
       errors.eventName = "Přihlašování na tuto akci není správně nastaveno.";
     } else if (now > closesAt) {
       errors.eventName = "Přihlašování na tuto akci již bylo ukončeno.";
@@ -99,6 +100,9 @@ function validateRegistration(input, now, registrationEvents) {
   if (!/^(\+420\s?)?(\d\s?){9}$/.test(payload.phone)) errors.phone = "Zadejte platné české telefonní číslo.";
   if (!payload.privacyAcknowledged) errors.privacyAcknowledged = "Potvrďte seznámení se zásadami ochrany osobních údajů.";
   if (payload.healthNote && !payload.healthConsent) errors.healthConsent = "Pro zpracování zdravotních údajů je nutný výslovný souhlas.";
+  if (registrationType === "trip" && (payload.healthNote || payload.healthConsent)) {
+    errors.healthNote = "Přihláška na jednodenní výlet zdravotní údaje nepřijímá.";
+  }
   if (!payload.formStartedAt || now.getTime() - payload.formStartedAt < MIN_FORM_COMPLETION_MS) {
     errors.request = "Formulář byl odeslán příliš rychle. Zkontrolujte údaje a zkuste to znovu.";
   }
@@ -127,21 +131,25 @@ function demoPreview(payload) {
   };
 }
 
-function organizerMessage(payload, receiptId) {
+function organizerMessage(payload, receiptId, registrationType) {
   const rows = [
     ["Akce", payload.eventName],
+    ["Typ přihlášky", registrationType === "camp" ? "tábor" : "jednodenní výlet"],
     ["Účastník", payload.participantName],
     ["Datum narození", payload.birthDate],
     ["Zákonný zástupce", payload.guardianName || "neuveden"],
     ["E-mail", payload.email],
     ["Telefon", payload.phone],
-    ["Zdravotní údaje", payload.healthNote ? "uvedeny; otevřete omezenou evidenci" : "neuvedeny"],
     ["Organizační poznámka", payload.additionalNote || "neuvedena"],
     ["Souhlas s fotografiemi", payload.mediaConsent ? "ano" : "ne"],
     ["ID přihlášky", receiptId],
   ];
+  if (registrationType === "camp") {
+    rows.splice(7, 0, ["Zdravotní údaje", payload.healthNote ? "uvedeny; otevřete omezenou evidenci" : "neuvedeny"]);
+  }
   const text = rows.map(([label, value]) => `${label}: ${value}`).join("\n");
-  const html = `<h1>Nová přihláška: ${escapeHtml(payload.eventName)}</h1><table>${rows.map(([label, value]) => `<tr><th align="left">${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>`).join("")}</table><p>Zdravotní údaje se z bezpečnostních důvodů neposílají e-mailem.</p>`;
+  const healthNotice = registrationType === "camp" ? "<p>Zdravotní údaje se z bezpečnostních důvodů neposílají e-mailem.</p>" : "";
+  const html = `<h1>Nová přihláška: ${escapeHtml(payload.eventName)}</h1><table>${rows.map(([label, value]) => `<tr><th align="left">${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>`).join("")}</table>${healthNotice}`;
   return { html, text };
 }
 
@@ -159,8 +167,8 @@ async function sendResendEmail(fetchImpl, env, message, idempotencyKey) {
   if (!response.ok) throw new Error(`Resend returned ${response.status}`);
 }
 
-async function deliverEmails(payload, receiptId, env, fetchImpl) {
-  const organizer = organizerMessage(payload, receiptId);
+async function deliverEmails(payload, receiptId, eventPolicy, env, fetchImpl) {
+  const organizer = organizerMessage(payload, receiptId, eventPolicy.registrationType);
   await sendResendEmail(fetchImpl, env, {
     from: env.REGISTRATION_FROM_EMAIL,
     to: [env.REGISTRATION_ORGANIZER_EMAIL],
@@ -210,6 +218,7 @@ async function reserveGoogleSheet(payload, receiptId, eventPolicy, env, fetchImp
       action: "reserve",
       receiptId,
       eventName: payload.eventName,
+      registrationType: eventPolicy.registrationType,
       capacity: eventPolicy.capacity,
       row,
     }),
@@ -377,7 +386,7 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
         state.receipts.delete(payload.submissionId);
         return jsonResponse({ error: "Kapacita této akce je již naplněna." }, 409);
       }
-      await deliverEmails(payload, receiptId, env, fetchImpl);
+      await deliverEmails(payload, receiptId, eventPolicy, env, fetchImpl);
 
       const result = {
         ok: true,

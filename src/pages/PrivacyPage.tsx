@@ -12,7 +12,7 @@ const privacySections = [
   },
   {
     title: "Zdravotní údaje",
-    text: "Údaj o alergii nebo zdravotním omezení je nepovinný a patří mezi zvláštní kategorie osobních údajů. Zpracuje se pouze po samostatném výslovném souhlasu, jen pro bezpečný průběh akce a pouze v omezené evidenci. Běžný e-mail jeho obsah nepřenáší.",
+    text: "Údaj o alergii nebo zdravotním omezení přijímá pouze rozšířená přihláška na tábor. Je nepovinný, patří mezi zvláštní kategorie osobních údajů a zpracuje se jen po samostatném výslovném souhlasu v omezené evidenci. Krátká přihláška na jednodenní výlet zdravotní údaje nesbírá a běžný e-mail jejich obsah nikdy nepřenáší.",
   },
   {
     title: "Fotografie a video",

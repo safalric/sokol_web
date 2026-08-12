@@ -38,7 +38,7 @@ function validRegistration(overrides: Record<string, unknown> = {}) {
     website_hp: "",
     formStartedAt: fixedNow().getTime() - 60_000,
     turnstileToken: "",
-    consentVersion: "2026-07-26",
+    consentVersion: "2026-08-12",
     ...overrides,
   };
 }
@@ -80,12 +80,21 @@ describe("registration API manipulation protections", () => {
     expect(body.fields.request).toBeTruthy();
   });
 
-  test("requires explicit health consent when health data is present", async () => {
-    const response = await submit(validRegistration({ healthNote: "Silná alergie", healthConsent: false }));
+  test("requires explicit health consent for a camp when health data is present", async () => {
+    const eventName = registrationEvents.find((event: { registrationType?: string }) => event.registrationType === "camp").name;
+    const response = await submit(validRegistration({ eventName, healthNote: "Silná alergie", healthConsent: false }));
     const body = await response.json();
 
     expect(response.status).toBe(422);
     expect(body.fields.healthConsent).toBeTruthy();
+  });
+
+  test("rejects health data injected into a trip registration", async () => {
+    const response = await submit(validRegistration({ healthNote: "Silná alergie", healthConsent: true }));
+    const body = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(body.fields.healthNote).toBeTruthy();
   });
 
   test("silently discards a filled honeypot", async () => {

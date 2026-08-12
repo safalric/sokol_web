@@ -15,7 +15,7 @@ export type EventRegistrationPayload = {
   website_hp: string;
   formStartedAt: number;
   turnstileToken: string;
-  consentVersion: "2026-07-26";
+  consentVersion: "2026-08-12";
 };
 
 type DeliveryState = "sent" | "saved" | "duplicate" | "preview" | "not_configured";
