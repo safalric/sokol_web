@@ -4,25 +4,27 @@ import type { SitePoster } from "../data/posters";
 
 type PosterLightboxProps = {
   poster: SitePoster;
+  opener: HTMLElement;
   onClose: () => void;
 };
 
-export function PosterLightbox({ poster, onClose }: PosterLightboxProps) {
+export function PosterLightbox({ poster, opener, onClose }: PosterLightboxProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const dialog = dialogRef.current;
     const previousOverflow = document.body.style.overflow;
-    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    openerRef.current = opener;
     document.body.style.overflow = "hidden";
     if (dialog && !dialog.open) dialog.showModal();
     return () => {
       document.body.style.overflow = previousOverflow;
       if (dialog?.open) dialog.close();
-      window.requestAnimationFrame(() => openerRef.current?.focus());
+      const openerElement = openerRef.current;
+      window.setTimeout(() => openerElement?.focus({ preventScroll: true }), 0);
     };
-  }, []);
+  }, [opener]);
 
   return (
     <dialog

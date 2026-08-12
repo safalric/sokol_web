@@ -7,7 +7,7 @@
 - Testy kontrolují přítomnost hlavního nadpisu a patičky, rozbité obrázky, horizontální přetékání a zachování dark mode.
 - Klávesnicový scénář ověřuje otevření a zavření mobilní navigace, otevření plakátu, dostupnost odkazu ke stažení, zavření Escape a návrat fokusu.
 
-WebKit na Windows je automatizovaný kompatibilitní test vykreslovacího enginu, nikoli plná náhrada skutečného Safari na macOS nebo iOS.
+WebKit na Windows je automatizovaný kompatibilitní test vykreslovacího enginu, nikoli plná náhrada skutečného Safari na macOS nebo iOS. Headless WebKit nemodeluje nastavení Safari „Full Keyboard Access“, proto automaticky ověřuje zavření dialogu klávesou Escape; návrat fokusu je automaticky kontrolovaný v Chromium/Firefox a musí se potvrdit i ručně ve skutečném Safari.
 
 ## Ruční akceptace před zveřejněním
 

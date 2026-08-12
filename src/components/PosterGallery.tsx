@@ -10,7 +10,7 @@ type PosterGalleryProps = {
 };
 
 export function PosterGallery({ posters, compact = false }: PosterGalleryProps) {
-  const [activePoster, setActivePoster] = useState<SitePoster | null>(null);
+  const [activePoster, setActivePoster] = useState<{ poster: SitePoster; opener: HTMLButtonElement } | null>(null);
 
   return (
     <>
@@ -21,7 +21,7 @@ export function PosterGallery({ posters, compact = false }: PosterGalleryProps) 
               className="poster-preview-button"
               type="button"
               aria-label={`Zvětšit plakát ${poster.title}`}
-              onClick={() => setActivePoster(poster)}
+              onClick={(event) => setActivePoster({ poster, opener: event.currentTarget })}
             >
               <img
                 src={poster.previewUrl}
@@ -47,7 +47,9 @@ export function PosterGallery({ posters, compact = false }: PosterGalleryProps) 
           </article>
         ))}
       </div>
-      {activePoster ? <PosterLightbox poster={activePoster} onClose={() => setActivePoster(null)} /> : null}
+      {activePoster ? (
+        <PosterLightbox poster={activePoster.poster} opener={activePoster.opener} onClose={() => setActivePoster(null)} />
+      ) : null}
     </>
   );
 }
