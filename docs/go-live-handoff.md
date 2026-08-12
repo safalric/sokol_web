@@ -35,6 +35,7 @@ Akceptace: schválená verze textu GDPR, datum/verze souhlasu, seznam příjemc�
 - nastavit DNS, HTTPS, HSTS a přesměrování HTTP i starých URL,
 - nastavit `PUBLIC_SITE_URL` přesně na kanonickou HTTPS adresu,
 - vložit secrets pouze do serverového prostředí,
+- ověřit automaticky vytvořený D1 binding `DB` a nasazenou migraci,
 - nastavit WAF/rate limiting, monitoring dostupnosti a retenční pravidla logů,
 - změnit přístup webu na veřejný až po finální akceptaci.
 
@@ -72,13 +73,13 @@ Akceptace: kalendář ukazuje živá data; test výletu zapisuje jen výletové 
 - spustit `pnpm install --frozen-lockfile`, `pnpm qa` a `pnpm audit --audit-level high`,
 - nasadit označený commit z `main` a zaznamenat ID verze.
 
-Akceptace: čistý pracovní strom, 59 nebo více procházejících testů, úspěšný build, nulové high/critical zranitelnosti a shoda nasazené revize s commitem.
+Akceptace: čistý pracovní strom, 80 nebo více procházejících testů, úspěšný build, nulové high/critical zranitelnosti a shoda nasazené revize s commitem.
 
 ## 7. QA a akceptace
 
 Úkoly:
 
-- otestovat Chrome, Edge, Firefox, Safari, Android a iOS,
+- automaticky otestovat Chromium, Firefox a WebKit; ručně potvrdit aktuální Safari na macOS/iOS a Android,
 - ověřit 375, 390, 768 a 1280 px bez horizontálního přetékání,
 - otestovat klávesnici, viditelný fokus, čtečku obrazovky a reduced motion,
 - otestovat dark mode, menu, všechny odkazy, mapu, galerii, plakáty, PDF, kalendář a 404,

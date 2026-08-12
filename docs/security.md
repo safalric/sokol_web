@@ -19,7 +19,7 @@ Neúplná produkční konfigurace neaktivuje žádnou část doručování. API 
 - Apps Script pod zámkem znovu kontroluje délku, secret, typ přihlášky, přesné schéma a hlavičky listu, duplicity, kapacitu a nebezpečné začátky buněk. Výletový list vůbec nepřijímá zdravotní pole.
 - Odchozí volání Google Calendar, Google Sheets, Resend a Turnstile mají osmivteřinový timeout.
 
-In-memory rate limit a idempotence chrání jednotlivou instanci workeru. Napříč instancemi ochranu doplňuje Turnstile a atomická kontrola kapacity i duplicit v Google Sheets.
+In-memory limit chrání každou instanci workeru a D1 limit počítá pokusy globálně napříč instancemi. D1 ukládá pouze jednosměrný hash adresy s tajnou hodnotou, desetiminutové okno, počet pokusů a čas aktualizace; staré záznamy se průběžně mažou. Pokud D1 ochrana v ostrém režimu selže, přihláška se odmítne před čtením a doručováním dat. Turnstile a atomická kontrola kapacity i duplicit v Google Sheets zůstávají dalšími nezávislými vrstvami.
 
 ## Hlavičky
 
@@ -34,3 +34,4 @@ Worker nastavuje HSTS, CSP bez `unsafe-inline`, zákaz rámování vlastního we
 5. Pravidelně kontrolovat kapacitu, datum uzávěrky a termín výmazu každé akce.
 6. Monitorovat anonymizované chyby podle ID přihlášky; nelogovat obsah formuláře.
 7. Spouštět `pnpm qa` a `pnpm audit --audit-level high` před každým nasazením.
+8. Aktivovat edge WAF a limity až nad produkční doménou a nejprve je 24 hodin sledovat v log režimu.

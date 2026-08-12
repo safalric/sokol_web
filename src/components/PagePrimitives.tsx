@@ -61,11 +61,11 @@ export function InfoRow({ icon: Icon, label, value, href: explicitHref }: InfoRo
 
   return (
     <div className="info-row">
-      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-sokol-red" aria-hidden={true} />
-      <div>
-        <dt>{label}</dt>
-        <dd>{href ? <a href={href}>{value}</a> : value}</dd>
-      </div>
+      <dt>
+        <Icon className="h-4 w-4 shrink-0 text-sokol-red" aria-hidden={true} />
+        <span>{label}</span>
+      </dt>
+      <dd>{href ? <a href={href}>{value}</a> : value}</dd>
     </div>
   );
 }

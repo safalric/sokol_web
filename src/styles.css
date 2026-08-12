@@ -374,15 +374,15 @@
   }
 
   .info-row {
-    @apply flex gap-3 text-sm;
+    @apply text-sm;
   }
 
   .info-row dt {
-    @apply text-xs font-black uppercase tracking-[0.12em] text-zinc-600;
+    @apply flex items-center gap-3 text-xs font-black uppercase tracking-[0.12em] text-zinc-600;
   }
 
   .info-row dd {
-    @apply mt-1 whitespace-pre-line font-semibold text-zinc-950;
+    @apply ml-7 mt-1 whitespace-pre-line font-semibold text-zinc-950;
   }
 
   .info-row dd a {

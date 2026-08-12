@@ -18,7 +18,7 @@ jobs:
   quality:
     name: TypeScript, testy a produkcni build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
       - name: Stazeni repozitare
@@ -47,6 +47,12 @@ jobs:
 
       - name: Produkcni build
         run: pnpm build
+
+      - name: Instalace prohlizecu
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+
+      - name: Cross-browser testy
+        run: pnpm test:e2e
 
       - name: Audit vsech zavislosti
         run: pnpm audit --audit-level high

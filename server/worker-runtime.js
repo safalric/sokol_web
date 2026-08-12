@@ -103,8 +103,13 @@ export function createWorker({
         if (request.method !== "GET") return methodNotAllowed(["GET"]);
         const registration = registrationRuntimeStatus(env);
         const calendar = calendarRuntimeStatus(env);
+        const expectedLive = env.HEALTH_EXPECT_LIVE === "true";
+        const operational = !expectedLive || (calendar.status === "configured" && registration.status === "configured");
         return jsonResponse({
-          ok: true,
+          ok: operational,
+          status: operational ? "ok" : "degraded",
+          checkedAt: now().toISOString(),
+          release: typeof env.RELEASE_SHA === "string" && env.RELEASE_SHA ? env.RELEASE_SHA.slice(0, 12) : "unknown",
           calendar: calendar.status,
           registrations: registration.status,
           healthData: registration.status === "configured" && env.REGISTRATION_HEALTH_DATA_ENABLED === "true" ? "enabled" : "disabled",
@@ -112,7 +117,7 @@ export function createWorker({
             calendar: calendar.configurationWarning,
             registrations: registration.configurationWarning,
           },
-        });
+        }, operational ? 200 : 503);
       }
       if (url.pathname === "/api/registration-config") {
         if (request.method !== "GET") return methodNotAllowed(["GET"]);

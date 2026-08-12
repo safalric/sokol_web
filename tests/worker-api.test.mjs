@@ -7,6 +7,31 @@ const calendarEvents = JSON.parse(await readFile(new URL("../src/data/calendar-e
 const registrationEvents = JSON.parse(await readFile(new URL("../src/data/registration-events.json", import.meta.url), "utf8"));
 const routeMetadata = JSON.parse(await readFile(new URL("../src/data/site-routes.json", import.meta.url), "utf8"));
 const fixedNow = () => new Date("2026-07-26T12:00:00Z");
+
+function createRateLimitDatabase() {
+  const attempts = new Map();
+  return {
+    prepare(sql) {
+      return {
+        bind(...values) {
+          return {
+            async first() {
+              assert.match(sql, /INSERT INTO registration_rate_limits/);
+              const key = `${values[0]}:${values[1]}`;
+              const attemptCount = (attempts.get(key) || 0) + 1;
+              attempts.set(key, attemptCount);
+              return { attempt_count: attemptCount };
+            },
+            async run() {
+              return { success: true };
+            },
+          };
+        },
+      };
+    },
+  };
+}
+
 const liveEnv = {
   RESEND_API_KEY: "re_test",
   REGISTRATION_FROM_EMAIL: "test@sokol.example",
@@ -16,6 +41,8 @@ const liveEnv = {
   GOOGLE_SHEETS_WEBHOOK_SECRET: "long-test-secret-at-least-24-chars",
   TURNSTILE_SITE_KEY: "turnstile-site-key",
   TURNSTILE_SECRET_KEY: "turnstile-secret-key",
+  RATE_LIMIT_HASH_SECRET: "rate-limit-test-secret-at-least-32-characters",
+  DB: createRateLimitDatabase(),
 };
 
 function createTestWorker(options = {}) {
@@ -325,7 +352,7 @@ test("registration config exposes only the public Turnstile site key", async () 
   assert.equal(fallbackBody.mode, "demo");
   assert.equal(fallbackBody.healthDataEnabled, false);
   assert.equal(fallbackBody.configurationWarning, true);
-  assert.deepEqual(fallbackBody.missingCapabilities.sort(), ["antispam", "email", "storage"]);
+  assert.deepEqual(fallbackBody.missingCapabilities.sort(), ["abuseProtection", "antispam", "email", "storage"]);
   assert.doesNotMatch(JSON.stringify(fallbackBody), /partial|RESEND_API_KEY|secret/i);
 });
 
@@ -398,6 +425,43 @@ test("invalid webhook configuration cannot activate live registrations", async (
   assert.ok(body.missingCapabilities.includes("storage"));
 });
 
+test("durable rate limiting works across separate Worker instances", async () => {
+  const database = createRateLimitDatabase();
+  const env = { ...liveEnv, DB: database };
+  const statuses = [];
+
+  for (let index = 0; index < 6; index += 1) {
+    const worker = createTestWorker({ fetchImpl: successfulDeliveryFetch() });
+    const response = await worker.fetch(new Request("https://sokol.example/api/registrations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Origin: "https://sokol.example",
+        "CF-Connecting-IP": "192.0.2.44",
+      },
+      body: JSON.stringify(registration({ submissionId: `1234567890abcdef1234567890abcde${index}`, participantName: "1" })),
+    }), env);
+    statuses.push(response.status);
+  }
+
+  assert.deepEqual(statuses, [422, 422, 422, 422, 422, 429]);
+});
+
+test("live registration fails closed without a trusted Cloudflare client address", async () => {
+  const worker = createTestWorker({ fetchImpl: successfulDeliveryFetch() });
+  const response = await worker.fetch(new Request("https://sokol.example/api/registrations", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Origin: "https://sokol.example",
+      "X-Forwarded-For": "192.0.2.55",
+    },
+    body: JSON.stringify(registration()),
+  }), liveEnv);
+
+  assert.equal(response.status, 503);
+});
+
 test("malformed registration event policy is rejected before delivery", async () => {
   const malformedEvents = [{
     ...registrationEvents[0],
@@ -422,6 +486,20 @@ test("API and HTML responses include security headers", async () => {
   assert.match(html.headers.get("Content-Security-Policy"), /https:\/\/challenges\.cloudflare\.com/);
   assert.doesNotMatch(html.headers.get("Content-Security-Policy"), /unsafe-inline/);
   assert.equal(html.headers.get("Cross-Origin-Opener-Policy"), "same-origin");
+});
+
+test("health endpoint becomes monitorable when live integrations are required", async () => {
+  const worker = createTestWorker();
+  const demo = await worker.fetch(new Request("https://sokol.example/api/health"));
+  const requiredLive = await worker.fetch(new Request("https://sokol.example/api/health"), { HEALTH_EXPECT_LIVE: "true", RELEASE_SHA: "1234567890abcdef" });
+  const body = await requiredLive.json();
+
+  assert.equal(demo.status, 200);
+  assert.equal(requiredLive.status, 503);
+  assert.equal(body.ok, false);
+  assert.equal(body.status, "degraded");
+  assert.equal(body.release, "1234567890ab");
+  assert.equal(body.checkedAt, fixedNow().toISOString());
 });
 
 test("unsupported methods are rejected with Allow header", async () => {

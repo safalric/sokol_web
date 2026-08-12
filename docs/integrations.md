@@ -18,7 +18,7 @@ Při výpadku Google API se endpoint bezpečně vrátí k demo datům a návšt�
 
 Nastavte `RESEND_API_KEY`, `REGISTRATION_FROM_EMAIL` z ověřené domény, `REGISTRATION_TRIP_ORGANIZER_EMAIL` a `REGISTRATION_CAMP_ORGANIZER_EMAIL`. Obě cílové adresy mohou být stejné, ale musí být nastavené výslovně. Server odešle jeden e-mail příslušnému organizátorovi a jeden účastníkovi. Každý požadavek používá idempotency key odvozený z ID odeslání. Obsah zdravotní poznámky se záměrně neposílá e-mailem.
 
-Produkční režim se aktivuje pouze tehdy, když jsou současně nastaveny e-mail, Google Sheets i Turnstile. Chybějící nebo částečné nastavení bezpečně ponechá formulář v demo režimu s viditelným varováním; nic se neuloží ani neodešle. Návštěvník proto nikdy nedostane falešné produkční potvrzení bez uložené rezervace.
+Produkční režim se aktivuje pouze tehdy, když jsou současně nastaveny e-mail, Google Sheets, Turnstile, D1 binding `DB` a `RATE_LIMIT_HASH_SECRET`. Chybějící nebo částečné nastavení bezpečně ponechá formulář v demo režimu s viditelným varováním; nic se neuloží ani neodešle. Návštěvník proto nikdy nedostane falešné produkční potvrzení bez uložené rezervace.
 
 ## Google Sheets
 
@@ -39,6 +39,10 @@ Akce povolené pro přihlášení, uzávěrka, kapacita a datum kontroly výmazu
 
 Vedle Turnstile zůstává aktivní skrytý honeypot, kontrola původu požadavku, časová past, limit pěti pokusů za deset minut, omezení velikosti těla a serverová validace všech polí.
 
+## D1 a globální rate limit
+
+Hosting používá logical binding `DB` z `.openai/hosting.json`. Migrace `drizzle/0000_registration_rate_limits.sql` vytvoří tabulku pro desetiminutová okna. IP adresa se neukládá přímo; Worker ji před zápisem jednosměrně zahashuje pomocí tajné hodnoty `RATE_LIMIT_HASH_SECRET` dlouhé alespoň 32 znaků. Záznamy starší než 24 hodin se průběžně mažou. Pokud je ochrana v ostrém režimu nedostupná, odeslání skončí bezpečně chybou 503 a data se dál nezpracují.
+
 ## Pořadí zpracování
 
 1. Server ověří původ, rychlost odeslání, honeypot, pole a Turnstile token.
@@ -54,3 +58,4 @@ Vedle Turnstile zůstává aktivní skrytý honeypot, kontrola původu požadavk
 - odeslat testovací přihlášku bez skutečných zdravotních údajů a ověřit oba e-maily i jeden řádek v tabulce,
 - ověřit skutečnou kapacitu a uzávěrku každé publikované akce,
 - nastavit automatické mazání přihlášek po schválené době uchování.
+- zapnout WAF a monitoring podle `docs/waf-monitoring-runbook.md` a ověřit `/api/health` s `HEALTH_EXPECT_LIVE=true`.
