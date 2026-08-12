@@ -41,6 +41,7 @@ export type EventRegistrationResult = {
 export type RegistrationClientConfig = {
   mode: "demo" | "live" | "unavailable";
   turnstileSiteKey: string | null;
+  healthDataEnabled: boolean;
   configurationWarning?: boolean;
   missingCapabilities?: string[];
   warning?: string | null;

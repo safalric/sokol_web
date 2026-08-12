@@ -916,6 +916,10 @@
     @apply border-red-200 bg-red-50 text-red-800;
   }
 
+  .status-warning {
+    @apply border-amber-300 bg-amber-50 text-amber-950;
+  }
+
   .email-preview {
     @apply grid gap-1 border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950;
   }
@@ -1530,6 +1534,12 @@ html[data-theme="dark"] .status-error {
   border-color: #9d3b46;
   background: #3a171c;
   color: #ffd0d4;
+}
+
+html[data-theme="dark"] .status-warning {
+  border-color: #a16207;
+  background: #2d210d;
+  color: #fde68a;
 }
 
 html[data-theme="dark"] .status-success {

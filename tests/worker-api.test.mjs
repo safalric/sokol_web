@@ -5,13 +5,15 @@ import { createWorker } from "../server/worker-runtime.js";
 
 const calendarEvents = JSON.parse(await readFile(new URL("../src/data/calendar-events.json", import.meta.url), "utf8"));
 const registrationEvents = JSON.parse(await readFile(new URL("../src/data/registration-events.json", import.meta.url), "utf8"));
+const routeMetadata = JSON.parse(await readFile(new URL("../src/data/site-routes.json", import.meta.url), "utf8"));
 const fixedNow = () => new Date("2026-07-26T12:00:00Z");
 const liveEnv = {
   RESEND_API_KEY: "re_test",
   REGISTRATION_FROM_EMAIL: "test@sokol.example",
-  REGISTRATION_ORGANIZER_EMAIL: "organizer@sokol.example",
+  REGISTRATION_TRIP_ORGANIZER_EMAIL: "trips@sokol.example",
+  REGISTRATION_CAMP_ORGANIZER_EMAIL: "camps@sokol.example",
   GOOGLE_SHEETS_WEBHOOK_URL: "https://script.google.com/macros/s/test/exec",
-  GOOGLE_SHEETS_WEBHOOK_SECRET: "long-test-secret",
+  GOOGLE_SHEETS_WEBHOOK_SECRET: "long-test-secret-at-least-24-chars",
   TURNSTILE_SITE_KEY: "turnstile-site-key",
   TURNSTILE_SECRET_KEY: "turnstile-secret-key",
 };
@@ -230,6 +232,7 @@ test("configured registration sends two emails and appends one sheet row", async
   assert.equal(calls.filter((call) => call.url.includes("script.google.com")).length, 1);
   assert.equal(calls.filter((call) => call.url.includes("turnstile")).length, 1);
   const organizerCall = calls.find((call) => call.url === "https://api.resend.com/emails");
+  assert.deepEqual(JSON.parse(organizerCall.init.body).to, ["camps@sokol.example"]);
   assert.ok(organizerCall.init.headers["Idempotency-Key"]);
   assert.doesNotMatch(organizerCall.init.body, /Alergie/);
   assert.match(organizerCall.init.body, /Zdravotní údaje/);
@@ -238,7 +241,8 @@ test("configured registration sends two emails and appends one sheet row", async
   assert.equal(sheetBody.action, "reserve");
   assert.equal(sheetBody.registrationType, "camp");
   assert.equal(sheetBody.capacity, 40);
-  assert.equal(sheetBody.row[9], "'=IMPORTXML(A1)");
+  assert.equal(sheetBody.record.additionalNote, "'=IMPORTXML(A1)");
+  assert.equal(sheetBody.record.healthNote, "Alergie");
 });
 
 test("registration capacity is enforced before emails are sent", async () => {
@@ -286,6 +290,11 @@ test("organizer email HTML-encodes untrusted free text", async () => {
   assert.doesNotMatch(organizerPayload.html, /<img/);
   assert.match(organizerPayload.html, /&lt;img/);
   assert.doesNotMatch(organizerPayload.html, /Zdravotní údaje/);
+  assert.deepEqual(organizerPayload.to, ["trips@sokol.example"]);
+  const sheetPayload = JSON.parse(calls.find((call) => call.url.includes("script.google.com")).init.body);
+  assert.equal(sheetPayload.registrationType, "trip");
+  assert.equal(Object.hasOwn(sheetPayload.record, "healthNote"), false);
+  assert.equal(Object.hasOwn(sheetPayload.record, "healthConsent"), false);
 });
 
 test("live health data requires an explicitly enabled restricted store", async () => {
@@ -302,6 +311,7 @@ test("registration config exposes only the public Turnstile site key", async () 
   assert.deepEqual(liveBody, {
     mode: "live",
     turnstileSiteKey: "turnstile-site-key",
+    healthDataEnabled: false,
     configurationWarning: false,
     missingCapabilities: [],
     warning: null,
@@ -313,9 +323,92 @@ test("registration config exposes only the public Turnstile site key", async () 
   });
   const fallbackBody = await fallback.json();
   assert.equal(fallbackBody.mode, "demo");
+  assert.equal(fallbackBody.healthDataEnabled, false);
   assert.equal(fallbackBody.configurationWarning, true);
   assert.deepEqual(fallbackBody.missingCapabilities.sort(), ["antispam", "email", "storage"]);
   assert.doesNotMatch(JSON.stringify(fallbackBody), /partial|RESEND_API_KEY|secret/i);
+});
+
+test("worker renders route-specific SEO and canonical URLs before JavaScript", async () => {
+  const seoHtml = `<!doctype html><html><head>
+    <meta name="description" content="default">
+    <meta name="robots" content="index, follow">
+    <meta name="site-origin" content="https://old.example">
+    <link rel="canonical" href="https://old.example/">
+    <meta property="og:title" content="default">
+    <meta property="og:description" content="default">
+    <meta property="og:url" content="https://old.example/">
+    <meta property="og:image" content="https://old.example/og.png">
+    <meta name="twitter:title" content="default">
+    <meta name="twitter:description" content="default">
+    <meta name="twitter:image" content="https://old.example/og.png">
+    <title>Default</title></head><body></body></html>`;
+  const worker = createWorker({
+    indexHtml: seoHtml,
+    staticEntries: [],
+    calendarEvents,
+    registrationEvents,
+    appRoutes: routeMetadata.map((route) => route.path),
+    routeMetadata,
+    now: fixedNow,
+  });
+  const response = await worker.fetch(new Request("https://preview.example/kontakt", { headers: { Accept: "text/html" } }), {
+    PUBLIC_SITE_URL: "https://sokoldoudleby.cz",
+  });
+  const html = await response.text();
+
+  assert.equal(response.status, 200);
+  assert.match(html, /<title>Kontakty \| TJ Sokol Doudleby nad Orlicí<\/title>/);
+  assert.match(html, /href="https:\/\/sokoldoudleby\.cz\/kontakt"/);
+  assert.match(html, /content="https:\/\/sokoldoudleby\.cz\/og\.png"/);
+  assert.doesNotMatch(html, /old\.example|preview\.example/);
+});
+
+test("unknown HTML routes are server-rendered as noindex 404 pages", async () => {
+  const seoHtml = `<!doctype html><head><meta name="description" content="default"><meta name="robots" content="index, follow"><meta name="site-origin" content="https://old.example"><link rel="canonical" href="https://old.example/"><meta property="og:title" content="default"><meta property="og:description" content="default"><meta property="og:url" content="https://old.example/"><meta property="og:image" content="https://old.example/og.png"><meta name="twitter:title" content="default"><meta name="twitter:description" content="default"><meta name="twitter:image" content="https://old.example/og.png"><title>Default</title></head>`;
+  const worker = createWorker({ indexHtml: seoHtml, staticEntries: [], calendarEvents, registrationEvents, appRoutes: ["/"], routeMetadata, now: fixedNow });
+  const response = await worker.fetch(new Request("https://sokol.example/neexistuje", { headers: { Accept: "text/html" } }));
+  const html = await response.text();
+
+  assert.equal(response.status, 404);
+  assert.match(html, /content="noindex, follow"/);
+  assert.match(html, /Stránka nenalezena/);
+});
+
+test("robots and sitemap use the configured production origin", async () => {
+  const worker = createWorker({ indexHtml: "", staticEntries: [], calendarEvents, registrationEvents, appRoutes: ["/", "/kontakt"], routeMetadata, now: fixedNow });
+  const env = { PUBLIC_SITE_URL: "https://sokoldoudleby.cz" };
+  const robots = await worker.fetch(new Request("https://preview.example/robots.txt"), env);
+  const sitemap = await worker.fetch(new Request("https://preview.example/sitemap.xml"), env);
+
+  assert.match(await robots.text(), /https:\/\/sokoldoudleby\.cz\/sitemap\.xml/);
+  assert.match(await sitemap.text(), /https:\/\/sokoldoudleby\.cz\/kontakt/);
+});
+
+test("invalid webhook configuration cannot activate live registrations", async () => {
+  const worker = createTestWorker();
+  const response = await worker.fetch(new Request("https://sokol.example/api/registration-config"), {
+    ...liveEnv,
+    GOOGLE_SHEETS_WEBHOOK_URL: "http://attacker.example/webhook",
+    GOOGLE_SHEETS_WEBHOOK_SECRET: "short",
+  });
+  const body = await response.json();
+
+  assert.equal(body.mode, "demo");
+  assert.ok(body.missingCapabilities.includes("storage"));
+});
+
+test("malformed registration event policy is rejected before delivery", async () => {
+  const malformedEvents = [{
+    ...registrationEvents[0],
+    registrationClosesAt: "2026-09-20T18:00:00+02:00",
+    retentionReviewDate: "2026-09-01",
+  }];
+  const response = await postRegistration(createTestWorker({ registrationEvents: malformedEvents }), registration());
+  const body = await response.json();
+
+  assert.equal(response.status, 422);
+  assert.ok(body.fields.eventName);
 });
 
 test("API and HTML responses include security headers", async () => {

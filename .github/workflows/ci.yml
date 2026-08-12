@@ -48,5 +48,5 @@ jobs:
       - name: Produkcni build
         run: pnpm build
 
-      - name: Audit produkcnich zavislosti
-        run: pnpm audit --prod --audit-level high
+      - name: Audit vsech zavislosti
+        run: pnpm audit --audit-level high

@@ -6,6 +6,7 @@ const REGISTRATION_WINDOW_MS = 10 * 60 * 1000;
 const MIN_FORM_COMPLETION_MS = 3_000;
 const MAX_BODY_BYTES = 12_000;
 const MAX_STATE_ENTRIES = 5_000;
+const PROVIDER_TIMEOUT_MS = 8_000;
 const ALLOWED_FIELDS = new Set([
   "submissionId",
   "eventName",
@@ -36,6 +37,15 @@ function validIsoDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const date = new Date(`${value}T12:00:00Z`);
   return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value);
+}
+
+function validHttpsWebhook(value) {
+  try {
+    const endpoint = new URL(value);
+    return endpoint.protocol === "https:" && ["script.google.com", "script.googleusercontent.com"].includes(endpoint.hostname);
+  } catch {
+    return false;
+  }
 }
 
 function isMinor(birthDate, now) {
@@ -76,7 +86,20 @@ function validateRegistration(input, now, registrationEvents) {
     errors.eventName = "Na tuto akci nyní nelze odeslat přihlášku.";
   } else {
     const closesAt = new Date(eventPolicy.registrationClosesAt);
-    if (!["trip", "camp"].includes(registrationType) || !Number.isInteger(eventPolicy.capacity) || eventPolicy.capacity < 1 || Number.isNaN(closesAt.getTime())) {
+    const eventDateValid = validIsoDate(eventPolicy.eventDate);
+    const retentionDateValid = validIsoDate(eventPolicy.retentionReviewDate);
+    const eventEndsAt = eventDateValid ? new Date(`${eventPolicy.eventDate}T23:59:59Z`) : null;
+    if (
+      !["trip", "camp"].includes(registrationType)
+      || !Number.isInteger(eventPolicy.capacity)
+      || eventPolicy.capacity < 1
+      || eventPolicy.capacity > 10_000
+      || Number.isNaN(closesAt.getTime())
+      || !eventDateValid
+      || !retentionDateValid
+      || closesAt > eventEndsAt
+      || eventPolicy.retentionReviewDate < eventPolicy.eventDate
+    ) {
       errors.eventName = "Přihlašování na tuto akci není správně nastaveno.";
     } else if (now > closesAt) {
       errors.eventName = "Přihlašování na tuto akci již bylo ukončeno.";
@@ -124,6 +147,16 @@ function maskEmail(email) {
   return `${name.slice(0, 1)}***@${domain}`;
 }
 
+async function fetchWithTimeout(fetchImpl, url, init, timeoutMs = PROVIDER_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetchImpl(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 function demoPreview(payload) {
   return {
     organizer: { to: "demo-organizator@sokol.test", subject: `Nová přihláška: ${payload.eventName}` },
@@ -154,7 +187,7 @@ function organizerMessage(payload, receiptId, registrationType) {
 }
 
 async function sendResendEmail(fetchImpl, env, message, idempotencyKey) {
-  const response = await fetchImpl("https://api.resend.com/emails", {
+  const response = await fetchWithTimeout(fetchImpl, "https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${env.RESEND_API_KEY}`,
@@ -169,9 +202,12 @@ async function sendResendEmail(fetchImpl, env, message, idempotencyKey) {
 
 async function deliverEmails(payload, receiptId, eventPolicy, env, fetchImpl) {
   const organizer = organizerMessage(payload, receiptId, eventPolicy.registrationType);
+  const organizerEmail = eventPolicy.registrationType === "camp"
+    ? env.REGISTRATION_CAMP_ORGANIZER_EMAIL
+    : env.REGISTRATION_TRIP_ORGANIZER_EMAIL;
   await sendResendEmail(fetchImpl, env, {
     from: env.REGISTRATION_FROM_EMAIL,
-    to: [env.REGISTRATION_ORGANIZER_EMAIL],
+    to: [organizerEmail],
     reply_to: payload.email,
     subject: `Nová přihláška: ${payload.eventName}`,
     html: organizer.html,
@@ -180,10 +216,10 @@ async function deliverEmails(payload, receiptId, eventPolicy, env, fetchImpl) {
   await sendResendEmail(fetchImpl, env, {
     from: env.REGISTRATION_FROM_EMAIL,
     to: [payload.email],
-    reply_to: env.REGISTRATION_ORGANIZER_EMAIL,
+    reply_to: organizerEmail,
     subject: `Potvrzení přihlášky: ${payload.eventName}`,
-    html: `<h1>Přihlášku jsme přijali</h1><p>Dobrý den, evidujeme přihlášku účastníka ${escapeHtml(payload.participantName)} na akci ${escapeHtml(payload.eventName)}.</p><p>ID přihlášky: ${escapeHtml(receiptId)}</p>`,
-    text: `Dobrý den, evidujeme přihlášku účastníka ${payload.participantName} na akci ${payload.eventName}.\nID přihlášky: ${receiptId}`,
+    html: `<h1>Přihlášku jsme přijali</h1><p>Dobrý den, evidujeme přihlášku účastníka ${escapeHtml(payload.participantName)} na akci ${escapeHtml(payload.eventName)}.</p><p>ID přihlášky: ${escapeHtml(receiptId)}</p><p>Pro změnu nebo zrušení přihlášky odpovězte na tento e-mail a uveďte ID přihlášky.</p>`,
+    text: `Dobrý den, evidujeme přihlášku účastníka ${payload.participantName} na akci ${payload.eventName}.\nID přihlášky: ${receiptId}\nPro změnu nebo zrušení přihlášky odpovězte na tento e-mail a uveďte ID přihlášky.`,
   }, `${payload.submissionId}-participant`);
 }
 
@@ -192,25 +228,28 @@ async function reserveGoogleSheet(payload, receiptId, eventPolicy, env, fetchImp
   if (endpoint.protocol !== "https:" || !["script.google.com", "script.googleusercontent.com"].includes(endpoint.hostname)) {
     throw new Error("Invalid Google Sheets webhook URL");
   }
-  const row = [
-    now.toISOString(),
+  const recordValues = {
+    receivedAt: now.toISOString(),
     receiptId,
-    payload.eventName,
-    payload.participantName,
-    payload.birthDate,
-    payload.guardianName,
-    payload.email,
-    payload.phone,
-    payload.healthNote,
-    payload.additionalNote,
-    payload.privacyAcknowledged ? "ano" : "ne",
-    payload.guardianDeclaration ? "ano" : "ne",
-    payload.healthConsent ? "ano" : "ne",
-    payload.mediaConsent ? "ano" : "ne",
-    payload.consentVersion,
-    eventPolicy.retentionReviewDate,
-  ].map(sheetValue);
-  const response = await fetchImpl(endpoint, {
+    eventName: payload.eventName,
+    participantName: payload.participantName,
+    birthDate: payload.birthDate,
+    guardianName: payload.guardianName,
+    email: payload.email,
+    phone: payload.phone,
+    additionalNote: payload.additionalNote,
+    privacyAcknowledged: payload.privacyAcknowledged ? "ano" : "ne",
+    guardianDeclaration: payload.guardianDeclaration ? "ano" : "ne",
+    mediaConsent: payload.mediaConsent ? "ano" : "ne",
+    consentVersion: payload.consentVersion,
+    retentionReviewDate: eventPolicy.retentionReviewDate,
+  };
+  if (eventPolicy.registrationType === "camp") {
+    recordValues.healthNote = payload.healthNote;
+    recordValues.healthConsent = payload.healthConsent ? "ano" : "ne";
+  }
+  const record = Object.fromEntries(Object.entries(recordValues).map(([key, value]) => [key, sheetValue(value)]));
+  const response = await fetchWithTimeout(fetchImpl, endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json", "User-Agent": "sokol-doudleby-web/2.0" },
     body: JSON.stringify({
@@ -220,7 +259,7 @@ async function reserveGoogleSheet(payload, receiptId, eventPolicy, env, fetchImp
       eventName: payload.eventName,
       registrationType: eventPolicy.registrationType,
       capacity: eventPolicy.capacity,
-      row,
+      record,
     }),
   });
   if (!response.ok) throw new Error(`Google Sheets webhook returned ${response.status}`);
@@ -233,8 +272,18 @@ async function reserveGoogleSheet(payload, receiptId, eventPolicy, env, fetchImp
 
 export function registrationRuntimeStatus(env) {
   const groups = {
-    email: [env.RESEND_API_KEY, env.REGISTRATION_FROM_EMAIL, env.REGISTRATION_ORGANIZER_EMAIL],
-    storage: [env.GOOGLE_SHEETS_WEBHOOK_URL, env.GOOGLE_SHEETS_WEBHOOK_SECRET],
+    email: [
+      env.RESEND_API_KEY,
+      env.REGISTRATION_FROM_EMAIL,
+      env.REGISTRATION_TRIP_ORGANIZER_EMAIL,
+      env.REGISTRATION_CAMP_ORGANIZER_EMAIL,
+    ],
+    storage: [
+      validHttpsWebhook(env.GOOGLE_SHEETS_WEBHOOK_URL || "") ? env.GOOGLE_SHEETS_WEBHOOK_URL : null,
+      typeof env.GOOGLE_SHEETS_WEBHOOK_SECRET === "string" && env.GOOGLE_SHEETS_WEBHOOK_SECRET.length >= 24
+        ? env.GOOGLE_SHEETS_WEBHOOK_SECRET
+        : null,
+    ],
     antispam: [env.TURNSTILE_SITE_KEY, env.TURNSTILE_SECRET_KEY],
   };
   const missingCapabilities = Object.entries(groups)
@@ -268,7 +317,7 @@ async function verifyTurnstile(payload, request, url, env, fetchImpl) {
   const remoteIp = clientKey(request);
   if (remoteIp !== "unknown") body.set("remoteip", remoteIp);
 
-  const response = await fetchImpl("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+  const response = await fetchWithTimeout(fetchImpl, "https://challenges.cloudflare.com/turnstile/v0/siteverify", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body,

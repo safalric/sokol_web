@@ -171,7 +171,7 @@ export function EventRegistrationForm({ eventName, registrationType }: EventRegi
         if (active) setClientConfig(config);
       })
       .catch(() => {
-        if (active) setClientConfig({ mode: "unavailable", turnstileSiteKey: null });
+        if (active) setClientConfig({ mode: "unavailable", turnstileSiteKey: null, healthDataEnabled: false });
       });
     return () => {
       active = false;
@@ -347,7 +347,7 @@ export function EventRegistrationForm({ eventName, registrationType }: EventRegi
         </ConsentField>
       ) : null}
 
-      {isCampRegistration ? (
+      {isCampRegistration && (clientConfig?.mode !== "live" || clientConfig.healthDataEnabled) ? (
         <>
           <label className="field-label" htmlFor="healthNote">
             Zdravotní omezení / Alergie <span className="font-normal text-zinc-600">(nepovinné)</span>
@@ -372,6 +372,12 @@ export function EventRegistrationForm({ eventName, registrationType }: EventRegi
             </ConsentField>
           ) : null}
         </>
+      ) : null}
+
+      {isCampRegistration && clientConfig?.mode === "live" && !clientConfig.healthDataEnabled ? (
+        <div className="status-message status-warning" role="status">
+          Zdravotní údaje zatím nelze bezpečně přijímat online. Uveďte pouze běžnou organizační poznámku; organizátor si potřebné informace vyžádá schváleným bezpečným způsobem.
+        </div>
       ) : null}
 
       <label className="field-label" htmlFor="additionalNote">

@@ -69,7 +69,7 @@ export function EventsPage() {
               <InfoRow icon={Users} label="Kapacita" value={event.capacity} />
             </dl>
             {event.registration && event.registrationType ? (
-              <button className="btn-secondary mt-5" type="button" onClick={() => selectRegistrationEvent(event.title, true)}>
+              <button className="btn-outline mt-5" type="button" onClick={() => selectRegistrationEvent(event.title, true)}>
                 {event.registrationType === "camp" ? "Přihlásit na tábor" : "Přihlásit na výlet"}
               </button>
             ) : null}

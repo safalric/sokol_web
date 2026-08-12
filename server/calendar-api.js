@@ -1,5 +1,17 @@
 import { jsonResponse } from "./http-security.js";
 
+const GOOGLE_TIMEOUT_MS = 8_000;
+
+async function fetchWithTimeout(fetchImpl, url, init, timeoutMs = GOOGLE_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetchImpl(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export function calendarRuntimeStatus(env) {
   const missingCapabilities = [];
   if (!env.GOOGLE_CALENDAR_ID) missingCapabilities.push("calendar_id");
@@ -83,7 +95,7 @@ async function getGoogleEvents(period, env, fetchImpl) {
   apiUrl.searchParams.set("orderBy", "startTime");
   apiUrl.searchParams.set("maxResults", "100");
 
-  const response = await fetchImpl(apiUrl, { headers: { Accept: "application/json" } });
+  const response = await fetchWithTimeout(fetchImpl, apiUrl, { headers: { Accept: "application/json" } });
   if (!response.ok) throw new Error(`Google Calendar API returned ${response.status}`);
   const data = await response.json();
 
