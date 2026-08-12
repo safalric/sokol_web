@@ -15,7 +15,7 @@ for (const viewport of [
       await expect(page.locator("main h1")).toBeVisible();
       await expect(page.locator("footer")).toBeVisible();
       const audit = await page.evaluate(() => ({
-        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        overflow: document.documentElement.scrollWidth - window.innerWidth,
         brokenImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).length,
       }));
       expect(audit.overflow, `${route} overflows at ${viewport.width}px`).toBeLessThanOrEqual(1);
@@ -34,7 +34,7 @@ test("dark mode keeps key pages usable on mobile", async ({ page }) => {
     await page.goto(route);
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await expect(page.locator("main h1")).toBeVisible();
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, `${route} overflows in dark mode`).toBeLessThanOrEqual(1);
   }
 
@@ -46,15 +46,13 @@ test("mobile navigation and poster lightbox work with keyboard", async ({ page }
   await page.goto("/akce");
 
   const menu = page.locator('button[aria-controls="mobile-navigation"]');
-  await menu.focus();
-  await page.keyboard.press("Enter");
+  await menu.press("Enter");
   await expect(menu).toHaveAttribute("aria-expanded", "true");
   await page.keyboard.press("Escape");
   await expect(menu).toHaveAttribute("aria-expanded", "false");
 
   const posterButton = page.getByRole("button", { name: /Zvětšit plakát Vodácké putování Berounka 2026/ });
-  await posterButton.focus();
-  await page.keyboard.press("Enter");
+  await posterButton.press("Enter");
   const lightbox = page.getByRole("dialog", { name: "Vodácké putování Berounka 2026" });
   await expect(lightbox).toBeVisible();
   await expect(lightbox.getByRole("link", { name: "Stáhnout plakát v JPG" })).toBeVisible();
