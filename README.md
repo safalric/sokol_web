@@ -34,6 +34,7 @@ pnpm preview:worker
 - `public/posters/previews/` obsahuje optimalizované WebP náhledy, `public/posters/original/` originály ke stažení.
 - `src/services/` je jediná klientská vrstva pro same-origin API.
 - `server/` odděluje HTTP zabezpečení, kalendář a zpracování přihlášek.
+- `db/schema.ts` a `drizzle/` popisují trvalé D1 schéma a nasazované migrace.
 - `tests/vitest/` ověřuje routing, 404, metadata, přístupnost a manipulace formuláře.
 - `tests/e2e/` ověřuje Chromium, Firefox a WebKit při 375, 390, 768 a 1280 px včetně dark mode a ovládání klávesnicí.
 - Ostatní testy v `tests/` ověřují API, assety, bezpečnostní hlavičky a kritická pravidla formuláře.

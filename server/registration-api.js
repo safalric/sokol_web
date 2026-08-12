@@ -1,4 +1,5 @@
 import { isLocalRequest, jsonResponse } from "./http-security.js";
+import { consumeDurableRateLimit } from "./rate-limit-store.js";
 
 const CONSENT_VERSION = "2026-08-12";
 const REGISTRATION_LIMIT = 5;
@@ -339,31 +340,6 @@ function clientKey(request) {
   return request.headers.get("CF-Connecting-IP") || "unknown";
 }
 
-async function hashClientKey(value, secret) {
-  const bytes = new TextEncoder().encode(`${secret}:${value}`);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
-async function consumeDurableRateLimit(database, client, secret, timestamp) {
-  if (!database || client === "unknown") throw new Error("Durable rate limiting is unavailable");
-  const clientHash = await hashClientKey(client, secret);
-  const windowStart = Math.floor(timestamp / REGISTRATION_WINDOW_MS) * REGISTRATION_WINDOW_MS;
-  const result = await database.prepare(`
-    INSERT INTO registration_rate_limits (client_hash, window_start, attempt_count, updated_at)
-    VALUES (?, ?, 1, ?)
-    ON CONFLICT(client_hash, window_start) DO UPDATE SET
-      attempt_count = registration_rate_limits.attempt_count + 1,
-      updated_at = excluded.updated_at
-    RETURNING attempt_count
-  `).bind(clientHash, windowStart, timestamp).first();
-  if (Math.random() < 0.02) {
-    await database.prepare("DELETE FROM registration_rate_limits WHERE updated_at < ?")
-      .bind(timestamp - 24 * 60 * 60 * 1_000).run();
-  }
-  return Number(result?.attempt_count || 0);
-}
-
 function pruneState(state, timestamp) {
   for (const [key, entry] of state.receipts) {
     if (timestamp - entry.createdAt > 24 * 60 * 60 * 1000) state.receipts.delete(key);
@@ -409,7 +385,7 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
     const runtime = registrationRuntimeStatus(env);
     if (runtime.status === "configured") {
       try {
-        const durableAttempts = await consumeDurableRateLimit(env.DB, key, env.RATE_LIMIT_HASH_SECRET, timestamp);
+        const durableAttempts = await consumeDurableRateLimit(env.DB, key, env.RATE_LIMIT_HASH_SECRET, timestamp, REGISTRATION_WINDOW_MS);
         if (durableAttempts > REGISTRATION_LIMIT) {
           const windowEnd = (Math.floor(timestamp / REGISTRATION_WINDOW_MS) + 1) * REGISTRATION_WINDOW_MS;
           const response = jsonResponse({ error: "Příliš mnoho pokusů. Zkuste to znovu za několik minut." }, 429);
