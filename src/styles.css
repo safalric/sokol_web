@@ -200,7 +200,11 @@
   }
 
   .hero-inner {
-    @apply mx-auto grid max-w-6xl gap-8 px-5 py-10 md:grid-cols-[1.08fr_0.92fr] md:py-16;
+    @apply mx-auto grid max-w-6xl gap-8 px-5 py-10 md:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] md:py-16;
+  }
+
+  .hero-inner > * {
+    min-width: 0;
   }
 
   .hero-clean h1 {
