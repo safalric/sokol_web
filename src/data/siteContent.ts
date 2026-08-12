@@ -167,8 +167,6 @@ export const events = [
       "Rodinný výlet pro děti, rodiče i členy jednoty. Počítá se s lehčí trasou, společným obědem a návratem odpoledne.",
     registration: true,
     registrationType: "trip" as const,
-    posterUrl: "/posters/sokolsky-vylet-2026.pdf",
-    posterPreviewUrl: "/posters/sokolsky-vylet-2026.png",
   },
   {
     title: "Sokolský běh republiky",
@@ -181,8 +179,6 @@ export const events = [
     description: "Komunitní běh pro všechny věkové kategorie. Připravujeme tratě pro děti i dospělé.",
     registration: false,
     registrationType: null,
-    posterUrl: "/posters/sokolsky-beh-republiky-2026.pdf",
-    posterPreviewUrl: "/posters/sokolsky-beh-republiky-2026.png",
   },
   {
     title: "Letní tábor",
@@ -195,8 +191,6 @@ export const events = [
     description: "Předběžná přihláška na týdenní letní tábor. Přesný termín, cenu a pokyny pro rodiče ještě doplníme.",
     registration: true,
     registrationType: "camp" as const,
-    posterUrl: "/posters/letni-tabor-2027.pdf",
-    posterPreviewUrl: "/posters/letni-tabor-2027.png",
   },
 ];
 

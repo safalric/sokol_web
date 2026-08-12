@@ -1,12 +1,10 @@
-import { AlertTriangle, ArrowRight, Expand, Info, Megaphone } from "lucide-react";
-import { useState } from "react";
-import { PosterLightbox } from "../components/PosterLightbox";
-import { PosterAction, Section } from "../components/PagePrimitives";
-import { events, notices, quickLinks, type SiteEvent } from "../data/siteContent";
+import { AlertTriangle, ArrowRight, Info, Megaphone } from "lucide-react";
+import { PosterGallery } from "../components/PosterGallery";
+import { Section } from "../components/PagePrimitives";
+import { featuredPosters } from "../data/posters";
+import { notices, quickLinks } from "../data/siteContent";
 
 export function HomePage({ onNavigate }: { onNavigate: (href: string) => void }) {
-  const [activePoster, setActivePoster] = useState<SiteEvent | null>(null);
-
   return (
     <>
       <section className="hero-clean">
@@ -65,44 +63,11 @@ export function HomePage({ onNavigate }: { onNavigate: (href: string) => void })
       </Section>
 
       <Section eyebrow="Plakátovací plocha" title="Pozvánky a významné akce" tone="white">
-        <div className="poster-grid">
-          {events.map((event) => (
-            <article key={event.title} className="poster-card">
-              <button
-                className="poster-preview-button"
-                type="button"
-                aria-label={`Zvětšit plakát k akci ${event.title}`}
-                onClick={() => setActivePoster(event)}
-              >
-                <img
-                  src={event.posterPreviewUrl}
-                  alt={`Náhled plakátu k akci ${event.title}`}
-                  width={926}
-                  height={1310}
-                  loading="lazy"
-                  decoding="async"
-                />
-                <span className="poster-preview-overlay">
-                  <Expand className="h-5 w-5" aria-hidden="true" />
-                  Zvětšit plakát
-                </span>
-              </button>
-              <div className="poster-content">
-                <span className="demo-badge">{event.status}</span>
-                <h3>{event.title}</h3>
-                <p>{event.description}</p>
-                <div className="poster-actions">
-                  <button className="text-link" type="button" onClick={() => onNavigate("/akce")}>Zobrazit detail</button>
-                  <PosterAction href={event.posterUrl} />
-                </div>
-              </div>
-            </article>
-          ))}
+        <PosterGallery posters={featuredPosters} compact />
+        <div className="mt-7">
+          <button className="btn-outline" type="button" onClick={() => onNavigate("/akce")}>Zobrazit všechny plakáty</button>
         </div>
       </Section>
-      {activePoster ? (
-        <PosterLightbox event={activePoster} onClose={() => setActivePoster(null)} onNavigate={onNavigate} />
-      ) : null}
     </>
   );
 }

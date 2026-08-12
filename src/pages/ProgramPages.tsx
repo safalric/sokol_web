@@ -3,6 +3,8 @@ import { useState } from "react";
 import { EventCalendar } from "../components/EventCalendar";
 import { EventRegistrationForm } from "../components/EventRegistrationForm";
 import { InfoRow, PageShell } from "../components/PagePrimitives";
+import { PosterGallery } from "../components/PosterGallery";
+import { posters } from "../data/posters";
 import { departments, events } from "../data/siteContent";
 
 export function ExercisePage() {
@@ -76,6 +78,14 @@ export function EventsPage() {
           </article>
         ))}
       </div>
+      <section id="plakaty" className="mt-12 scroll-mt-24" aria-labelledby="plakaty-title">
+        <p className="eyebrow text-sokol-red">Archiv jednoty</p>
+        <h2 id="plakaty-title" className="section-title">Plakáty a informační letáky</h2>
+        <p className="page-intro mt-4">
+          Originální materiály převzaté z původního webu TJ Sokol Doudleby nad Orlicí. Archivní letáky mohou obsahovat již neplatné termíny; aktuální rozvrh je potřeba ověřit u cvičitele.
+        </p>
+        <div className="mt-7"><PosterGallery posters={posters} /></div>
+      </section>
       {registrationEvent ? (
         <div id="prihlaska-na-akci" className="mt-10 scroll-mt-24 grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
           <article className="content-card">

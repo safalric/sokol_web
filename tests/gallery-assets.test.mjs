@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(await readFile(path.join(root, "src", "data", "gallery.json"), "utf8"));
+const posterManifest = JSON.parse(await readFile(path.join(root, "src", "data", "posters.json"), "utf8"));
 
 function publicAssetPath(url) {
   return path.join(root, "public", ...url.replace(/^\//, "").split("/"));
@@ -40,19 +41,25 @@ test("gallery manifest contains valid albums, accessible labels and optimized as
   }
 });
 
-test("poster previews and PDFs remain compact and the preview markup is lazy-loaded", async () => {
-  const posterNames = ["sokolsky-vylet-2026", "sokolsky-beh-republiky-2026", "letni-tabor-2027"];
+test("poster manifest uses optimized previews and preserved local originals", async () => {
+  assert.equal(posterManifest.length, 12);
+  assert.equal(posterManifest.filter((poster) => poster.featured).length, 1);
+  const ids = new Set();
 
-  for (const name of posterNames) {
-    const preview = await stat(path.join(root, "public", "posters", `${name}.png`));
-    const pdf = await stat(path.join(root, "public", "posters", `${name}.pdf`));
-    assert.ok(preview.size <= 100_000, `${name}.png should stay below 100 kB`);
-    assert.ok(pdf.size <= 200_000, `${name}.pdf should stay below 200 kB`);
+  for (const poster of posterManifest) {
+    assert.ok(!ids.has(poster.id), `${poster.id} is duplicated`);
+    ids.add(poster.id);
+    assert.ok(poster.title.length >= 5);
+    assert.ok(poster.description.length >= 35);
+    assert.ok(poster.previewUrl.endsWith(".webp"));
+    assert.ok(poster.downloadUrl.endsWith(".jpg"));
+    assert.ok(poster.width > 0 && poster.height > 0);
+    await assertWebp(poster.previewUrl, 120_000);
+    const original = await stat(publicAssetPath(poster.downloadUrl));
+    assert.ok(original.size <= 800_000, `${poster.downloadUrl} is unexpectedly large`);
   }
 
-  const homePage = await readFile(path.join(root, "src", "pages", "HomePage.tsx"), "utf8");
-  assert.match(homePage, /loading="lazy"/);
-  assert.match(homePage, /decoding="async"/);
-  assert.match(homePage, /width=\{926\}/);
-  assert.match(homePage, /height=\{1310\}/);
+  const posterGallery = await readFile(path.join(root, "src", "components", "PosterGallery.tsx"), "utf8");
+  assert.match(posterGallery, /loading="lazy"/);
+  assert.match(posterGallery, /decoding="async"/);
 });

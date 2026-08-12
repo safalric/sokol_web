@@ -1,14 +1,13 @@
-import { ArrowRight, FileDown, X } from "lucide-react";
+import { FileDown, X } from "lucide-react";
 import { useEffect, useRef } from "react";
-import type { SiteEvent } from "../data/siteContent";
+import type { SitePoster } from "../data/posters";
 
 type PosterLightboxProps = {
-  event: SiteEvent;
+  poster: SitePoster;
   onClose: () => void;
-  onNavigate: (href: string) => void;
 };
 
-export function PosterLightbox({ event, onClose, onNavigate }: PosterLightboxProps) {
+export function PosterLightbox({ poster, onClose }: PosterLightboxProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
 
@@ -24,11 +23,6 @@ export function PosterLightbox({ event, onClose, onNavigate }: PosterLightboxPro
       window.requestAnimationFrame(() => openerRef.current?.focus());
     };
   }, []);
-
-  const openEventPage = () => {
-    onClose();
-    onNavigate("/akce");
-  };
 
   return (
     <dialog
@@ -57,26 +51,22 @@ export function PosterLightbox({ event, onClose, onNavigate }: PosterLightboxPro
         </button>
         <div className="poster-lightbox-image-wrap">
           <img
-            src={event.posterPreviewUrl}
-            alt={`Plakát k akci ${event.title}`}
-            width={926}
-            height={1310}
+            src={poster.previewUrl}
+            alt={`Plakát ${poster.title}`}
+            width={poster.width}
+            height={poster.height}
             decoding="async"
           />
         </div>
         <div className="poster-lightbox-content">
-          <span className="category-label category-event">{event.category}</span>
-          <h2 id="poster-lightbox-title">{event.title}</h2>
-          <p>{event.date} · {event.place}</p>
+          <span className="category-label category-event">{poster.category}</span>
+          <h2 id="poster-lightbox-title">{poster.title}</h2>
+          <p>{poster.date} · {poster.place}</p>
           <div className="poster-lightbox-actions">
-            <a className="btn-outline inline-flex items-center justify-center gap-2" href={event.posterUrl} download>
+            <a className="btn-outline inline-flex items-center justify-center gap-2" href={poster.downloadUrl} download>
               <FileDown className="h-4 w-4" aria-hidden="true" />
-              Stáhnout v PDF
+              {poster.downloadLabel}
             </a>
-            <button className="btn-primary inline-flex items-center justify-center gap-2" type="button" onClick={openEventPage}>
-              {event.registration ? "Přihlásit se na akci" : "Zobrazit detail akce"}
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </button>
           </div>
         </div>
       </div>

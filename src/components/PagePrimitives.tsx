@@ -35,14 +35,14 @@ export function Section({
   );
 }
 
-export function PosterAction({ href }: { href: string }) {
+export function PosterAction({ href, label }: { href: string; label: string }) {
   return (
     <div className="poster-download">
       <a className="poster-download-button" href={href} download>
         <FileDown className="h-4 w-4" aria-hidden="true" />
-        Stáhnout plakát v PDF
+        {label}
       </a>
-      <span>Ukázkový plakát, údaje musí před zveřejněním potvrdit vedení jednoty.</span>
+      <span>Originální materiál převzatý z původního webu jednoty.</span>
     </div>
   );
 }
