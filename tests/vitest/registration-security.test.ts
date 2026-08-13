@@ -1,115 +1,37 @@
 // @vitest-environment node
 
 import { readFile } from "node:fs/promises";
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import { createWorker } from "../../server/worker-runtime.js";
 
-const calendarEvents = JSON.parse(await readFile(new URL("../../src/data/calendar-events.json", import.meta.url), "utf8"));
-const registrationEvents = JSON.parse(await readFile(new URL("../../src/data/registration-events.json", import.meta.url), "utf8"));
-const fixedNow = () => new Date("2026-07-26T12:00:00Z");
-
-function createTestWorker(fetchImpl = vi.fn()) {
-  return createWorker({
-    indexHtml: "<!doctype html><title>Test</title>",
-    staticEntries: [],
-    calendarEvents,
-    registrationEvents,
-    appRoutes: ["/", "/akce"],
-    now: fixedNow,
-    fetchImpl,
-  });
-}
-
-function validRegistration(overrides: Record<string, unknown> = {}) {
-  return {
-    submissionId: "1234567890abcdef1234567890abcdef",
-    eventName: registrationEvents[0].name,
-    participantName: "Jan Novák",
-    birthDate: "2012-04-12",
-    guardianName: "Jana Nováková",
-    email: "jan.novak@example.cz",
-    phone: "+420 777 123 456",
-    healthNote: "",
-    additionalNote: "",
-    privacyAcknowledged: true,
-    guardianDeclaration: true,
-    healthConsent: false,
-    mediaConsent: false,
-    website_hp: "",
-    formStartedAt: fixedNow().getTime() - 60_000,
-    turnstileToken: "",
-    consentVersion: "2026-08-12",
-    ...overrides,
-  };
-}
-
-async function submit(body: Record<string, unknown>, env: Record<string, string> = {}) {
-  return createTestWorker().fetch(new Request("https://sokol.example/api/registrations", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "CF-Connecting-IP": crypto.randomUUID(),
-      Origin: "https://sokol.example",
-    },
-    body: JSON.stringify(body),
-  }), env);
-}
-
-describe("registration API manipulation protections", () => {
-  test("example environment never exposes a VITE-prefixed server secret", async () => {
+describe("Google Forms registration boundary", () => {
+  test("example environment contains no browser-exposed secret", async () => {
     const envExample = await readFile(new URL("../../.env.example", import.meta.url), "utf8");
     expect(envExample).not.toMatch(/^VITE_[A-Z0-9_]+=/m);
+    expect(envExample).not.toMatch(/RESEND|TURNSTILE|SHEETS_WEBHOOK|RATE_LIMIT_HASH/);
   });
 
-  test("partial production configuration stays in safe demo mode without leaking secrets", async () => {
-    const secret = "re_super_secret_value";
-    const response = await submit(validRegistration(), { RESEND_API_KEY: secret });
-    const responseText = await response.text();
+  test("the website no longer accepts personal registration data", async () => {
+    const worker = createWorker({ indexHtml: "", staticEntries: [], calendarEvents: [] });
+    const response = await worker.fetch(new Request("https://sokol.example/api/registrations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ participantName: "Jan Novák" }),
+    }));
 
-    expect(response.status).toBe(202);
-    expect(JSON.parse(responseText).mode).toBe("demo");
-    expect(responseText).not.toContain(secret);
-    expect(responseText).not.toContain("RESEND_API_KEY");
+    expect(response.status).toBe(404);
   });
 
-  test("rejects mass-assignment fields injected by a manipulated client", async () => {
-    const response = await submit(validRegistration({ role: "administrator" }));
-    const body = await response.json();
+  test("the private Sheets automation has required safeguards and sends no mail", async () => {
+    const source = await readFile(new URL("../../server/google-forms-sheets.example.gs", import.meta.url), "utf8");
 
-    expect(response.status).toBe(422);
-    expect(body.fields.request).toBeTruthy();
-  });
-
-  test("requires explicit health consent for a camp when health data is present", async () => {
-    const eventName = registrationEvents.find((event: { registrationType?: string }) => event.registrationType === "camp").name;
-    const response = await submit(validRegistration({ eventName, healthNote: "Silná alergie", healthConsent: false }));
-    const body = await response.json();
-
-    expect(response.status).toBe(422);
-    expect(body.fields.healthConsent).toBeTruthy();
-  });
-
-  test("rejects health data injected into a trip registration", async () => {
-    const response = await submit(validRegistration({ healthNote: "Silná alergie", healthConsent: true }));
-    const body = await response.json();
-
-    expect(response.status).toBe(422);
-    expect(body.fields.healthNote).toBeTruthy();
-  });
-
-  test("silently discards a filled honeypot", async () => {
-    const response = await submit(validRegistration({ website_hp: "https://spam.example" }));
-    const body = await response.json();
-
-    expect(response.status).toBe(202);
-    expect(body.mode).toBe("discarded");
-  });
-
-  test("rejects submissions that bypass the minimum completion time", async () => {
-    const response = await submit(validRegistration({ formStartedAt: fixedNow().getTime() - 100 }));
-    const body = await response.json();
-
-    expect(response.status).toBe(422);
-    expect(body.fields.request).toBeTruthy();
+    expect(() => new Function(source)).not.toThrow();
+    expect(source).toMatch(/LockService\.getDocumentLock/);
+    expect(source).toMatch(/DUPLICITA/);
+    expect(source).toMatch(/countConfirmed_/);
+    expect(source).toMatch(/sanitizeSubmittedRow_/);
+    expect(source).toMatch(/runDailyMaintenance/);
+    expect(source).toMatch(/createPrivateBackup/);
+    expect(source).not.toMatch(/MailApp|GmailApp|sendEmail/);
   });
 });

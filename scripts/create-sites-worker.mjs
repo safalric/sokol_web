@@ -1,12 +1,15 @@
 import { copyFile, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
+import { deriveContentData, validateSiteContent } from "./content-model.mjs";
 
 const serverDir = join(process.cwd(), "dist", "server");
 const assetsDir = join(process.cwd(), "dist", "assets");
 const distDir = join(process.cwd(), "dist");
 const indexHtml = await readFile(join(process.cwd(), "dist", "index.html"), "utf8");
-const calendarEvents = JSON.parse(await readFile(join(process.cwd(), "src", "data", "calendar-events.json"), "utf8"));
-const registrationEvents = JSON.parse(await readFile(join(process.cwd(), "src", "data", "registration-events.json"), "utf8"));
+const siteContent = JSON.parse(await readFile(join(process.cwd(), "src", "data", "site-content.json"), "utf8"));
+const contentErrors = validateSiteContent(siteContent);
+if (contentErrors.length > 0) throw new Error(`Neplatný veřejný obsah:\n- ${contentErrors.join("\n- ")}`);
+const { calendarEvents } = deriveContentData(siteContent);
 const routeMetadata = JSON.parse(await readFile(join(process.cwd(), "src", "data", "site-routes.json"), "utf8"));
 const appRoutes = routeMetadata.map((route) => route.path);
 
@@ -73,7 +76,6 @@ await writeFile(
 const INDEX_HTML = ${JSON.stringify(indexHtml)};
 const ASSETS = new Map(${JSON.stringify(staticEntries)});
 const CALENDAR_EVENTS = ${JSON.stringify(calendarEvents)};
-const REGISTRATION_EVENTS = ${JSON.stringify(registrationEvents)};
 const APP_ROUTES = ${JSON.stringify(appRoutes)};
 const ROUTE_METADATA = ${JSON.stringify(routeMetadata)};
 
@@ -81,7 +83,6 @@ export default createWorker({
   indexHtml: INDEX_HTML,
   staticEntries: ASSETS,
   calendarEvents: CALENDAR_EVENTS,
-  registrationEvents: REGISTRATION_EVENTS,
   appRoutes: APP_ROUTES,
   routeMetadata: ROUTE_METADATA,
 });

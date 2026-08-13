@@ -17,11 +17,29 @@ jobs:
       - name: Overeni konfigurace monitoru
         env:
           MONITOR_URL: ${{ secrets.MONITOR_URL }}
+          FORM_MONITOR_URL: ${{ secrets.FORM_MONITOR_URL }}
+          MONITOR_EXPECT_LIVE: ${{ vars.MONITOR_EXPECT_LIVE }}
         run: |
           if [ -z "$MONITOR_URL" ]; then
             echo "MONITOR_URL zatim neni nastaven; produkcni monitoring je neaktivni."
             exit 0
           fi
-          curl --fail-with-body --retry 2 --retry-delay 5 --max-time 15 "$MONITOR_URL/api/health" \
-            | tee health.json
-          node -e 'const fs=require("fs");const h=JSON.parse(fs.readFileSync("health.json","utf8"));if(h.ok!==true||h.status!=="ok")process.exit(1)'
+          curl --fail-with-body --retry 2 --retry-delay 5 --max-time 15 "$MONITOR_URL/" -o home.html
+          curl --fail-with-body --retry 2 --retry-delay 5 --max-time 15 "$MONITOR_URL/api/health" -o health.json
+          curl --fail-with-body --retry 2 --retry-delay 5 --max-time 15 "$MONITOR_URL/sitemap.xml" -o sitemap.xml
+          if [ -n "$FORM_MONITOR_URL" ]; then
+            curl --location --fail-with-body --retry 2 --retry-delay 5 --max-time 15 "$FORM_MONITOR_URL" -o form.html
+            grep -q "docs.google.com/forms\|Google Forms" form.html || { echo "Google Form nevratil ocekavany obsah"; exit 1; }
+          else
+            echo "FORM_MONITOR_URL zatim neni nastaven; formular se nekontroluje zvlast."
+          fi
+          MONITOR_URL="$MONITOR_URL" MONITOR_EXPECT_LIVE="$MONITOR_EXPECT_LIVE" node -e '
+            const fs=require("fs");
+            const h=JSON.parse(fs.readFileSync("health.json","utf8"));
+            const home=fs.readFileSync("home.html","utf8");
+            const sitemap=fs.readFileSync("sitemap.xml","utf8");
+            if(h.ok!==true||h.status!=="ok")throw new Error("Health endpoint neni v poradku");
+            if(!home.includes("TJ Sokol Doudleby nad Orlic"))throw new Error("Domovska stranka nema ocekavany obsah");
+            if(!sitemap.includes(process.env.MONITOR_URL))throw new Error("Sitemap nepouziva produkcni domenu");
+            if(process.env.MONITOR_EXPECT_LIVE==="true"&&h.calendar!=="google")throw new Error("Google Kalendar spadl do demo rezimu");
+          '

@@ -1,6 +1,5 @@
 import { calendarRuntimeStatus, handleCalendar } from "./calendar-api.js";
 import { isLocalRequest, jsonResponse, staticResponse, withSecurityHeaders } from "./http-security.js";
-import { createRegistrationHandler, registrationRuntimeStatus } from "./registration-api.js";
 
 function decodeBase64(value) {
   const binary = atob(value);
@@ -74,7 +73,6 @@ export function createWorker({
   indexHtml,
   staticEntries,
   calendarEvents,
-  registrationEvents = [],
   appRoutes = ["/"],
   routeMetadata = [],
   fetchImpl = fetch,
@@ -83,7 +81,6 @@ export function createWorker({
   const assets = new Map(staticEntries);
   const knownHtmlRoutes = new Set(appRoutes);
   const metadataByPath = new Map(routeMetadata.map((route) => [route.path, route]));
-  const handleRegistration = createRegistrationHandler({ fetchImpl, now, registrationEvents });
 
   return {
     async fetch(request, env = {}) {
@@ -101,43 +98,24 @@ export function createWorker({
 
       if (url.pathname === "/api/health") {
         if (request.method !== "GET") return methodNotAllowed(["GET"]);
-        const registration = registrationRuntimeStatus(env);
         const calendar = calendarRuntimeStatus(env);
         const expectedLive = env.HEALTH_EXPECT_LIVE === "true";
-        const operational = !expectedLive || (calendar.status === "configured" && registration.status === "configured");
+        const operational = !expectedLive || calendar.status === "google";
         return jsonResponse({
           ok: operational,
           status: operational ? "ok" : "degraded",
           checkedAt: now().toISOString(),
           release: typeof env.RELEASE_SHA === "string" && env.RELEASE_SHA ? env.RELEASE_SHA.slice(0, 12) : "unknown",
           calendar: calendar.status,
-          registrations: registration.status,
-          healthData: registration.status === "configured" && env.REGISTRATION_HEALTH_DATA_ENABLED === "true" ? "enabled" : "disabled",
+          registrations: "google_forms",
           configurationWarnings: {
             calendar: calendar.configurationWarning,
-            registrations: registration.configurationWarning,
           },
         }, operational ? 200 : 503);
-      }
-      if (url.pathname === "/api/registration-config") {
-        if (request.method !== "GET") return methodNotAllowed(["GET"]);
-        const registration = registrationRuntimeStatus(env);
-        return jsonResponse({
-          mode: registration.status === "configured" ? "live" : "demo",
-          turnstileSiteKey: registration.turnstileSiteKey,
-          healthDataEnabled: registration.status === "configured" && env.REGISTRATION_HEALTH_DATA_ENABLED === "true",
-          configurationWarning: registration.configurationWarning,
-          missingCapabilities: registration.missingCapabilities,
-          warning: registration.warning,
-        });
       }
       if (url.pathname === "/api/calendar") {
         if (request.method !== "GET") return methodNotAllowed(["GET"]);
         return handleCalendar(url, env, calendarEvents, fetchImpl, now);
-      }
-      if (url.pathname === "/api/registrations") {
-        if (request.method !== "POST") return methodNotAllowed(["POST"]);
-        return handleRegistration(request, url, env);
       }
       if (url.pathname.startsWith("/api/")) return jsonResponse({ error: "Endpoint nebyl nalezen." }, 404);
 

@@ -1,61 +1,40 @@
-# Kalendář a přihlášky
-
-Web používá výhradně same-origin endpointy `/api/calendar` a `/api/registrations`. Veřejné klíče ani e-mailové API klíče nejsou součástí klientského JavaScriptu.
-
-## Demo režim
-
-Bez proměnných prostředí načítá kalendář data z `src/data/calendar-events.json`. Platná přihláška se zkontroluje na serveru a vrátí náhled dvou e-mailů. Osobní a zdravotní údaje se v tomto režimu neukládají ani neodesílají.
+# Google integrace
 
 ## Google Kalendář
 
-1. Zveřejněte samostatný kalendář určený pro web.
-2. Zapněte Google Calendar API a nastavte `GOOGLE_CALENDAR_ID` a `GOOGLE_CALENDAR_API_KEY`.
-3. API klíč omezte na Calendar API a na produkční prostředí.
+1. Založte samostatný veřejný kalendář TJ Sokol. Nevkládejte do něj jména, e-maily, telefony ani jiné osobní údaje.
+2. Dejte každému správci vlastní účet a pouze potřebné oprávnění. Nesdílejte společné heslo.
+3. V Google Cloud zapněte Calendar API a vytvořte API klíč omezený pouze na Calendar API.
+4. Do hostingu nastavte `GOOGLE_CALENDAR_ID` a `GOOGLE_CALENDAR_API_KEY`.
+5. Po ověření nastavte `HEALTH_EXPECT_LIVE=true`.
 
-Při výpadku Google API se endpoint bezpečně vrátí k demo datům a návštěvníka na to upozorní.
+API vrací webu program a bezpečné odkazy pro Google Kalendář, Apple `webcal` a standardní ICS. Apple odběr je jen pro čtení a může se aktualizovat se zpožděním; správci proto upravují termíny přímo v Google Kalendáři.
 
-## E-mail přes Resend
+## Google Forms + soukromé Sheets
 
-Nastavte `RESEND_API_KEY`, `REGISTRATION_FROM_EMAIL` z ověřené domény, `REGISTRATION_TRIP_ORGANIZER_EMAIL` a `REGISTRATION_CAMP_ORGANIZER_EMAIL`. Obě cílové adresy mohou být stejné, ale musí být nastavené výslovně. Server odešle jeden e-mail příslušnému organizátorovi a jeden účastníkovi. Každý požadavek používá idempotency key odvozený z ID odeslání. Obsah zdravotní poznámky se záměrně neposílá e-mailem.
+1. Vytvořte samostatný Google Form pro akci nebo jeden formulář s povinným rozbalovacím polem `ID akce`. Volba může mít přívětivý tvar `orlicke-hory-2026 — Sokolský výlet`.
+2. Odpovědi propojte s novou neveřejnou tabulkou. Nesdílejte ji odkazem „kdokoli s odkazem“.
+3. Vytvořte Apps Script navázaný na tabulku a vložte obsah `server/google-forms-sheets.example.gs`.
+4. Spusťte `setupRegistrationAutomation()`. Funkce uloží do Script Properties přesné `REGISTRATION_SPREADSHEET_ID`, aby časové triggery vždy pracovaly se správnou soukromou tabulkou.
+5. V listu `Nastaveni` vyplňte stabilní ID akce, kapacitu, stav otevření, uzávěrku a datum kontroly výmazu.
+6. V Script Properties nastavte `BACKUP_FOLDER_ID`, `BACKUP_RETENTION_DAYS` a `AUTO_DELETE_EXPIRED=false`.
+7. Spusťte `installRegistrationTriggers()` a schvalte oprávnění.
+8. Odešlete testovací odpovědi: platnou, duplicitní, chybnou a odpověď po naplnění kapacity.
 
-Produkční režim se aktivuje pouze tehdy, když jsou současně nastaveny e-mail, Google Sheets, Turnstile, D1 binding `DB` a `RATE_LIMIT_HASH_SECRET`. Chybějící nebo částečné nastavení bezpečně ponechá formulář v demo režimu s viditelným varováním; nic se neuloží ani neodešle. Návštěvník proto nikdy nedostane falešné produkční potvrzení bez uložené rezervace.
+Požadované názvy otázek jsou uvedené v konstantě `FORM_FIELDS`. Pole souhlasu má mít povinnou volbu `Souhlasím`. Formulářová potvrzovací stránka musí říkat pouze, že přihláška byla přijata ke kontrole; nesmí automaticky slibovat místo.
 
-## Google Sheets
+Skript označuje řádky jako `POTVRZENO`, `NAHRADNIK`, `DUPLICITA`, `CHYBA` nebo `K VYMAZU`. Používá zámek proti souběžnému překročení kapacity, kontrolní hash a ochranu proti vzorcům v tabulce. Hodinový monitor označí přihlášku, kterou odesílací trigger do 15 minut nezpracoval. Záměrně neposílá žádné e-maily rodičům.
 
-1. Zkopírujte `server/google-sheets-webhook.example.gs` do Apps Script projektu připojeného k tabulce.
-2. Ve Script Properties nastavte `WEBHOOK_SECRET`, `SHEET_ID` a volitelně `TRIP_SHEET_NAME` a `CAMP_SHEET_NAME`.
-3. Skript publikujte jako Web App spuštěnou pod účtem správce a URL vložte do `GOOGLE_SHEETS_WEBHOOK_URL`.
-4. Stejný náhodný secret vložte do `GOOGLE_SHEETS_WEBHOOK_SECRET`.
+## Zveřejnění formuláře
 
-Apps Script ukládá krátké výletové přihlášky do listu `Výlety` a rozšířené táborové přihlášky do listu `Tábory`; názvy lze změnit uvedenými Script Properties. Výletový list vůbec nemá sloupce pro zdravotní údaje. Skript používá zámek nad tabulkou, kontroluje ID přihlášky a před přidáním řádku atomicky ověří kapacitu konkrétní akce. Tím se zabrání duplicitám i překročení kapacity při souběžném odeslání. Přístup k táborovému listu musí být omezen jen na výslovně pověřené osoby.
+Do `src/data/site-content.json` doplňte například:
 
-Akce povolené pro přihlášení, uzávěrka, kapacita a datum kontroly výmazu jsou v `src/data/registration-events.json`. Zdravotní údaje lze v ostrém režimu přijmout jen při současně nastavené tabulce a hodnotě `REGISTRATION_HEALTH_DATA_ENABLED=true`.
+```json
+{
+  "provider": "google_forms",
+  "formUrl": "https://docs.google.com/forms/d/e/FORM_ID/viewform",
+  "open": true
+}
+```
 
-## Cloudflare Turnstile
-
-1. Vytvořte Turnstile widget pro produkční doménu a zvolte spravovaný režim.
-2. Nastavte `TURNSTILE_SITE_KEY` a serverový `TURNSTILE_SECRET_KEY`.
-3. Secret nikdy nevkládejte do klientského kódu; veřejný site key poskytuje formuláři serverový endpoint.
-
-Vedle Turnstile zůstává aktivní skrytý honeypot, kontrola původu požadavku, časová past, limit pěti pokusů za deset minut, omezení velikosti těla a serverová validace všech polí.
-
-## D1 a globální rate limit
-
-Hosting používá logical binding `DB` z `.openai/hosting.json`. Migrace `drizzle/0000_registration_rate_limits.sql` vytvoří tabulku pro desetiminutová okna. IP adresa se neukládá přímo; Worker ji před zápisem jednosměrně zahashuje pomocí tajné hodnoty `RATE_LIMIT_HASH_SECRET` dlouhé alespoň 32 znaků. Záznamy starší než 24 hodin se průběžně mažou. Pokud je ochrana v ostrém režimu nedostupná, odeslání skončí bezpečně chybou 503 a data se dál nezpracují.
-
-## Pořadí zpracování
-
-1. Server ověří původ, rychlost odeslání, honeypot, pole a Turnstile token.
-2. Google Sheets pod zámkem rezervuje místo a odmítne plnou kapacitu.
-3. Resend odešle e-mail organizátorovi a potvrzení účastníkovi.
-4. Opakovaný požadavek se stejným ID nevytvoří druhý řádek ani druhé e-maily.
-
-## Před ostrým provozem
-
-- potvrdit správce údajů, právní tituly, dobu uchování a proces výmazu s právníkem nebo pověřencem,
-- uzavřít potřebné zpracovatelské smlouvy s poskytovateli,
-- doplnit ověřené texty akcí, termíny a příjemce,
-- odeslat testovací přihlášku bez skutečných zdravotních údajů a ověřit oba e-maily i jeden řádek v tabulce,
-- ověřit skutečnou kapacitu a uzávěrku každé publikované akce,
-- nastavit automatické mazání přihlášek po schválené době uchování.
-- zapnout WAF a monitoring podle `docs/waf-monitoring-runbook.md` a ověřit `/api/health` s `HEALTH_EXPECT_LIVE=true`.
+Potom spusťte `pnpm qa`. Neoficiální doména, HTTP odkaz nebo chybějící URL zastaví build.

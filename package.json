@@ -6,8 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --configLoader native",
-    "build": "vite build --configLoader native && node scripts/create-sites-worker.mjs",
-    "check": "tsc --noEmit",
+    "build": "pnpm content:check && vite build --configLoader native && node scripts/create-sites-worker.mjs",
+    "content:check": "node scripts/validate-content.mjs",
+    "check": "pnpm content:check && tsc --noEmit",
     "preview": "vite preview --host 127.0.0.1 --configLoader native",
     "preview:worker": "node scripts/preview-worker.mjs",
     "test": "vitest run",

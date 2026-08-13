@@ -1,4 +1,4 @@
-import { AlertCircle, CalendarDays, ChevronLeft, ChevronRight, Clock, Grid2X2, List, Loader2, MapPin, RefreshCw } from "lucide-react";
+import { AlertCircle, CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Clock, ExternalLink, Grid2X2, List, Loader2, MapPin, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fetchCalendar, type CalendarEvent, type CalendarResponse } from "../services/calendar";
 
@@ -164,6 +164,19 @@ export function EventCalendar() {
           <span className="category-label category-training">Tréninky</span>
           <span className="category-label category-event">Výlety a akce</span>
         </div>
+        {calendar?.subscriptions ? (
+          <div className="mt-6 grid gap-3">
+            <a className="btn-primary inline-flex items-center justify-center gap-2" href={calendar.subscriptions.apple}>
+              <CalendarPlus className="h-4 w-4" aria-hidden="true" /> Přidat do Apple Kalendáře
+            </a>
+            <a className="btn-outline inline-flex items-center justify-center gap-2" href={calendar.subscriptions.google} target="_blank" rel="noreferrer">
+              <ExternalLink className="h-4 w-4" aria-hidden="true" /> Otevřít v Google Kalendáři
+            </a>
+            <p className="text-xs text-zinc-600">Apple odběr je pouze pro čtení. Změny se mohou projevit s krátkým zpožděním.</p>
+          </div>
+        ) : (
+          <p className="mt-6 text-sm text-zinc-600">Odkazy pro přidání kalendáře se zobrazí po připojení veřejného Google Kalendáře.</p>
+        )}
       </aside>
     </div>
   );

@@ -17,6 +17,11 @@ export type CalendarResponse = {
   warningCode?: "missing_configuration" | "provider_unavailable";
   configurationWarning?: boolean;
   missingCapabilities?: string[];
+  subscriptions: {
+    google: string;
+    apple: string;
+    ics: string;
+  } | null;
 };
 
 export async function fetchCalendar(period?: { year: number; month: number }, signal?: AbortSignal) {
