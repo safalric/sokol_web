@@ -1,14 +1,14 @@
 export const SECURITY_HEADERS = {
   "Content-Security-Policy": [
     "default-src 'self'",
-    "script-src 'self' https://challenges.cloudflare.com",
+    "script-src 'self'",
     "style-src 'self'",
     "img-src 'self' data:",
     "font-src 'self' data:",
-    "connect-src 'self' https://challenges.cloudflare.com",
+    "connect-src 'self'",
     "media-src 'self'",
     "object-src 'none'",
-    "frame-src https://www.openstreetmap.org https://challenges.cloudflare.com",
+    "frame-src https://www.openstreetmap.org",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

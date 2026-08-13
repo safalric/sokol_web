@@ -36,6 +36,9 @@ jobs:
       - name: Instalace zavislosti
         run: pnpm install --frozen-lockfile
 
+      - name: Validace verejneho obsahu
+        run: pnpm content:check
+
       - name: Kontrola TypeScriptu
         run: pnpm check
 
@@ -56,3 +59,10 @@ jobs:
 
       - name: Audit vsech zavislosti
         run: pnpm audit --audit-level high
+
+      - name: Ulozeni overeneho nahledu
+        uses: actions/upload-artifact@v4
+        with:
+          name: sokol-web-${{ github.sha }}
+          path: dist/
+          retention-days: 7

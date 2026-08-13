@@ -1,0 +1,220 @@
+{
+  "contentVersion": "2026-08-13",
+  "quickLinks": [
+    { "label": "Chci cvičit", "href": "/cviceni", "icon": "dumbbell" },
+    { "label": "Aktuální program", "href": "/kalendar", "icon": "calendar" },
+    { "label": "Přihláška do Sokola", "href": "/prihlaska", "icon": "users" }
+  ],
+  "notices": [
+    {
+      "id": "nova-sezona-2026",
+      "title": "Zahájení nové sezóny",
+      "date": "ukázka · září 2026",
+      "type": "info",
+      "label": "Informace",
+      "text": "Ukázková aktualita k zahájení sezóny. Finální rozvrh bude zveřejněn po potvrzení vedením jednoty."
+    },
+    {
+      "id": "florbal-zmena-2026",
+      "title": "Změna tréninku florbalu",
+      "date": "ukázka · organizační změna",
+      "type": "alert",
+      "label": "Důležité",
+      "text": "Ukázka upozornění na přesun nebo zrušení tréninku. Skutečné změny bude nutné před zveřejněním potvrdit."
+    },
+    {
+      "id": "spolecny-vylet-2026",
+      "title": "Pozvánka na společný výlet",
+      "date": "ukázka · podzim 2026",
+      "type": "event",
+      "label": "Akce",
+      "text": "Ukázková pozvánka pro rodiny a členy jednoty. Detail představuje budoucí podobu informací a online přihlášky."
+    }
+  ],
+  "departments": [
+    {
+      "id": "rodice-a-deti",
+      "title": "Rodiče a děti",
+      "age": "2-4 roky s doprovodem",
+      "day": "úterý",
+      "time": "16:00-17:00",
+      "place": "sokolovna Doudleby nad Orlicí",
+      "contactName": "Kontakt čeká na potvrzení",
+      "description": "Hravé cvičení, základní pohybové návyky, koordinace a společný čas rodičů s dětmi.",
+      "icon": "baby",
+      "demo": true
+    },
+    {
+      "id": "predskolaci",
+      "title": "Předškoláci",
+      "age": "4-6 let",
+      "day": "čtvrtek",
+      "time": "16:00-17:00",
+      "place": "sokolovna Doudleby nad Orlicí",
+      "contactName": "Kontakt čeká na potvrzení",
+      "description": "Všeobecná pohybová příprava, překážkové dráhy, obratnost a jistota v pohybu.",
+      "icon": "sparkles",
+      "demo": true
+    },
+    {
+      "id": "mladsi-zactvo",
+      "title": "Mladší žactvo",
+      "age": "1.-4. třída",
+      "day": "středa",
+      "time": "16:00-17:00",
+      "place": "sokolovna Doudleby nad Orlicí",
+      "contactName": "Matyáš Leimer",
+      "contactPhone": "736 221 206",
+      "description": "Pestrý pohybový program pro mladší školní děti, hry, obratnost a základní sportovní dovednosti.",
+      "icon": "users",
+      "demo": true
+    },
+    {
+      "id": "florbal",
+      "title": "Florbal",
+      "age": "mladší a starší žáci",
+      "day": "pondělí",
+      "time": "17:00-18:30",
+      "place": "sokolovna Doudleby nad Orlicí",
+      "contactName": "Jan Merganc",
+      "contactPhone": "604 580 544",
+      "description": "Týmová hra, rychlost, technika hole, spolupráce a pravidelný trénink.",
+      "icon": "goal",
+      "demo": true
+    },
+    {
+      "id": "vsestrannost",
+      "title": "Všestrannost",
+      "age": "děti 6-12 let",
+      "day": "středa",
+      "time": "17:00-18:00",
+      "place": "sokolovna a venkovní prostor",
+      "contactName": "Kontakt čeká na potvrzení",
+      "description": "Základy gymnastiky, atletiky, her, posílení a celkové pohybové gramotnosti.",
+      "icon": "dumbbell",
+      "demo": true
+    },
+    {
+      "id": "gymnastika",
+      "title": "Gymnastika",
+      "age": "školní děti",
+      "day": "pátek",
+      "time": "16:30-18:00",
+      "place": "sokolovna Doudleby nad Orlicí",
+      "contactName": "Veronika Šlajová",
+      "contactPhone": "739 315 527",
+      "description": "Obratnost, síla, držení těla, základní prvky a práce na nářadí.",
+      "icon": "shield",
+      "demo": true
+    },
+    {
+      "id": "fit-dance-deti",
+      "title": "Fit dance děti",
+      "age": "děti školního věku",
+      "day": "čeká na potvrzení",
+      "time": "čeká na potvrzení",
+      "place": "sokolovna Doudleby nad Orlicí",
+      "contactName": "Barbora Pitter",
+      "contactPhone": "606 569 122",
+      "description": "Taneční pohyb, rytmus, kondice a radost z pohybu ve skupině.",
+      "icon": "sparkles",
+      "demo": true
+    }
+  ],
+  "events": [
+    {
+      "id": "orlicke-hory-2026",
+      "title": "Sokolský výlet do Orlických hor",
+      "date": "sobota 19. září 2026",
+      "time": "odjezd 8:30",
+      "place": "sraz u sokolovny",
+      "capacityLabel": "30 míst",
+      "category": "Výlet",
+      "status": "Ukázkový termín",
+      "description": "Rodinný výlet pro děti, rodiče i členy jednoty. Počítá se s lehčí trasou, společným obědem a návratem odpoledne.",
+      "registration": {
+        "provider": "google_forms",
+        "formUrl": null,
+        "type": "trip",
+        "open": false,
+        "eventDate": "2026-09-19",
+        "closesAt": "2026-09-18T18:00:00+02:00",
+        "capacity": 30,
+        "retentionReviewDate": "2026-10-19"
+      }
+    },
+    {
+      "id": "sokolsky-beh-2026",
+      "title": "Sokolský běh republiky",
+      "date": "říjen 2026",
+      "time": "čas bude upřesněn",
+      "place": "Doudleby nad Orlicí",
+      "capacityLabel": "otevřeno veřejnosti",
+      "category": "Komunitní akce",
+      "status": "Ukázkový obsah",
+      "description": "Komunitní běh pro všechny věkové kategorie. Připravujeme tratě pro děti i dospělé.",
+      "registration": null
+    },
+    {
+      "id": "letni-tabor-2027",
+      "title": "Letní tábor",
+      "date": "červenec 2027",
+      "time": "týdenní pobyt",
+      "place": "místo bude potvrzeno",
+      "capacityLabel": "40 míst",
+      "category": "Tábor",
+      "status": "Předběžné přihlášení",
+      "description": "Předběžná přihláška na týdenní letní tábor. Přesný termín, cenu a pokyny pro rodiče ještě doplníme.",
+      "registration": {
+        "provider": "google_forms",
+        "formUrl": null,
+        "type": "camp",
+        "open": false,
+        "eventDate": "2027-07-01",
+        "closesAt": "2027-06-20T18:00:00+02:00",
+        "capacity": 40,
+        "retentionReviewDate": "2027-08-31"
+      }
+    }
+  ],
+  "calendarFallback": [
+    { "id": "rodice-deti-2026-08-25", "date": "2026-08-25", "title": "Rodiče a děti", "time": "16:00-17:00", "category": "training", "place": "sokolovna" },
+    { "id": "mladsi-zactvo-2026-09-02", "date": "2026-09-02", "title": "Mladší žactvo", "time": "16:00-17:00", "category": "training", "place": "sokolovna" },
+    { "id": "florbal-2026-09-07", "date": "2026-09-07", "title": "Florbal", "time": "17:00-18:30", "category": "training", "place": "sokolovna" },
+    { "id": "sokolsky-vylet-2026-09-19", "date": "2026-09-19", "title": "Sokolský výlet do Orlických hor", "time": "8:30", "category": "event", "place": "sraz u sokolovny" },
+    { "id": "gymnastika-2026-09-25", "date": "2026-09-25", "title": "Gymnastika", "time": "16:30-18:00", "category": "training", "place": "sokolovna" },
+    { "id": "sokolske-odpoledne-2026-10-03", "date": "2026-10-03", "title": "Sokolské odpoledne", "time": "14:00", "category": "event", "place": "Doudleby nad Orlicí" },
+    { "id": "florbal-2026-10-12", "date": "2026-10-12", "title": "Florbal", "time": "17:00-18:30", "category": "training", "place": "sokolovna" }
+  ],
+  "leadership": [
+    { "role": "Starostka", "name": "Monika Šafaříková", "phone": "724 121 564", "email": "safarikova.monca@seznam.cz" },
+    { "role": "Místostarostka", "name": "Lenka Divíšková", "phone": "721 062 381", "email": "stepkovaLenka@seznam.cz" },
+    { "role": "Náčelnice", "name": "Daniela Vařeková", "phone": "732 535 598", "email": "danielasafarikova@seznam.cz" },
+    { "role": "Jednatelka", "name": "Michaela Podolská", "phone": "604 642 330", "email": "michaelapodolska@seznam.cz" },
+    { "role": "Hospodářka", "name": "Kateřina Lásková", "phone": "777 558 709", "email": "laskovakaterina@centrum.cz" },
+    { "role": "Členka výboru", "name": "Radka Suchomelová", "phone": "605 724 728", "email": "raduza.su@seznam.cz" },
+    { "role": "Členka výboru", "name": "Marta Šimperská", "phone": "736 166 246" }
+  ],
+  "coachContacts": [
+    { "name": "Jana Florianová", "phone": "723 019 752", "email": "Florianova.J@seznam.cz" },
+    { "name": "Radka Suchomelová", "phone": "605 724 728", "email": "raduza.su@seznam.cz" },
+    { "name": "Monika Šafaříková", "phone": "724 121 564", "email": "safarikova.monca@seznam.cz" },
+    { "name": "Vlasta Lacinová", "phone": "737 473 853", "email": "vlacinova@seznam.cz" },
+    { "name": "Daniela Šafaříková", "phone": "732 535 598", "email": "danielasafarikova@seznam.cz" },
+    { "name": "Jan Merganc", "focus": "Florbal", "phone": "604 580 544" },
+    { "name": "Matyáš Leimer", "focus": "1.-4. třída", "phone": "736 221 206" },
+    { "name": "Barbora Pitter", "focus": "Fit dance děti", "phone": "606 569 122" },
+    { "name": "Veronika Šlajová", "focus": "Gymnastika", "phone": "739 315 527" },
+    { "name": "Matěj Řehák", "phone": "603 472 150" },
+    { "name": "Valerie Forštová", "phone": "792 314 319" },
+    { "name": "Monika Šimperská", "phone": "737 764 847" }
+  ],
+  "contactDetails": [
+    { "label": "Název", "value": "TJ Sokol Doudleby nad Orlicí", "icon": "users" },
+    { "label": "IČ", "value": "15040020", "icon": "shield" },
+    { "label": "E-mail", "value": "sokoldoudleby@seznam.cz", "icon": "mail" },
+    { "label": "Datová schránka", "value": "c7sy84v", "icon": "shield" },
+    { "label": "Korespondenční adresa", "value": "Na Benátkách 131\nDoudleby nad Orlicí\n517 42", "icon": "map-pin" },
+    { "label": "Sídlo jednoty", "value": "Švermova 528\nDoudleby nad Orlicí\n517 42", "icon": "map-pin" }
+  ]
+}

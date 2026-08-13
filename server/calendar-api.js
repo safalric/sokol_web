@@ -27,6 +27,17 @@ export function calendarRuntimeStatus(env) {
     };
 }
 
+function calendarSubscriptions(env) {
+  if (typeof env.GOOGLE_CALENDAR_ID !== "string" || !env.GOOGLE_CALENDAR_ID.trim()) return null;
+  const calendarId = encodeURIComponent(env.GOOGLE_CALENDAR_ID.trim());
+  const icsUrl = `https://calendar.google.com/calendar/ical/${calendarId}/public/basic.ics`;
+  return {
+    google: `https://calendar.google.com/calendar/r?cid=${calendarId}`,
+    apple: icsUrl.replace(/^https:/, "webcal:"),
+    ics: icsUrl,
+  };
+}
+
 function getPeriod(url, calendarEvents, now) {
   const yearValue = url.searchParams.get("year");
   const monthValue = url.searchParams.get("month");
@@ -115,6 +126,7 @@ export async function handleCalendar(url, env, calendarEvents, fetchImpl, now) {
   const period = getPeriod(url, calendarEvents, now);
   if (!period) return jsonResponse({ error: "Neplatný rok nebo měsíc." }, 400);
   const runtime = calendarRuntimeStatus(env);
+  const subscriptions = calendarSubscriptions(env);
 
   if (runtime.status === "google") {
     try {
@@ -128,6 +140,7 @@ export async function handleCalendar(url, env, calendarEvents, fetchImpl, now) {
         configurationWarning: false,
         missingCapabilities: [],
         warning: null,
+        subscriptions,
       }, 200, "public, max-age=300");
     } catch {
       const events = calendarEvents.filter((event) => event.date.startsWith(`${period.year}-${String(period.month).padStart(2, "0")}`));
@@ -140,6 +153,7 @@ export async function handleCalendar(url, env, calendarEvents, fetchImpl, now) {
         configurationWarning: false,
         warningCode: "provider_unavailable",
         warning: "Google Kalendář je dočasně nedostupný. Zobrazujeme náhradní ukázková data.",
+        subscriptions,
       });
     }
   }
@@ -155,5 +169,6 @@ export async function handleCalendar(url, env, calendarEvents, fetchImpl, now) {
     warningCode: "missing_configuration",
     missingCapabilities: runtime.missingCapabilities,
     warning: runtime.warning,
+    subscriptions,
   });
 }

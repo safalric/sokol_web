@@ -16,7 +16,7 @@ export function ExercisePage() {
       </div>
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {departments.map((item) => (
-          <article key={item.title} className="department-card">
+          <article key={item.id} className="department-card">
             {item.demo ? <span className="demo-badge">Demo rozvrh</span> : null}
             <span className="icon-badge"><item.icon className="h-6 w-6" aria-hidden="true" /></span>
             <h2>{item.title}</h2>
@@ -42,10 +42,10 @@ export function ExercisePage() {
 
 export function EventsPage() {
   const registrationEvents = events.filter((event) => event.registration && event.registrationType);
-  const [selectedEventTitle, setSelectedEventTitle] = useState(registrationEvents[0]?.title ?? "");
-  const registrationEvent = registrationEvents.find((event) => event.title === selectedEventTitle) ?? registrationEvents[0];
-  const selectRegistrationEvent = (eventTitle: string, scrollToForm = false) => {
-    setSelectedEventTitle(eventTitle);
+  const [selectedEventId, setSelectedEventId] = useState(registrationEvents[0]?.id ?? "");
+  const registrationEvent = registrationEvents.find((event) => event.id === selectedEventId) ?? registrationEvents[0];
+  const selectRegistrationEvent = (eventId: string, scrollToForm = false) => {
+    setSelectedEventId(eventId);
     if (scrollToForm) {
       window.requestAnimationFrame(() => document.getElementById("prihlaska-na-akci")?.scrollIntoView({ behavior: "smooth", block: "start" }));
     }
@@ -59,7 +59,7 @@ export function EventsPage() {
       </div>
       <div className="grid gap-5 lg:grid-cols-3">
         {events.map((event) => (
-          <article key={event.title} className="event-card">
+          <article key={event.id} className="event-card">
             <span className="demo-badge">{event.status}</span>
             <CalendarDays className="h-7 w-7 text-sokol-red" aria-hidden="true" />
             <h2>{event.title}</h2>
@@ -71,7 +71,7 @@ export function EventsPage() {
               <InfoRow icon={Users} label="Kapacita" value={event.capacity} />
             </dl>
             {event.registration && event.registrationType ? (
-              <button className="btn-outline mt-5" type="button" onClick={() => selectRegistrationEvent(event.title, true)}>
+              <button className="btn-outline mt-5" type="button" onClick={() => selectRegistrationEvent(event.id, true)}>
                 {event.registrationType === "camp" ? "Přihlásit na tábor" : "Přihlásit na výlet"}
               </button>
             ) : null}
@@ -89,36 +89,35 @@ export function EventsPage() {
       {registrationEvent ? (
         <div id="prihlaska-na-akci" className="mt-10 scroll-mt-24 grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
           <article className="content-card">
-            <span className="demo-badge">Funkční prototyp</span>
+            <span className="demo-badge">Google Forms + neveřejné Sheets</span>
             <h2 className="mt-4">Vyberte typ přihlášky</h2>
             <div className="registration-type-switch" role="group" aria-label="Typ přihlášky">
               {registrationEvents.map((event) => (
                 <button
-                  key={event.title}
+                  key={event.id}
                   type="button"
-                  aria-pressed={registrationEvent?.title === event.title}
-                  onClick={() => selectRegistrationEvent(event.title)}
+                  aria-pressed={registrationEvent?.id === event.id}
+                  onClick={() => selectRegistrationEvent(event.id)}
                 >
                   {event.registrationType === "camp" ? "Tábor" : "Výlet"}
                 </button>
               ))}
             </div>
             <p>
-              {registrationEvent?.registrationType === "camp"
-                ? "Táborová přihláška obsahuje také nepovinné zdravotní údaje a samostatný výslovný souhlas."
-                : "Jednodenní výlet má zkrácenou přihlášku bez zdravotních údajů a alergií."}
+              Přihlášky se zpracovávají mimo veřejný web. Google formulář je propojený pouze s neveřejnou tabulkou organizátora.
             </p>
             <ul className="mt-5 grid gap-3 text-sm">
-              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> U nezletilých potvrzuje oprávnění zákonný zástupce</li>
-              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Rozsah údajů odpovídá typu a délce akce</li>
-              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Serverová validace, antispam a ochrana proti duplicitám</li>
-              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Demo náhled e-mailů bez ukládání osobních údajů</li>
+              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Povinná pole a formát údajů kontroluje Google Forms</li>
+              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Duplicity, uzávěrku a kapacitu kontroluje Apps Script</li>
+              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Veřejný obsah a osobní údaje zůstávají oddělené</li>
+              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Přihlášky po retenční lhůtě označí automatická kontrola</li>
             </ul>
           </article>
           <EventRegistrationForm
-            key={registrationEvent.title}
+            key={registrationEvent.id}
             eventName={registrationEvent.title}
-            registrationType={registrationEvent.registrationType === "camp" ? "camp" : "trip"}
+            formUrl={registrationEvent.registrationUrl}
+            open={registrationEvent.registrationOpen}
           />
         </div>
       ) : null}
@@ -130,7 +129,7 @@ export function CalendarPage() {
   return (
     <PageShell title="Kalendář">
       <p className="page-intro">
-        Přehled tréninků, výletů a společných akcí se načítá přes vlastní API. V demo režimu používá bezpečná ukázková data; po doplnění přístupu se automaticky přepne na veřejný Google Kalendář jednoty.
+        Přehled tréninků, výletů a společných akcí se načítá z veřejného Google Kalendáře jednoty. Po připojení kalendáře jej lze z této stránky přidat také do Apple Kalendáře.
       </p>
       <div className="mt-8"><EventCalendar /></div>
     </PageShell>

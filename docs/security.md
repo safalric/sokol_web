@@ -1,37 +1,17 @@
-# Bezpečnostní model
+# Bezpečnost
 
-## Hranice systému
+Webový server přijímá pouze veřejné požadavky na HTML, assety, `/api/calendar` a `/api/health`. Endpoint pro osobní přihlášky neexistuje. Prohlížeč se na Google Forms dostane až po kliknutí na ověřený odkaz.
 
-Prohlížeč komunikuje pouze se same-origin endpointy `/api/calendar` a `/api/registrations`. Přístupové klíče pro Google a Resend existují jen v runtime prostředí serverového workeru. Repo neobsahuje produkční tajné hodnoty.
+Registrace jsou oddělené v neveřejném Google Sheets souboru. Přístupy se přidělují jednotlivým účtům podle role, s dvoufázovým ověřením; nepoužívá se veřejné sdílení ani společné heslo.
 
-Neúplná produkční konfigurace neaktivuje žádnou část doručování. API zůstane v demo režimu, vrátí pouze obecné názvy chybějících schopností a nikdy nezveřejní názvy ani hodnoty tajných proměnných.
+Apps Script používá:
 
-## Přihlášky
+- dokumentový zámek proti souběžnému překročení kapacity,
+- allowlist stabilních ID akcí v listu `Nastaveni`,
+- kontrolu formátů, uzávěrky, kapacity a duplicit pomocí tajného HMAC otisku,
+- sanitaci hodnot začínajících znaky vzorců,
+- provozní log bez jmen a e-mailů,
+- soukromé zálohy s krátkou retenční dobou,
+- bezpečný výchozí režim, který pouze označuje záznamy k výmazu.
 
-- HTTPS je povinné; nezabezpečené POST požadavky se odmítají.
-- API vyžaduje JSON, platný same-origin `Origin` a odmítá `Sec-Fetch-Site: cross-site`.
-- Požadavek má limit 12 kB, omezenou sadu polí a syntaktickou i sémantickou validaci.
-- Honeypot se zahodí bez doručení, časová past odmítne nereálně rychlé odeslání a server používá rate limit i idempotentní ID.
-- Ostrý režim vyžaduje ověřený Cloudflare Turnstile token svázaný s aktuální doménou a akcí formuláře.
-- Název akce musí být v serverovém allowlistu s platnou uzávěrkou a číselnou kapacitou.
-- Výstup do HTML e-mailu se kontextově kóduje a hodnoty pro Sheets jsou chráněny proti formula injection.
-- Zdravotní text se neposílá e-mailem. Ostré uložení vyžaduje omezenou Sheets evidenci a explicitní provozní přepínač.
-- Apps Script pod zámkem znovu kontroluje délku, secret, typ přihlášky, přesné schéma a hlavičky listu, duplicity, kapacitu a nebezpečné začátky buněk. Výletový list vůbec nepřijímá zdravotní pole.
-- Odchozí volání Google Calendar, Google Sheets, Resend a Turnstile mají osmivteřinový timeout.
-
-In-memory limit chrání každou instanci workeru a D1 limit počítá pokusy globálně napříč instancemi. D1 ukládá pouze jednosměrný hash adresy s tajnou hodnotou, desetiminutové okno, počet pokusů a čas aktualizace; staré záznamy se průběžně mažou. Pokud D1 ochrana v ostrém režimu selže, přihláška se odmítne před čtením a doručováním dat. Turnstile a atomická kontrola kapacity i duplicit v Google Sheets zůstávají dalšími nezávislými vrstvami.
-
-## Hlavičky
-
-Worker nastavuje HSTS, CSP bez `unsafe-inline`, zákaz rámování vlastního webu a objektů, omezená oprávnění prohlížeče, ochranu MIME typu a bezpečnou referrer policy. Vložené rámce jsou omezené na mapový náhled z `www.openstreetmap.org` a ochranu formuláře z `challenges.cloudflare.com`.
-
-## Provoz
-
-1. Tajné hodnoty ukládat pouze jako hosting secrets.
-2. Omezit Google API klíč na Calendar API a konkrétní projekt.
-3. Omezit přístup k tabulce na pověřené organizátory a pravidelně jej kontrolovat.
-4. Rotovat webhook secret a API klíče při změně správce nebo podezření na únik.
-5. Pravidelně kontrolovat kapacitu, datum uzávěrky a termín výmazu každé akce.
-6. Monitorovat anonymizované chyby podle ID přihlášky; nelogovat obsah formuláře.
-7. Spouštět `pnpm qa` a `pnpm audit --audit-level high` před každým nasazením.
-8. Aktivovat edge WAF a limity až nad produkční doménou a nejprve je 24 hodin sledovat v log režimu.
+Worker nastavuje HSTS, CSP bez `unsafe-inline` a `unsafe-eval`, zákaz rámování a objektů, omezená oprávnění prohlížeče, ochranu MIME typu a bezpečnou referrer policy. Jediný povolený externí rámec je mapa OpenStreetMap.

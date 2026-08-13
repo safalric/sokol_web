@@ -12,7 +12,7 @@ const privacySections = [
   },
   {
     title: "Zdravotní údaje",
-    text: "Údaj o alergii nebo zdravotním omezení přijímá pouze rozšířená přihláška na tábor. Je nepovinný, patří mezi zvláštní kategorie osobních údajů a zpracuje se jen po samostatném výslovném souhlasu v omezené evidenci. Krátká přihláška na jednodenní výlet zdravotní údaje nesbírá a běžný e-mail jejich obsah nikdy nepřenáší.",
+    text: "Zdravotní údaje se nemají sbírat v běžném univerzálním formuláři. Pokud budou pro konkrétní tábor skutečně nutné, musí jednota předem schválit samostatný rozsah, právní titul, omezený přístup a dobu uchování.",
   },
   {
     title: "Fotografie a video",
@@ -24,11 +24,11 @@ const privacySections = [
   },
   {
     title: "Uchování a výmaz",
-    text: "Produkční evidence má pro každou akci předem určené datum kontroly výmazu. Pro aktuálně připravenou akci je nastaveno 30 dní po jejím skončení; delší uchování je možné jen při doložené právní povinnosti nebo řešení nároku. Demo režim údaje neukládá ani neodesílá.",
+    text: "Soukromá evidence má pro každou akci předem určené datum kontroly výmazu. Automatická údržba označí záznamy k prověření; skutečný výmaz a délku uchování musí před ostrým provozem schválit vedení jednoty.",
   },
   {
     title: "Příjemci a zpracovatelé",
-    text: "Přístup mají pouze pověření organizátoři. Připravený produkční tok využívá hostingovou infrastrukturu Cloudflare, službu Resend pro transakční e-maily a Google Sheets s Google Apps Script pro omezenou evidenci. Před aktivací musí jednota schválit tyto dodavatele, ověřit místo zpracování a uzavřít potřebné zpracovatelské smlouvy.",
+    text: "Přístup mají pouze pověření organizátoři. Web využívá hostingovou infrastrukturu Cloudflare; přihlášky používají Google Forms, neveřejné Google Sheets a Google Apps Script. Před aktivací musí jednota schválit dodavatele, oprávnění a potřebné smluvní podmínky.",
   },
   {
     title: "Vaše práva",
@@ -36,7 +36,7 @@ const privacySections = [
   },
   {
     title: "Cookies, mapa a automatizace",
-    text: "Aplikační kód nepoužívá analytické ani marketingové cookies ani reklamní profilování. V ostrém režimu chrání formulář Cloudflare Turnstile, který automaticky vyhodnocuje technické signály spamu bez rozhodnutí s právními účinky. Kontaktní stránka načítá mapu od OpenStreetMap; tito poskytovatelé mohou obdržet IP adresu a technické údaje požadavku. Odkaz na Google Mapy se otevře pouze na výslovný pokyn návštěvníka.",
+    text: "Aplikační kód nepoužívá analytické ani marketingové cookies ani reklamní profilování. Kontaktní stránka automaticky načítá mapový náhled z OpenStreetMap, který může obdržet IP adresu a technické údaje požadavku. Google formulář, Google Mapy a odběr externího kalendáře se otevřou pouze na výslovný pokyn návštěvníka.",
   },
 ];
 
@@ -46,12 +46,12 @@ export function PrivacyPage() {
       <div className="legal-draft">
         <ShieldCheck className="h-5 w-5 shrink-0" aria-hidden="true" />
         <p>
-          Přihlašovací systém technicky podporuje demo i ostrý režim. Níže uvedený text je věcný návrh informační povinnosti; před aktivací skutečného ukládání jej musí schválit vedení jednoty a právník včetně právních titulů, lhůt a smluv s dodavateli.
+          Přihlášky budou vedené v samostatných neveřejných Google Sheets. Níže uvedený text je věcný návrh informační povinnosti; před aktivací skutečného ukládání jej musí schválit vedení jednoty a právník včetně právních titulů, lhůt a smluv s dodavateli.
         </p>
       </div>
       <div className="privacy-summary" role="region" aria-label="Rychlé shrnutí">
         <strong>Stav formuláře</strong>
-        <span>Aktuální provozní režim je vždy uveden přímo u přihlašovacího formuláře</span>
+        <span>Google formulář bude zveřejněn až po schválení konkrétní akce a pravidel zpracování</span>
         <strong>Kontakt správce</strong>
         <a href="mailto:sokoldoudleby@seznam.cz">sokoldoudleby@seznam.cz</a>
       </div>

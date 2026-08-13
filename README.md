@@ -1,60 +1,44 @@
 # TJ Sokol Doudleby nad Orlicí
 
-Moderní prezentační web postavený v Reactu, TypeScriptu, Vite a Tailwind CSS. Součástí je same-origin API pro kalendář a přihlášky na akce.
+Web v Reactu, TypeScriptu, Vite a Tailwind CSS. Veřejné termíny načítá z Google Kalendáře; přihlášky otevírá v Google Forms a osobní údaje tak nikdy neposílá přes webový server.
 
-## Vývoj
+## Vývoj a kontrola
 
 ```bash
 pnpm install
 pnpm dev
-```
-
-Kompletní kontrola typů, automatizovaných testů a produkčního sestavení:
-
-```bash
 pnpm qa
 ```
 
-Lokální náhled včetně worker API:
+`pnpm qa` ověří veřejný obsah, TypeScript, unit a integrační testy, produkční build a E2E testy v Chromium, Firefoxu a WebKitu.
+
+Lokální náhled Workeru:
 
 ```bash
 pnpm preview:worker
 ```
 
-## Struktura
+## Kde se co spravuje
 
-- `src/pages/` obsahuje stránky seskupené podle domény.
-- `src/components/` obsahuje sdílené komponenty a formuláře.
-- `src/config/` obsahuje sdílená pravidla klienta.
-- `src/data/` obsahuje veřejný obsah, demo kalendář a povolené akce.
-- `src/data/site-routes.json` je jediný registr veřejných cest a jejich SEO metadat.
-- `src/data/gallery.json` je jediný manifest alb, popisků a rozměrů fotografií.
-- `public/gallery/` obsahuje malé WebP náhledy a větší varianty načítané až v lightboxu.
-- `src/data/posters.json` je manifest plakátů a informačních letáků převzatých z původního webu.
-- `public/posters/previews/` obsahuje optimalizované WebP náhledy, `public/posters/original/` originály ke stažení.
-- `src/services/` je jediná klientská vrstva pro same-origin API.
-- `server/` odděluje HTTP zabezpečení, kalendář a zpracování přihlášek.
-- `db/schema.ts` a `drizzle/` popisují trvalé D1 schéma a nasazované migrace.
-- `tests/vitest/` ověřuje routing, 404, metadata, přístupnost a manipulace formuláře.
-- `tests/e2e/` ověřuje Chromium, Firefox a WebKit při 375, 390, 768 a 1280 px včetně dark mode a ovládání klávesnicí.
-- Ostatní testy v `tests/` ověřují API, assety, bezpečnostní hlavičky a kritická pravidla formuláře.
-- `docs/` popisuje integrace, bezpečnost a kroky před ostrým provozem.
-- `.github/workflows/ci.yml` spouští stejnou kontrolu při pushi a pull requestu do `main`.
+- `src/data/site-content.json`: aktuality, oddíly, veřejné kontakty, akce a ověřené odkazy na Google Forms.
+- Google Kalendář: skutečné termíny a změny programu.
+- Samostatná neveřejná Google tabulka: odpovědi z přihlášek, kontrola duplicit a kapacity.
+- `server/google-forms-sheets.example.gs`: Apps Script pro kontrolu přihlášek, zálohy a retenční kontrolu; neposílá e-maily.
+- `src/data/gallery.json` a `src/data/posters.json`: fotografie a plakáty.
+- `src/data/site-routes.json`: veřejné cesty a SEO metadata.
 
-## Provozní režimy
+Veřejný obsah a osobní údaje se nesmějí ukládat do stejného souboru ani tabulky.
 
-Bez tajných proměnných běží kalendář a přihlášky v transparentním demo režimu. Přihláška projde serverovou validací, ale osobní ani zdravotní údaje se neukládají a neodesílají.
+## Produkční konfigurace
 
-Ostrý režim se aktivuje pouze serverovými proměnnými prostředí. Klíče nesmí mít prefix `VITE_` a nesmí být commitnuty. Zdravotní údaje mají samostatnou pojistku `REGISTRATION_HEALTH_DATA_ENABLED=true` a nikdy se neposílají e-mailem.
+Worker potřebuje pouze:
 
-Podrobnosti jsou v [integrations.md](docs/integrations.md), [security.md](docs/security.md), [privacy-go-live.md](docs/privacy-go-live.md), [final-production-readiness-report.md](docs/final-production-readiness-report.md) a [go-live-handoff.md](docs/go-live-handoff.md).
+- `PUBLIC_SITE_URL`
+- `GOOGLE_CALENDAR_ID`
+- `GOOGLE_CALENDAR_API_KEY`
+- `HEALTH_EXPECT_LIVE=true` po připojení kalendáře
+- volitelně `RELEASE_SHA`
 
-## Fotogalerie a plakáty
+Odkaz na přihlášku se zveřejní až tehdy, když má akce v `site-content.json` platnou oficiální Google Forms URL a `open: true`. Build odmítne jinou doménu nebo otevřenou přihlášku bez URL.
 
-Galerie načítá v přehledu pouze náhledy do šířky 640 px. Větší fotografie se stáhne až po otevření lightboxu. Každá fotografie musí mít v `gallery.json` vlastní ID, album, český popis `alt`, rozměry náhledu a rozměry velké varianty. Před zveřejněním nové fotografie musí vedení jednoty potvrdit oprávnění ke zveřejnění, zejména pokud jsou na snímku děti.
-
-Plakáty jsou uloženy jako kompaktní WebP náhledy a původní JPG soubory ke stažení. Zdroj a datum převzetí jsou evidované v `docs/poster-sources.md`. Kontrola `pnpm qa` hlídá manifest, lazy loading, existenci, formát a maximální velikost souborů.
-
-## Provozní ochrana
-
-Ostré přihlášky vyžadují D1 binding `DB` a tajnou hodnotu `RATE_LIMIT_HASH_SECRET`. D1 počítá pokusy globálně napříč instancemi Workeru, přičemž ukládá pouze jednosměrný hash IP a automaticky odstraňuje staré záznamy. Edge WAF a monitoring se nastavují podle `docs/waf-monitoring-runbook.md` až nad produkční doménou.
+Podrobný provozní postup je v [content-operations.md](docs/content-operations.md), [integrations.md](docs/integrations.md) a [go-live-handoff.md](docs/go-live-handoff.md).
