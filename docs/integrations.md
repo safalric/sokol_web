@@ -1,6 +1,6 @@
 # Kalendář a přihlášky
 
-Web používá výhradně same-origin endpointy `/api/calendar` a `/api/registrations`. Veřejné klíče ani e-mailové API klíče nejsou součástí klientského JavaScriptu.
+Web používá výhradně same-origin endpointy `/api/calendar` a `/api/registrations`. Tajné klíče zůstávají na serveru; klient obdrží pouze veřejný Turnstile site key. Týdenní rozvrh cvičení se načítá z ověřených místních dat a nepotřebuje externí API.
 
 ## Demo režim
 
@@ -23,13 +23,13 @@ Produkční režim se aktivuje pouze tehdy, když jsou současně nastaveny e-ma
 ## Google Sheets
 
 1. Zkopírujte `server/google-sheets-webhook.example.gs` do Apps Script projektu připojeného k tabulce.
-2. Ve Script Properties nastavte `WEBHOOK_SECRET`, `SHEET_ID` a volitelně `TRIP_SHEET_NAME` a `CAMP_SHEET_NAME`.
+2. Ve Script Properties nastavte `WEBHOOK_SECRET`, `TRIP_SHEET_ID`, `CAMP_SHEET_ID` a volitelně `TRIP_SHEET_NAME` / `CAMP_SHEET_NAME`. Výletový identifikátor může pro kompatibilitu použít `SHEET_ID`. Tábor vyžaduje odlišný soubor.
 3. Skript publikujte jako Web App spuštěnou pod účtem správce a URL vložte do `GOOGLE_SHEETS_WEBHOOK_URL`.
 4. Stejný náhodný secret vložte do `GOOGLE_SHEETS_WEBHOOK_SECRET`.
 
-Apps Script ukládá krátké výletové přihlášky do listu `Výlety` a rozšířené táborové přihlášky do listu `Tábory`; názvy lze změnit uvedenými Script Properties. Výletový list vůbec nemá sloupce pro zdravotní údaje. Skript používá zámek nad tabulkou, kontroluje ID přihlášky a před přidáním řádku atomicky ověří kapacitu konkrétní akce. Tím se zabrání duplicitám i překročení kapacity při souběžném odeslání. Přístup k táborovému listu musí být omezen jen na výslovně pověřené osoby.
+Apps Script používá dva odlišné soubory: výletový s listem `Výlety` a omezeně sdílený táborový s listem `Tábory`. Ochrana či skrytí záložky Google Sheets neomezuje čtení, a proto nenahrazuje oddělené přístupové oprávnění ([Google](https://support.google.com/docs/answer/1218656?hl=en)). Výletová data nemají zdravotní sloupce. Zámek chrání rezervaci kapacity; stejné ID s odlišnými údaji je odmítnuto jako konflikt.
 
-Akce povolené pro přihlášení, uzávěrka, kapacita a datum kontroly výmazu jsou v `src/data/registration-events.json`. Zdravotní údaje lze v ostrém režimu přijmout jen při současně nastavené tabulce a hodnotě `REGISTRATION_HEALTH_DATA_ENABLED=true`.
+Akce, uzávěrka, kapacita a kontrola výmazu jsou v `src/data/registration-events.json`. Skutečné přihlášení navíc vyžaduje `productionApproved: true`. Ukázkové akce tuto hodnotu nesmí dostat. Zdravotní údaje lze přijmout jen při `REGISTRATION_HEALTH_DATA_ENABLED=true` a po schválení omezeného úložiště. Ani volné organizační poznámky se neposílají e-mailem, mohou totiž obsahovat citlivé údaje.
 
 ## Cloudflare Turnstile
 
@@ -48,7 +48,8 @@ Hosting používá logical binding `DB` z `.openai/hosting.json`. Migrace `drizz
 1. Server ověří původ, rychlost odeslání, honeypot, pole a Turnstile token.
 2. Google Sheets pod zámkem rezervuje místo a odmítne plnou kapacitu.
 3. Resend odešle e-mail organizátorovi a potvrzení účastníkovi.
-4. Opakovaný požadavek se stejným ID nevytvoří druhý řádek ani druhé e-maily.
+4. Stejné ID a údaje nevytvoří další řádek. E-mailové idempotency klíče Resend chrání opakování 24 hodin; trvalá evidence doručení/outbox a automatické retry zatím nejsou implementované ([Resend](https://resend.com/docs/dashboard/emails/idempotency-keys)). Po delší době nelze garantovat, že opakování znovu neodešle e-mail.
+5. Pokud byla rezervace uložena, ale e-mail selhal, odpověď obsahuje ID a pravdivé upozornění. Nezaměňuje se s potvrzeným nedoručením či nezapsáním.
 
 ## Před ostrým provozem
 

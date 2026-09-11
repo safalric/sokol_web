@@ -95,10 +95,10 @@ export function EventCalendar() {
               </button>
             </div>
             <div className="calendar-controls" role="group" aria-label="Přepínání měsíců">
-              <button type="button" aria-label="Předchozí měsíc" disabled={!period || loading || period.year <= 2020} onClick={() => changeMonth(-1)}>
+              <button type="button" aria-label="Předchozí měsíc" disabled={!period || loading || (period.year === 2020 && period.month === 1)} onClick={() => changeMonth(-1)}>
                 <ChevronLeft className="h-5 w-5" aria-hidden="true" />
               </button>
-              <button type="button" aria-label="Následující měsíc" disabled={!period || loading || period.year >= 2035} onClick={() => changeMonth(1)}>
+              <button type="button" aria-label="Následující měsíc" disabled={!period || loading || (period.year === 2035 && period.month === 12)} onClick={() => changeMonth(1)}>
                 <ChevronRight className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
@@ -134,6 +134,7 @@ export function EventCalendar() {
                         <div key={event.id} className={event.category === "training" ? "calendar-chip calendar-chip-training" : "calendar-chip calendar-chip-event"}>
                           <strong>{categoryLabel(event.category)}</strong>
                           <span>{event.title}</span>
+                          <span>{event.time}</span>
                         </div>
                       ))}
                     </div>

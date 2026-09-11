@@ -4,7 +4,8 @@ import test from "node:test";
 import { createWorker } from "../server/worker-runtime.js";
 
 const calendarEvents = JSON.parse(await readFile(new URL("../src/data/calendar-events.json", import.meta.url), "utf8"));
-const registrationEvents = JSON.parse(await readFile(new URL("../src/data/registration-events.json", import.meta.url), "utf8"));
+const demoRegistrationEvents = JSON.parse(await readFile(new URL("../src/data/registration-events.json", import.meta.url), "utf8"));
+const registrationEvents = demoRegistrationEvents.map((event) => ({ ...event, productionApproved: true }));
 const routeMetadata = JSON.parse(await readFile(new URL("../src/data/site-routes.json", import.meta.url), "utf8"));
 const fixedNow = () => new Date("2026-07-26T12:00:00Z");
 
@@ -305,7 +306,7 @@ test("live registrations require a valid Turnstile token", async () => {
   assert.match(calls[0].url, /turnstile/);
 });
 
-test("organizer email HTML-encodes untrusted free text", async () => {
+test("organizer emails omit free text that might contain sensitive details", async () => {
   const calls = [];
   const fetchImpl = successfulDeliveryFetch(calls);
   const response = await postRegistration(createTestWorker({ fetchImpl }), registration({
@@ -315,7 +316,7 @@ test("organizer email HTML-encodes untrusted free text", async () => {
   const organizerCall = calls.find((call) => call.url === "https://api.resend.com/emails");
   const organizerPayload = JSON.parse(organizerCall.init.body);
   assert.doesNotMatch(organizerPayload.html, /<img/);
-  assert.match(organizerPayload.html, /&lt;img/);
+  assert.doesNotMatch(organizerPayload.html, /&lt;img|onerror|alert/);
   assert.doesNotMatch(organizerPayload.html, /Zdravotní údaje/);
   assert.deepEqual(organizerPayload.to, ["trips@sokol.example"]);
   const sheetPayload = JSON.parse(calls.find((call) => call.url.includes("script.google.com")).init.body);
@@ -506,4 +507,145 @@ test("unsupported methods are rejected with Allow header", async () => {
   const response = await createTestWorker().fetch(new Request("https://sokol.example/api/calendar", { method: "POST" }));
   assert.equal(response.status, 405);
   assert.equal(response.headers.get("Allow"), "GET");
+});
+
+test("unapproved demo events cannot accept live registrations", async () => {
+  const calls = [];
+  const worker = createTestWorker({ registrationEvents: demoRegistrationEvents, fetchImpl: successfulDeliveryFetch(calls) });
+  assert.equal((await postRegistration(worker, registration(), liveEnv)).status, 409);
+  assert.equal(calls.length, 0);
+  assert.equal((await postRegistration(worker, registration())).status, 202);
+});
+
+test("streamed bodies are limited even without Content-Length", async () => {
+  let cancelled = false;
+  const stream = new ReadableStream({
+    pull(controller) { controller.enqueue(new Uint8Array(6_001)); },
+    cancel() { cancelled = true; },
+  });
+  const request = new Request("https://sokol.example/api/registrations", {
+    method: "POST", duplex: "half", body: stream,
+    headers: { "Content-Type": "application/json", Origin: "https://sokol.example" },
+  });
+  assert.equal((await createTestWorker().fetch(request)).status, 413);
+  assert.equal(cancelled, true);
+});
+
+test("Turnstile must verify both the expected action and hostname", async () => {
+  for (const verification of [
+    { success: true, action: "event-registration" },
+    { success: true, action: "event-registration", hostname: "attacker.example" },
+    { success: true, action: "login", hostname: "sokol.example" },
+  ]) {
+    const worker = createTestWorker({ fetchImpl: async () => Response.json(verification) });
+    assert.equal((await postRegistration(worker, registration(), liveEnv)).status, 403);
+  }
+});
+
+test("invalid durable counters fail closed", async () => {
+  for (const value of [null, { attempt_count: 0 }, { attempt_count: "1" }, { attempt_count: -1 }]) {
+    const DB = { prepare: () => ({ bind: () => ({ first: async () => value, run: async () => ({ success: true }) }) }) };
+    assert.equal((await postRegistration(createTestWorker(), registration(), { ...liveEnv, DB })).status, 503);
+  }
+});
+
+test("idempotency binds data and does not truncate submission IDs to eight characters", async () => {
+  const worker = createTestWorker();
+  const first = await (await postRegistration(worker, registration())).json();
+  const second = await (await postRegistration(worker, registration({ submissionId: "1234567890abcdef1234567890abcdefff" }))).json();
+  assert.notEqual(first.receiptId, second.receiptId);
+  assert.equal((await postRegistration(worker, registration({ participantName: "Eva Nováková" }))).status, 409);
+});
+
+test("partial email failure reports saved registration and allows an idempotent retry", async () => {
+  const calls = [];
+  let failEmail = true;
+  const success = successfulDeliveryFetch(calls);
+  const worker = createTestWorker({ fetchImpl: async (url, init) => {
+    if (String(url).includes("api.resend.com") && failEmail) return new Response("unavailable", { status: 503 });
+    return success(url, init);
+  } });
+  const failed = await postRegistration(worker, registration(), liveEnv);
+  const body = await failed.json();
+  assert.equal(failed.status, 502);
+  assert.equal(body.registrationSaved, true);
+  assert.match(body.error, /je uložená/);
+  failEmail = false;
+  const retried = await postRegistration(worker, registration(), liveEnv);
+  assert.equal(retried.status, 201);
+  assert.equal((await retried.json()).receiptId, body.receiptId);
+});
+
+test("durable submission conflicts do not send emails", async () => {
+  const calls = [];
+  const success = successfulDeliveryFetch(calls);
+  const worker = createTestWorker({ fetchImpl: async (url, init) => String(url).includes("script.google.com")
+    ? Response.json({ ok: true, status: "conflict" }) : success(url, init) });
+  assert.equal((await postRegistration(worker, registration(), liveEnv)).status, 409);
+  assert.equal(calls.filter((call) => call.url.includes("resend")).length, 0);
+});
+
+test("health recognizes complete live configuration without claiming provider availability", async () => {
+  const response = await createTestWorker().fetch(new Request("https://sokol.example/api/health"), {
+    ...liveEnv, HEALTH_EXPECT_LIVE: "true", GOOGLE_CALENDAR_ID: "calendar", GOOGLE_CALENDAR_API_KEY: "key",
+  });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).ok, true);
+});
+
+test("Google Calendar paginates using Prague month boundaries and skips malformed dates", async () => {
+  const urls = [];
+  const worker = createTestWorker({ fetchImpl: async (url) => {
+    const parsed = new URL(url);
+    urls.push(parsed);
+    return Response.json(parsed.searchParams.has("pageToken")
+      ? { items: [{ id: "two", summary: "Pohyb", start: { date: "2026-10-08" }, extendedProperties: { shared: { category: "training" } } }] }
+      : { items: [{ id: "one", summary: "Akce", start: { dateTime: "2026-10-01T00:30:00+02:00" } }, { start: { date: "2026-13-01" } }, { start: { dateTime: "invalid" } }], nextPageToken: "second" });
+  } });
+  const response = await worker.fetch(new Request("https://sokol.example/api/calendar?year=2026&month=10"), { GOOGLE_CALENDAR_ID: "calendar", GOOGLE_CALENDAR_API_KEY: "key" });
+  const body = await response.json();
+  assert.equal(body.source, "google");
+  assert.equal(body.events.length, 2);
+  assert.equal(body.events[1].category, "training");
+  assert.equal(urls[0].searchParams.get("timeMin"), "2026-10-01T00:00:00+02:00");
+  assert.equal(urls[0].searchParams.get("timeMax"), "2026-11-01T00:00:00+01:00");
+  assert.equal(urls[1].searchParams.get("pageToken"), "second");
+});
+
+test("live calendar defaults to the current Prague month, not the next demo event", async () => {
+  const worker = createTestWorker({ now: () => new Date("2026-07-31T23:00:00Z"), fetchImpl: async () => Response.json({ items: [] }) });
+  const response = await worker.fetch(new Request("https://sokol.example/api/calendar"), { GOOGLE_CALENDAR_ID: "calendar", GOOGLE_CALENDAR_API_KEY: "key" });
+  assert.deepEqual((await response.json()).period, { year: 2026, month: 8 });
+});
+
+test("asset navigation uses the asset binding before the HTML fallback", async () => {
+  const calls = [];
+  const worker = createTestWorker({ staticEntries: [["/posters/original/test.jpg", { contentType: "image/jpeg" }]] });
+  const env = { ASSETS: { fetch: async (request) => {
+    calls.push(request.method);
+    return new Response(request.method === "HEAD" ? null : "image-bytes", { headers: { "Content-Type": "image/jpeg" } });
+  } } };
+  for (const method of ["GET", "HEAD"]) {
+    const response = await worker.fetch(new Request("https://sokol.example/posters/original/test.jpg", { method, headers: { Accept: "text/html" } }), env);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("Content-Type"), "image/jpeg");
+    assert.equal(response.headers.get("X-Content-Type-Options"), "nosniff");
+    assert.equal(await response.text(), method === "HEAD" ? "" : "image-bytes");
+  }
+  assert.deepEqual(calls, ["GET", "HEAD"]);
+});
+
+test("only public manifest entries can reach the asset binding", async () => {
+  const worker = createTestWorker();
+  const env = { ASSETS: { fetch: () => { throw new Error("Private path reached the asset binding"); } } };
+  for (const path of ["/server/index.js", "/.env", "/.openai/hosting.json", "/unknown.svg"]) {
+    assert.equal((await worker.fetch(new Request(`https://sokol.example${path}`), env)).status, 404);
+  }
+});
+
+test("missing asset bindings fail explicitly instead of returning an HTML image", async () => {
+  const worker = createTestWorker({ staticEntries: [["/fonts/sokol.woff2", { contentType: "font/woff2" }]] });
+  const response = await worker.fetch(new Request("https://sokol.example/fonts/sokol.woff2"));
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get("Cache-Control"), "no-store");
 });

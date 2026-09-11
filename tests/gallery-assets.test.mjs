@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(await readFile(path.join(root, "src", "data", "gallery.json"), "utf8"));
 const posterManifest = JSON.parse(await readFile(path.join(root, "src", "data", "posters.json"), "utf8"));
+const exercises = JSON.parse(await readFile(path.join(root, "src", "data", "exercises.json"), "utf8"));
 
 function publicAssetPath(url) {
   return path.join(root, "public", ...url.replace(/^\//, "").split("/"));
@@ -43,7 +44,7 @@ test("gallery manifest contains valid albums, accessible labels and optimized as
 
 test("poster manifest uses optimized previews and preserved local originals", async () => {
   assert.equal(posterManifest.length, 12);
-  assert.equal(posterManifest.filter((poster) => poster.featured).length, 1);
+  assert.equal(posterManifest.filter((poster) => poster.featured).length, 0);
   const ids = new Set();
 
   for (const poster of posterManifest) {
@@ -62,4 +63,42 @@ test("poster manifest uses optimized previews and preserved local originals", as
   const posterGallery = await readFile(path.join(root, "src", "components", "PosterGallery.tsx"), "utf8");
   assert.match(posterGallery, /loading="lazy"/);
   assert.match(posterGallery, /decoding="async"/);
+});
+
+test("2026/2027 exercise schedule has verified sources, valid times and optimized original posters", async () => {
+  assert.equal(exercises.season, "2026/2027");
+  assert.equal(exercises.courses.length, 15);
+  assert.equal(new Set(exercises.courses.map((course) => course.id)).size, 15);
+  assert.equal(exercises.courses.flatMap((course) => course.sessions).length, 17);
+  for (const course of exercises.courses) {
+    assert.match(course.sourceUrl, /^https:\/\/www\.facebook\.com\/photo\/\?fbid=\d+$/);
+    assert.ok(course.coaches.length > 0);
+    assert.ok(course.coaches.some((coach) => /^\d{3} \d{3} \d{3}$/.test(coach.phone)));
+    for (const session of course.sessions) {
+      assert.ok(session.day >= 1 && session.day <= 5);
+      assert.match(session.start, /^([01]\d|2[0-3]):[0-5]\d$/);
+      assert.match(session.end, /^([01]\d|2[0-3]):[0-5]\d$/);
+      assert.ok(session.start < session.end);
+    }
+    await assertWebp(course.poster.previewUrl, 150_000);
+    const original = await readFile(publicAssetPath(course.poster.downloadUrl));
+    assert.equal(original.subarray(0, 3).toString("hex"), "ffd8ff");
+    assert.ok(original.length < 800_000);
+  }
+  const florbal = exercises.courses.find((course) => course.id === "florbal");
+  assert.deepEqual(florbal.sessions, [{ day: 1, start: "17:30", end: "18:30" }]);
+  assert.equal(florbal.coaches[0].name, "Matěj Řehák");
+  assert.equal(exercises.courses.find((course) => course.id === "atletika").place, null);
+});
+
+test("official display and body fonts are valid compact local WOFF2 assets", async () => {
+  for (const name of ["SokolTyrs-Regular.woff2", "work-sans-latin.woff2", "work-sans-latin-ext.woff2"]) {
+    const bytes = await readFile(publicAssetPath(`/fonts/${name}`));
+    assert.equal(bytes.subarray(0, 4).toString("ascii"), "wOF2");
+    assert.ok(bytes.length < 150_000);
+  }
+  const css = await readFile(path.join(root, "src/styles.css"), "utf8");
+  assert.match(css, /--font-display: "Sokol Tyrs"/);
+  assert.match(css, /--font-body: "Work Sans"/);
+  assert.doesNotMatch(css, /https:\/\/fonts\./);
 });

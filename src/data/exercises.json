@@ -1,0 +1,458 @@
+{
+  "season": "2026/2027",
+  "verifiedAt": "2026-09-10",
+  "sourceUrl": "https://www.facebook.com/sokoldoudlebyno/photos",
+  "courses": [
+    {
+      "id": "baby-pondeli",
+      "title": "Baby cvičení: pohyb a smysly",
+      "age": "1–3 roky",
+      "description": "Hravý pohyb a objevování smyslů pro nejmenší děti.",
+      "place": "Tělocvična Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 1,
+          "start": "08:15",
+          "end": "09:00"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Daniela Vařeková",
+          "phone": "732 535 598"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1476715947599062",
+      "publishedAt": "2026-09-06",
+      "poster": {
+        "previewUrl": "/posters/previews/baby-pondeli-2026-2027.webp",
+        "downloadUrl": "/posters/original/baby-pondeli-2026-2027.jpg",
+        "width": 720,
+        "height": 1080
+      }
+    },
+    {
+      "id": "baby-utery",
+      "title": "Baby cvičení s rodiči",
+      "age": "1–3 roky s rodičem",
+      "description": "Společné cvičení nejmenších dětí s rodiči.",
+      "place": "Tělocvična ZŠ Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 2,
+          "start": "15:00",
+          "end": "16:00"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Daniela Vařeková",
+          "phone": "732 535 598"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1471792498091407",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/baby-utery-2026-2027.webp",
+        "downloadUrl": "/posters/original/baby-utery-2026-2027.jpg",
+        "width": 720,
+        "height": 720
+      }
+    },
+    {
+      "id": "predskolaci",
+      "title": "Cvičení předškoláků",
+      "age": "3–6 let",
+      "description": "Pohybové hry a všestranná příprava pro předškolní děti.",
+      "place": "Tělocvična ZŠ Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 2,
+          "start": "16:00",
+          "end": "17:00"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Daniela Vařeková",
+          "phone": "732 535 598"
+        },
+        {
+          "name": "Iva Hloušková"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1471792598091397",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/predskolaci-2026-2027.webp",
+        "downloadUrl": "/posters/original/predskolaci-2026-2027.jpg",
+        "width": 720,
+        "height": 1018
+      }
+    },
+    {
+      "id": "rodice-a-deti",
+      "title": "Rodiče a děti",
+      "age": "3–6 let s rodičem",
+      "description": "Společný pohyb rodičů a dětí v tělocvičně.",
+      "place": "Tělocvična ZŠ Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 3,
+          "start": "15:45",
+          "end": "16:45"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Monika Šafaříková",
+          "phone": "724 121 564"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1471792551424735",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/rodice-a-deti-2026-2027.webp",
+        "downloadUrl": "/posters/original/rodice-a-deti-2026-2027.jpg",
+        "width": 720,
+        "height": 1018
+      }
+    },
+    {
+      "id": "zakyne-1-4",
+      "title": "Všestrannost žákyň",
+      "age": "Dívky, 1.–4. třída",
+      "description": "Všestranné cvičení pro dívky z prvního stupně.",
+      "place": "Tělocvična ZŠ Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 2,
+          "start": "17:00",
+          "end": "18:00"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Monika Šafaříková",
+          "phone": "724 121 564"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1471792688091388",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/zakyne-1-4-2026-2027.webp",
+        "downloadUrl": "/posters/original/zakyne-1-4-2026-2027.jpg",
+        "width": 720,
+        "height": 1018
+      }
+    },
+    {
+      "id": "zaci-1-4",
+      "title": "Všestrannost žáků",
+      "age": "Chlapci, 1.–4. třída",
+      "description": "Všestranné cvičení pro chlapce z prvního stupně.",
+      "place": "Tělocvična ZŠ Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 4,
+          "start": "17:00",
+          "end": "18:00"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Matyáš Leimer",
+          "phone": "736 221 206"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1472112111392779",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/zaci-1-4-2026-2027.webp",
+        "downloadUrl": "/posters/original/zaci-1-4-2026-2027.jpg",
+        "width": 720,
+        "height": 1018
+      }
+    },
+    {
+      "id": "vsestrannost-5-9",
+      "title": "Všestrannost 5.–9. třída",
+      "age": "5.–9. třída",
+      "description": "Pestrá pohybová příprava pro starší školní děti.",
+      "place": "Tělocvična ZŠ Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 3,
+          "start": "17:45",
+          "end": "18:45"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Monika Šafaříková",
+          "phone": "724 121 564"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1471792811424709",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/vsestrannost-5-9-2026-2027.webp",
+        "downloadUrl": "/posters/original/vsestrannost-5-9-2026-2027.jpg",
+        "width": 720,
+        "height": 1018
+      }
+    },
+    {
+      "id": "dorost",
+      "title": "Všestrannost dorostu",
+      "age": "Dorost",
+      "description": "Všestranný pohybový program pro dorost.",
+      "place": "Tělocvična ZŠ Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 5,
+          "start": "19:00",
+          "end": "20:00"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Matěj Řehák",
+          "phone": "603 472 150"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1471792841424706",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/dorost-2026-2027.webp",
+        "downloadUrl": "/posters/original/dorost-2026-2027.jpg",
+        "width": 720,
+        "height": 1018
+      }
+    },
+    {
+      "id": "florbal",
+      "title": "Florbal",
+      "age": "Od 3. třídy",
+      "description": "Týmové cvičení s florbalovou holí a míčkem.",
+      "place": "Tělocvična ZŠ Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 1,
+          "start": "17:30",
+          "end": "18:30"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Matěj Řehák",
+          "phone": "603 472 150"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1471792778091379",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/florbal-2026-2027.webp",
+        "downloadUrl": "/posters/original/florbal-2026-2027.jpg",
+        "width": 720,
+        "height": 1018
+      }
+    },
+    {
+      "id": "gymnastika",
+      "title": "Gymnastická průprava",
+      "age": null,
+      "description": "Gymnastická průprava pod vedením Veroniky Šlajové a Moniky Šafaříkové.",
+      "place": "Tělocvična ZŠ Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 5,
+          "start": "18:00",
+          "end": "19:00"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Veronika Šlajová",
+          "phone": "739 315 527"
+        },
+        {
+          "name": "Monika Šafaříková",
+          "phone": "724 121 564"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1471792644758059",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/gymnastika-2026-2027.webp",
+        "downloadUrl": "/posters/original/gymnastika-2026-2027.jpg",
+        "width": 720,
+        "height": 1018
+      },
+      "note": "Věkovou skupinu upřesní cvičitel."
+    },
+    {
+      "id": "fit-dance",
+      "title": "Fit dance s Barčou",
+      "age": "1.–9. třída",
+      "description": "Taneční cvičení pro děti, které mají radost z tance.",
+      "place": "Tělocvična ZŠ Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 2,
+          "start": "18:00",
+          "end": "19:00"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Barbora Pitter",
+          "phone": "606 569 122",
+          "email": "fd-sbarcou@seznam.cz"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1471792908091366",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/fit-dance-2026-2027.webp",
+        "downloadUrl": "/posters/original/fit-dance-2026-2027.jpg",
+        "width": 720,
+        "height": 1080
+      }
+    },
+    {
+      "id": "atletika",
+      "title": "Atletický oddíl",
+      "age": "Dívky: přípravka 2016 a mladší; mladší žákyně 2014–2015; starší žákyně 2012–2013; dorostenky 2011 a starší",
+      "description": "Atletický oddíl pro dívky a dorostenky v sezoně 2026/2027.",
+      "place": null,
+      "sessions": [
+        {
+          "day": 1,
+          "start": "16:00",
+          "end": "17:00"
+        },
+        {
+          "day": 5,
+          "start": "17:00",
+          "end": "18:00"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Radka Suchomelová",
+          "phone": "605 724 728",
+          "email": "atletikadoudlebyno@gmail.com"
+        },
+        {
+          "name": "Daniela Vařeková",
+          "phone": "732 535 598"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1471792878091369",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/atletika-2026-2027.webp",
+        "downloadUrl": "/posters/original/atletika-2026-2027.jpg",
+        "width": 720,
+        "height": 1018
+      },
+      "note": "Plakát uvádí uzávěrku náboru 25. 8. 2026. Možnost přijetí a místo tréninku ověřte u trenérek."
+    },
+    {
+      "id": "volejbal",
+      "title": "Volejbal",
+      "age": null,
+      "description": "Pravidelný volejbal v tělocvičně základní školy.",
+      "place": "Tělocvična ZŠ Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 4,
+          "start": "18:00",
+          "end": "19:00"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Monika Šafaříková",
+          "phone": "724 121 564"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1471792744758049",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/volejbal-2026-2027.webp",
+        "downloadUrl": "/posters/original/volejbal-2026-2027.jpg",
+        "width": 720,
+        "height": 1018
+      },
+      "note": "Věkovou skupinu upřesní cvičitel."
+    },
+    {
+      "id": "zdravotni-cviceni",
+      "title": "Zdravotní cvičení",
+      "age": "Ženy",
+      "description": "Pravidelné zdravotní cvičení s Janou Florianovou a Vlastou Lacinovou.",
+      "place": "Tělocvična ZŠ Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 1,
+          "start": "18:30",
+          "end": "19:30"
+        },
+        {
+          "day": 3,
+          "start": "18:45",
+          "end": "19:45"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Jana Florianová",
+          "phone": "723 019 752"
+        },
+        {
+          "name": "Vlasta Lacinová",
+          "phone": "737 473 853"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1471793004758023",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/zdravotni-cviceni-2026-2027.webp",
+        "downloadUrl": "/posters/original/zdravotni-cviceni-2026-2027.jpg",
+        "width": 720,
+        "height": 1018
+      }
+    },
+    {
+      "id": "zumba",
+      "title": "Zumba s Radkou",
+      "age": null,
+      "description": "Taneční lekce Zumby s Radkou Suchomelovou.",
+      "place": "Tělocvična ZŠ Doudleby nad Orlicí",
+      "sessions": [
+        {
+          "day": 4,
+          "start": "19:00",
+          "end": "20:00"
+        }
+      ],
+      "coaches": [
+        {
+          "name": "Radka Suchomelová",
+          "phone": "605 724 728"
+        }
+      ],
+      "sourceUrl": "https://www.facebook.com/photo/?fbid=1471792961424694",
+      "publishedAt": "2026-08-31",
+      "poster": {
+        "previewUrl": "/posters/previews/zumba-2026-2027.webp",
+        "downloadUrl": "/posters/original/zumba-2026-2027.jpg",
+        "width": 720,
+        "height": 1018
+      },
+      "note": "Věkovou skupinu upřesní cvičitel."
+    }
+  ]
+}

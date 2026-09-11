@@ -174,7 +174,7 @@ function organizerMessage(payload, receiptId, registrationType) {
     ["Zákonný zástupce", payload.guardianName || "neuveden"],
     ["E-mail", payload.email],
     ["Telefon", payload.phone],
-    ["Organizační poznámka", payload.additionalNote || "neuvedena"],
+    ["Organizační poznámka", payload.additionalNote ? "uvedena; otevřete omezenou evidenci" : "neuvedena"],
     ["Souhlas s fotografiemi", payload.mediaConsent ? "ano" : "ne"],
     ["ID přihlášky", receiptId],
   ];
@@ -213,7 +213,7 @@ async function deliverEmails(payload, receiptId, eventPolicy, env, fetchImpl) {
     subject: `Nová přihláška: ${payload.eventName}`,
     html: organizer.html,
     text: organizer.text,
-  }, `${payload.submissionId}-organizer`);
+  }, `${receiptId}-organizer`);
   await sendResendEmail(fetchImpl, env, {
     from: env.REGISTRATION_FROM_EMAIL,
     to: [payload.email],
@@ -221,7 +221,7 @@ async function deliverEmails(payload, receiptId, eventPolicy, env, fetchImpl) {
     subject: `Potvrzení přihlášky: ${payload.eventName}`,
     html: `<h1>Přihlášku jsme přijali</h1><p>Dobrý den, evidujeme přihlášku účastníka ${escapeHtml(payload.participantName)} na akci ${escapeHtml(payload.eventName)}.</p><p>ID přihlášky: ${escapeHtml(receiptId)}</p><p>Pro změnu nebo zrušení přihlášky odpovězte na tento e-mail a uveďte ID přihlášky.</p>`,
     text: `Dobrý den, evidujeme přihlášku účastníka ${payload.participantName} na akci ${payload.eventName}.\nID přihlášky: ${receiptId}\nPro změnu nebo zrušení přihlášky odpovězte na tento e-mail a uveďte ID přihlášky.`,
-  }, `${payload.submissionId}-participant`);
+  }, `${receiptId}-participant`);
 }
 
 async function reserveGoogleSheet(payload, receiptId, eventPolicy, env, fetchImpl, now) {
@@ -265,7 +265,7 @@ async function reserveGoogleSheet(payload, receiptId, eventPolicy, env, fetchImp
   });
   if (!response.ok) throw new Error(`Google Sheets webhook returned ${response.status}`);
   const result = await response.json().catch(() => ({}));
-  if (result.ok !== true || !["created", "duplicate", "full"].includes(result.status)) {
+  if (result.ok !== true || !["created", "duplicate", "full", "conflict"].includes(result.status)) {
     throw new Error("Google Sheets webhook rejected the row");
   }
   return result;
@@ -333,7 +333,35 @@ async function verifyTurnstile(payload, request, url, env, fetchImpl) {
   const result = await response.json().catch(() => ({}));
   return result.success === true
     && result.action === "event-registration"
-    && (!result.hostname || result.hostname === url.hostname);
+    && result.hostname === url.hostname;
+}
+
+async function readBoundedBody(request) {
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  let bytes = 0;
+  let text = "";
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > MAX_BODY_BYTES) {
+        await reader.cancel();
+        throw new RangeError("Body size limit exceeded");
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    return text + decoder.decode();
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+async function digest(value) {
+  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function clientKey(request) {
@@ -367,7 +395,7 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
       return jsonResponse({ error: "Požadavek musí být ve formátu JSON." }, 415);
     }
     const contentLength = Number(request.headers.get("Content-Length") || 0);
-    if (!Number.isFinite(contentLength) || contentLength > MAX_BODY_BYTES) return jsonResponse({ error: "Požadavek je příliš velký." }, 413);
+    if (!Number.isFinite(contentLength) || contentLength < 0 || contentLength > MAX_BODY_BYTES) return jsonResponse({ error: "Požadavek je příliš velký." }, 413);
 
     const timestamp = now().getTime();
     pruneState(state, timestamp);
@@ -400,10 +428,10 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
 
     let input;
     try {
-      const raw = await request.text();
-      if (new TextEncoder().encode(raw).length > MAX_BODY_BYTES) return jsonResponse({ error: "Požadavek je příliš velký." }, 413);
+      const raw = await readBoundedBody(request);
       input = JSON.parse(raw);
-    } catch {
+    } catch (error) {
+      if (error instanceof RangeError) return jsonResponse({ error: "Požadavek je příliš velký." }, 413);
       return jsonResponse({ error: "Požadavek obsahuje neplatná data." }, 400);
     }
     if (!input || typeof input !== "object" || Array.isArray(input)) return jsonResponse({ error: "Požadavek obsahuje neplatná data." }, 400);
@@ -413,7 +441,17 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
     const { payload, errors, eventPolicy } = validateRegistration(input, submissionTime, registrationEvents);
     if (Object.keys(errors).length) return jsonResponse({ error: "Zkontrolujte vyplněná pole.", fields: errors }, 422);
 
+    if (runtime.status === "configured" && eventPolicy.productionApproved !== true) {
+      return jsonResponse({ error: "Tato ukázková akce není schválená pro skutečné přihlášky. Kontaktujte organizátora." }, 409);
+    }
+
+    // Bind retries to the same data without retaining personal details in Worker memory.
+    const { formStartedAt, turnstileToken, ...stablePayload } = payload;
+    const fingerprint = await digest(JSON.stringify(stablePayload));
     const previous = state.receipts.get(payload.submissionId);
+    if (previous && previous.fingerprint !== fingerprint) {
+      return jsonResponse({ error: "Údaje této přihlášky se změnily. Pro novou přihlášku znovu otevřete formulář." }, 409);
+    }
     if (previous?.state === "processing") return jsonResponse({ error: "Tato přihláška se právě zpracovává." }, 409);
     if (previous?.result) {
       return jsonResponse(previous.result.mode === "demo" ? { ...previous.result, preview: demoPreview(payload) } : previous.result);
@@ -430,7 +468,7 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
       }
     }
 
-    const receiptId = `SOKOL-${submissionTime.getUTCFullYear()}-${payload.submissionId.slice(0, 8).toUpperCase()}`;
+    const receiptId = `SOKOL-${(await digest(payload.submissionId)).slice(0, 32).toUpperCase()}`;
     const emailConfigured = runtime.status === "configured";
     const sheetConfigured = runtime.status === "configured";
 
@@ -443,20 +481,26 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
         warning: runtime.warning,
         delivery: { organizerEmail: "preview", participantEmail: "preview", googleSheet: "not_configured" },
       };
-      state.receipts.set(payload.submissionId, { state: "complete", result, createdAt: timestamp });
+      state.receipts.set(payload.submissionId, { state: "complete", result, fingerprint, createdAt: timestamp });
       return jsonResponse({ ...result, preview: demoPreview(payload) }, 202);
     }
     if (payload.healthNote && (!sheetConfigured || env.REGISTRATION_HEALTH_DATA_ENABLED !== "true")) {
       return jsonResponse({ error: "Příjem zdravotních údajů zatím není bezpečně aktivován. Kontaktujte prosím organizátora." }, 503);
     }
 
-    state.receipts.set(payload.submissionId, { state: "processing", createdAt: timestamp });
+    state.receipts.set(payload.submissionId, { state: "processing", fingerprint, createdAt: timestamp });
+    let reservationSaved = false;
     try {
       const reservation = await reserveGoogleSheet(payload, receiptId, eventPolicy, env, fetchImpl, submissionTime);
+      if (reservation.status === "conflict") {
+        state.receipts.delete(payload.submissionId);
+        return jsonResponse({ error: "Pod tímto ID už existuje přihláška s jinými údaji. Kontaktujte organizátora." }, 409);
+      }
       if (reservation.status === "full") {
         state.receipts.delete(payload.submissionId);
         return jsonResponse({ error: "Kapacita této akce je již naplněna." }, 409);
       }
+      reservationSaved = true;
       await deliverEmails(payload, receiptId, eventPolicy, env, fetchImpl);
 
       const result = {
@@ -470,12 +514,18 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
           googleSheet: reservation.status === "duplicate" ? "duplicate" : "saved",
         },
       };
-      state.receipts.set(payload.submissionId, { state: "complete", result, createdAt: timestamp });
+      state.receipts.set(payload.submissionId, { state: "complete", result, fingerprint, createdAt: timestamp });
       return jsonResponse(result, reservation.status === "duplicate" ? 200 : 201);
     } catch (error) {
       state.receipts.delete(payload.submissionId);
       console.error("Registration delivery failed", { receiptId, error: String(error) });
-      return jsonResponse({ error: "Přihlášku se nepodařilo bezpečně doručit. Data nebyla potvrzena jako uložená." }, 502);
+      return jsonResponse({
+        error: reservationSaved
+          ? `Přihláška ${receiptId} je uložená, ale odeslání potvrzení se nezdařilo. Zkuste znovu odeslat tento formulář beze změn nebo kontaktujte organizátora s tímto ID.`
+          : "Výsledek uložení přihlášky nelze potvrdit. Zkuste znovu odeslat tento formulář beze změn nebo kontaktujte organizátora.",
+        receiptId,
+        registrationSaved: reservationSaved,
+      }, 502);
     }
   };
 }

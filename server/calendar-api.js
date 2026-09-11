@@ -42,21 +42,27 @@ function getPeriod(url, calendarEvents, now) {
   }
 
   const today = now();
-  const currentKey = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, "0")}`;
+  const currentKey = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Prague", year: "numeric", month: "2-digit" }).format(today);
   const nextEvent = [...calendarEvents].sort((a, b) => a.date.localeCompare(b.date)).find((event) => event.date.slice(0, 7) >= currentKey);
-  const initialDate = nextEvent ? new Date(`${nextEvent.date}T12:00:00Z`) : today;
+  const initialDate = new Date(`${nextEvent ? nextEvent.date : `${currentKey}-01`}T12:00:00Z`);
   return { year: initialDate.getUTCFullYear(), month: initialDate.getUTCMonth() + 1 };
 }
 
 function monthBounds({ year, month }) {
+  const midnight = (monthIndex) => {
+    const date = new Date(Date.UTC(year, monthIndex, 1));
+    const offset = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Prague", timeZoneName: "longOffset" })
+      .formatToParts(date).find((part) => part.type === "timeZoneName").value.replace("GMT", "");
+    return `${date.toISOString().slice(0, 10)}T00:00:00${offset}`;
+  };
   return {
-    timeMin: new Date(Date.UTC(year, month - 1, 1)).toISOString(),
-    timeMax: new Date(Date.UTC(year, month, 1)).toISOString(),
+    timeMin: midnight(month - 1),
+    timeMax: midnight(month),
   };
 }
 
 function inferCategory(item) {
-  const explicit = item.extendedProperties?.private?.category;
+  const explicit = item.extendedProperties?.shared?.category ?? item.extendedProperties?.private?.category;
   if (explicit === "training" || explicit === "event") return explicit;
   return /trénink|cvičení|florbal|gymnastika|žactvo|rodiče a děti/i.test(item.summary || "") ? "training" : "event";
 }
@@ -70,13 +76,16 @@ function formatGoogleTime(item) {
     timeZone: "Europe/Prague",
   });
   const start = formatter.format(new Date(item.start.dateTime));
-  const end = item.end?.dateTime ? formatter.format(new Date(item.end.dateTime)) : "";
+  const end = item.end?.dateTime && Number.isFinite(Date.parse(item.end.dateTime)) ? formatter.format(new Date(item.end.dateTime)) : "";
   return end ? `${start}-${end}` : start;
 }
 
 function googleDate(item) {
-  if (item.start?.date) return item.start.date;
-  if (!item.start?.dateTime) return "";
+  if (item.start?.date) {
+    const date = new Date(`${item.start.date}T12:00:00Z`);
+    return /^\d{4}-\d{2}-\d{2}$/.test(item.start.date) && Number.isFinite(date.getTime()) && date.toISOString().startsWith(item.start.date) ? item.start.date : "";
+  }
+  if (!item.start?.dateTime || !Number.isFinite(Date.parse(item.start.dateTime))) return "";
   return new Intl.DateTimeFormat("sv-SE", {
     year: "numeric",
     month: "2-digit",
@@ -94,13 +103,24 @@ async function getGoogleEvents(period, env, fetchImpl) {
   apiUrl.searchParams.set("singleEvents", "true");
   apiUrl.searchParams.set("orderBy", "startTime");
   apiUrl.searchParams.set("maxResults", "100");
+  apiUrl.searchParams.set("timeZone", "Europe/Prague");
 
-  const response = await fetchWithTimeout(fetchImpl, apiUrl, { headers: { Accept: "application/json" } });
-  if (!response.ok) throw new Error(`Google Calendar API returned ${response.status}`);
-  const data = await response.json();
+  const items = [];
+  const seenTokens = new Set();
+  for (let page = 0; page < 10; page += 1) {
+    const response = await fetchWithTimeout(fetchImpl, apiUrl, { headers: { Accept: "application/json" } });
+    if (!response.ok) throw new Error(`Google Calendar API returned ${response.status}`);
+    const data = await response.json();
+    if (!Array.isArray(data.items)) throw new Error("Invalid Google Calendar response");
+    items.push(...data.items);
+    if (!data.nextPageToken) break;
+    if (page === 9 || seenTokens.has(data.nextPageToken)) throw new Error("Incomplete Google Calendar pagination");
+    seenTokens.add(data.nextPageToken);
+    apiUrl.searchParams.set("pageToken", data.nextPageToken);
+  }
 
-  return (Array.isArray(data.items) ? data.items : [])
-    .filter((item) => item.status !== "cancelled" && googleDate(item))
+  return items
+    .filter((item) => item && item.status !== "cancelled" && googleDate(item))
     .map((item) => ({
       id: String(item.id || crypto.randomUUID()),
       date: googleDate(item),
@@ -112,9 +132,9 @@ async function getGoogleEvents(period, env, fetchImpl) {
 }
 
 export async function handleCalendar(url, env, calendarEvents, fetchImpl, now) {
-  const period = getPeriod(url, calendarEvents, now);
-  if (!period) return jsonResponse({ error: "Neplatný rok nebo měsíc." }, 400);
   const runtime = calendarRuntimeStatus(env);
+  const period = getPeriod(url, runtime.status === "google" ? [] : calendarEvents, now);
+  if (!period) return jsonResponse({ error: "Neplatný rok nebo měsíc." }, 400);
 
   if (runtime.status === "google") {
     try {

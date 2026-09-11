@@ -104,7 +104,7 @@ export function createWorker({
         const registration = registrationRuntimeStatus(env);
         const calendar = calendarRuntimeStatus(env);
         const expectedLive = env.HEALTH_EXPECT_LIVE === "true";
-        const operational = !expectedLive || (calendar.status === "configured" && registration.status === "configured");
+        const operational = !expectedLive || (calendar.status === "google" && registration.status === "configured");
         return jsonResponse({
           ok: operational,
           status: operational ? "ok" : "degraded",
@@ -153,7 +153,12 @@ export function createWorker({
         return staticResponse(renderIndexHtml(indexHtml, metadata, "/", canonicalOrigin), "text/html; charset=utf-8", 200, request.method);
       }
       const asset = assets.get(url.pathname);
-      if (asset) return staticResponse(decodeBase64(asset.content), asset.contentType, 200, request.method);
+      if (asset) {
+        if (typeof asset.content === "string") return staticResponse(decodeBase64(asset.content), asset.contentType, 200, request.method);
+        if (!env.ASSETS) return jsonResponse({ error: "Statické soubory nejsou dostupné." }, 503);
+        const response = await env.ASSETS.fetch(request);
+        return withSecurityHeaders(response);
+      }
       if ((request.headers.get("Accept") || "").includes("text/html")) {
         const normalizedPath = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, "") : url.pathname;
         const knownRoute = knownHtmlRoutes.has(normalizedPath);
@@ -165,7 +170,6 @@ export function createWorker({
           request.method,
         );
       }
-      if (env.ASSETS) return withSecurityHeaders(await env.ASSETS.fetch(request));
       return staticResponse("Not found", "text/plain; charset=utf-8", 404, request.method);
     },
   };

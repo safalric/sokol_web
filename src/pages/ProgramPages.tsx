@@ -1,44 +1,14 @@
-import { CalendarDays, CheckCircle2, Clock, Info, Mail, MapPin, Users } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, Info, MapPin, Users } from "lucide-react";
 import { useState } from "react";
 import { EventCalendar } from "../components/EventCalendar";
 import { EventRegistrationForm } from "../components/EventRegistrationForm";
 import { InfoRow, PageShell } from "../components/PagePrimitives";
 import { PosterGallery } from "../components/PosterGallery";
-import { posters } from "../data/posters";
-import { departments, events } from "../data/siteContent";
+import { currentPosters, archivedPosters } from "../data/posters";
+import { events } from "../data/siteContent";
+import { WeeklySchedule } from "./ExercisePage";
+export { ExercisePage } from "./ExercisePage";
 
-export function ExercisePage() {
-  return (
-    <PageShell title="Nabídka cvičení">
-      <div className="demo-callout mb-6">
-        <Info className="h-5 w-5" aria-hidden="true" />
-        <span>Časy a místa jsou ukázkové. Jména a telefony vycházejí z dodaných kontaktů, přiřazení k oddílům je nutné finálně potvrdit.</span>
-      </div>
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {departments.map((item) => (
-          <article key={item.title} className="department-card">
-            {item.demo ? <span className="demo-badge">Demo rozvrh</span> : null}
-            <span className="icon-badge"><item.icon className="h-6 w-6" aria-hidden="true" /></span>
-            <h2>{item.title}</h2>
-            <p>{item.description}</p>
-            <dl className="mt-5 grid gap-3">
-              <InfoRow icon={Users} label="Cílová skupina" value={item.age} />
-              <InfoRow icon={CalendarDays} label="Den" value={item.day} />
-              <InfoRow icon={Clock} label="Čas" value={item.time} />
-              <InfoRow icon={MapPin} label="Místo" value={item.place} />
-              <InfoRow
-                icon={Mail}
-                label="Kontakt"
-                value={item.contactPhone ? `${item.contactName}\n${item.contactPhone}` : item.contactName}
-                href={item.contactPhone ? `tel:${item.contactPhone.replace(/\s/g, "")}` : undefined}
-              />
-            </dl>
-          </article>
-        ))}
-      </div>
-    </PageShell>
-  );
-}
 
 export function EventsPage() {
   const registrationEvents = events.filter((event) => event.registration && event.registrationType);
@@ -79,12 +49,17 @@ export function EventsPage() {
         ))}
       </div>
       <section id="plakaty" className="mt-12 scroll-mt-24" aria-labelledby="plakaty-title">
-        <p className="eyebrow text-sokol-red">Archiv jednoty</p>
+        <p className="eyebrow text-sokol-red">Sezóna 2026/2027</p>
         <h2 id="plakaty-title" className="section-title">Plakáty a informační letáky</h2>
         <p className="page-intro mt-4">
-          Originální materiály převzaté z původního webu TJ Sokol Doudleby nad Orlicí. Archivní letáky mohou obsahovat již neplatné termíny; aktuální rozvrh je potřeba ověřit u cvičitele.
+          Aktuální plakáty cvičení z Facebooku jednoty. Časy, místa a kontakty najdete také v nabídce cvičení.
         </p>
-        <div className="mt-7"><PosterGallery posters={posters} /></div>
+        <div className="mt-7"><PosterGallery posters={currentPosters} /></div>
+        <details className="poster-archive mt-8">
+          <summary>Archiv plakátů · {archivedPosters.length} materiálů</summary>
+          <p className="my-5">Starší letáky slouží pouze jako archiv. Jejich termíny a rozvrhy již nejsou aktuální.</p>
+          <PosterGallery posters={archivedPosters} />
+        </details>
       </section>
       {registrationEvent ? (
         <div id="prihlaska-na-akci" className="mt-10 scroll-mt-24 grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
@@ -127,12 +102,14 @@ export function EventsPage() {
 }
 
 export function CalendarPage() {
+  const [view, setView] = useState<"schedule" | "events">("schedule");
   return (
     <PageShell title="Kalendář">
-      <p className="page-intro">
-        Přehled tréninků, výletů a společných akcí se načítá přes vlastní API. V demo režimu používá bezpečná ukázková data; po doplnění přístupu se automaticky přepne na veřejný Google Kalendář jednoty.
-      </p>
-      <div className="mt-8"><EventCalendar /></div>
+      <div className="program-view-switch" role="group" aria-label="Typ programu">
+        <button className="btn-outline" type="button" aria-pressed={view === "schedule"} onClick={() => setView("schedule")}>Rozvrh cvičení</button>
+        <button className="btn-outline" type="button" aria-pressed={view === "events"} onClick={() => setView("events")}>Kalendář akcí</button>
+      </div>
+      <div className="mt-8">{view === "schedule" ? <WeeklySchedule /> : <EventCalendar />}</div>
     </PageShell>
   );
 }

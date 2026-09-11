@@ -53,7 +53,7 @@ export function PosterLightbox({ poster, opener, onClose }: PosterLightboxProps)
         </button>
         <div className="poster-lightbox-image-wrap">
           <img
-            src={poster.previewUrl}
+            src={poster.downloadUrl}
             alt={`Plakát ${poster.title}`}
             width={poster.width}
             height={poster.height}
@@ -69,6 +69,8 @@ export function PosterLightbox({ poster, opener, onClose }: PosterLightboxProps)
               <FileDown className="h-4 w-4" aria-hidden="true" />
               {poster.downloadLabel}
             </a>
+            {poster.registrationUrl ? <a className="btn-primary" href={poster.registrationUrl} target="_blank" rel="noopener noreferrer">Přihláška do Sokola</a> : null}
+            {poster.sourceUrl ? <a className="text-link" href={poster.sourceUrl} target="_blank" rel="noopener noreferrer">Původní plakát na Facebooku</a> : null}
           </div>
         </div>
       </div>

@@ -57,7 +57,7 @@ export async function submitEventRegistration(payload: EventRegistrationPayload)
   }
 
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 15_000);
+  const timeout = window.setTimeout(() => controller.abort(), 40_000);
   try {
     const response = await fetch("/api/registrations", {
       method: "POST",

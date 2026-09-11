@@ -2,6 +2,10 @@
 
 Moderní prezentační web postavený v Reactu, TypeScriptu, Vite a Tailwind CSS. Součástí je same-origin API pro kalendář a přihlášky na akce.
 
+Aktuální stav a plán: [zářijové předání](docs/release-2026-09-10.md), [přechod z FORPSI](docs/migration-forpsi.md), [ověřené cvičení](docs/exercise-sources-2026-2027.md), [oficiální písma](docs/fonts.md). Starší reporty popisují historický stav, nikoli současný ostrý provoz.
+
+Příprava účtů a přístupů: [Google pro jednotu a testování](docs/google-accounts-setup.md). Nové účty zatím nejsou založené a živé integrace nejsou aktivované.
+
 ## Vývoj
 
 ```bash
@@ -31,6 +35,8 @@ pnpm preview:worker
 - `src/data/gallery.json` je jediný manifest alb, popisků a rozměrů fotografií.
 - `public/gallery/` obsahuje malé WebP náhledy a větší varianty načítané až v lightboxu.
 - `src/data/posters.json` je manifest plakátů a informačních letáků převzatých z původního webu.
+- `src/data/exercises.json` je společný zdroj aktuálních cvičení 2026/2027, rozvrhu, kontaktů a 15 nových plakátů.
+- `src/data/posters.ts` spojuje aktuální materiály a oddělený archiv.
 - `public/posters/previews/` obsahuje optimalizované WebP náhledy, `public/posters/original/` originály ke stažení.
 - `src/services/` je jediná klientská vrstva pro same-origin API.
 - `server/` odděluje HTTP zabezpečení, kalendář a zpracování přihlášek.
@@ -41,11 +47,13 @@ pnpm preview:worker
 - `docs/` popisuje integrace, bezpečnost a kroky před ostrým provozem.
 - `.github/workflows/ci.yml` spouští stejnou kontrolu při pushi a pull requestu do `main`.
 
+Build odděluje veřejné soubory (`dist/client/`) od Workeru (`dist/server/`). Obrázky nejsou vložené do JavaScriptu serveru; produkční hosting musí poskytovat vazbu `ASSETS` na `dist/client/` a `DB` pro D1. Worker odbavuje HTML/API před statickými soubory, aby zůstala funkční metadata, 404 i bezpečnostní hlavičky. Nikdy nezveřejňovat celý `dist/server/` jako statické soubory. Lokální `preview:worker` poskytuje stejnou vazbu přes seznam povolených veřejných souborů.
+
 ## Provozní režimy
 
 Bez tajných proměnných běží kalendář a přihlášky v transparentním demo režimu. Přihláška projde serverovou validací, ale osobní ani zdravotní údaje se neukládají a neodesílají.
 
-Ostrý režim se aktivuje pouze serverovými proměnnými prostředí. Klíče nesmí mít prefix `VITE_` a nesmí být commitnuty. Zdravotní údaje mají samostatnou pojistku `REGISTRATION_HEALTH_DATA_ENABLED=true` a nikdy se neposílají e-mailem.
+Ostrý režim vyžaduje serverové proměnné a každá skutečná akce také `productionApproved: true`. Ukázkové akce mají tuto pojistku vypnutou. Klíče nesmí mít prefix `VITE_` a nesmí být commitnuty. Zdravotní údaje mají samostatnou pojistku `REGISTRATION_HEALTH_DATA_ENABLED=true` a spolu s volnými poznámkami se neposílají e-mailem.
 
 Podrobnosti jsou v [integrations.md](docs/integrations.md), [security.md](docs/security.md), [privacy-go-live.md](docs/privacy-go-live.md), [final-production-readiness-report.md](docs/final-production-readiness-report.md) a [go-live-handoff.md](docs/go-live-handoff.md).
 

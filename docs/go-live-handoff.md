@@ -2,6 +2,8 @@
 
 Tento dokument rozděluje zbývající práci podle odpovědnosti. Žádný bod označený P0 nesmí být nahrazen domněnkou vývojáře.
 
+Aktualizace k 10. 9. 2026: rozvrh a 15 plakátů 2026/2027 jsou doplněné; provozní blokátory a odhady jsou v `release-2026-09-10.md`. Táborová evidence nově vyžaduje samostatný Google Sheets soubor `CAMP_SHEET_ID`, ne chráněnou záložku společného souboru.
+
 ## 1. Vedení TJ Sokol – vlastník obsahu a spuštění
 
 Úkoly:
@@ -56,9 +58,9 @@ Akceptace: organizátor i účastník obdrží testovací e-mail, odpověď jde 
 Úkoly:
 
 - založit samostatný veřejný Google Kalendář a dodat omezený API klíč,
-- založit chráněnou tabulku se samostatnými listy `Výlety` a `Tábory`,
+- založit oddělené chráněné soubory pro výlety a tábory,
 - nasadit `server/google-sheets-webhook.example.gs`,
-- nastavit Script Properties `WEBHOOK_SECRET`, `SHEET_ID`, případně názvy listů,
+- nastavit Script Properties `WEBHOOK_SECRET`, `TRIP_SHEET_ID`, `CAMP_SHEET_ID`, případně názvy listů,
 - omezit přístup k táborovým zdravotním údajům a nastavit kontrolu výmazu.
 
 Akceptace: kalendář ukazuje živá data; test výletu zapisuje jen výletové sloupce; test tábora zapisuje zdravotní údaj pouze se souhlasem; duplicitní ID nepřidá řádek a kapacitu nelze překročit.

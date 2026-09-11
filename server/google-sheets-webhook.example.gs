@@ -38,13 +38,17 @@ function safeCell_(value) {
 function doPost(event) {
   const properties = PropertiesService.getScriptProperties();
   const expectedSecret = properties.getProperty("WEBHOOK_SECRET");
-  const sheetId = properties.getProperty("SHEET_ID");
 
   try {
     const rawBody = event && event.postData ? event.postData.contents || "" : "";
     if (!rawBody || rawBody.length > 20000) return jsonResponse_({ ok: false });
     const body = JSON.parse(rawBody);
     const schema = SCHEMAS[body.registrationType];
+    const tripSheetId = properties.getProperty("TRIP_SHEET_ID") || properties.getProperty("SHEET_ID");
+    const campSheetId = properties.getProperty("CAMP_SHEET_ID");
+    const sheetId = body.registrationType === "camp" ? campSheetId : tripSheetId;
+    // Sheet-tab protection cannot restrict reading health data; use a separate workbook.
+    if (body.registrationType === "camp" && campSheetId === tripSheetId) return jsonResponse_({ ok: false });
     if (!expectedSecret || body.secret !== expectedSecret || !sheetId || !schema) return jsonResponse_({ ok: false });
     if (body.action !== "reserve" || !body.receiptId || !body.eventName || !body.record) return jsonResponse_({ ok: false });
     if (!Number.isInteger(body.capacity) || body.capacity < 1 || body.capacity > 10000) return jsonResponse_({ ok: false });
@@ -77,17 +81,24 @@ function doPost(event) {
       const rowCount = Math.max(0, sheet.getLastRow() - 1);
       const receiptValues = rowCount > 0 ? sheet.getRange(2, receiptColumn, rowCount, 1).getDisplayValues() : [];
       const eventValues = rowCount > 0 ? sheet.getRange(2, eventColumn, rowCount, 1).getDisplayValues() : [];
-      const existing = receiptValues.some(function (row) { return row[0] === body.receiptId; });
+      const existingIndex = receiptValues.findIndex(function (row) { return row[0] === body.receiptId; });
       const registeredCount = eventValues.filter(function (row) { return row[0] === body.eventName; }).length;
 
-      if (existing) {
+      if (existingIndex !== -1) {
+        const existingRow = sheet.getRange(existingIndex + 2, 1, 1, headers.length).getDisplayValues()[0];
+        const normalizedCell = function (value) { return String(value).replace(/^'(?=[=+\-@])/, ""); };
+        const changed = schema.some(function (field, index) {
+          return field[0] !== "receivedAt" && normalizedCell(existingRow[index]) !== normalizedCell(safeRow[index]);
+        });
+        if (changed) return jsonResponse_({ ok: true, status: "conflict" });
         return jsonResponse_({ ok: true, status: "duplicate", capacityRemaining: Math.max(0, body.capacity - registeredCount) });
       }
       if (registeredCount >= body.capacity) {
         return jsonResponse_({ ok: true, status: "full", capacityRemaining: 0 });
       }
 
-      sheet.appendRow(safeRow);
+      // Preserve dates and IDs as text so retries can compare values exactly.
+      sheet.getRange(sheet.getLastRow() + 1, 1, 1, headers.length).setNumberFormat("@").setValues([safeRow]);
       return jsonResponse_({
         ok: true,
         status: "created",

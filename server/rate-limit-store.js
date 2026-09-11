@@ -25,5 +25,7 @@ export async function consumeDurableRateLimit(database, client, secret, timestam
       .bind(timestamp - RETENTION_MS).run();
   }
 
-  return Number(result?.attempt_count || 0);
+  const attempts = result?.attempt_count;
+  if (!Number.isSafeInteger(attempts) || attempts < 1) throw new Error("Invalid durable rate limit result");
+  return attempts;
 }

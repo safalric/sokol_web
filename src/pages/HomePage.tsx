@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, Info, Megaphone } from "lucide-react";
+import { ArrowRight, Info } from "lucide-react";
 import { PosterGallery } from "../components/PosterGallery";
 import { Section } from "../components/PagePrimitives";
 import { featuredPosters } from "../data/posters";
@@ -41,28 +41,23 @@ export function HomePage({ onNavigate }: { onNavigate: (href: string) => void })
       </section>
 
       <Section eyebrow="Aktuality" title="Co je potřeba vědět">
-        <div className="demo-callout">
-          <Info className="h-5 w-5" aria-hidden="true" />
-          <span>Aktuality níže jsou ukázkové a čekají na nahrazení ověřenými zprávami jednoty.</span>
-        </div>
         <div className="grid gap-5 md:grid-cols-3">
           {notices.map((notice) => (
             <article key={notice.title} className={`simple-card notice-card notice-${notice.type}`}>
               <div className="notice-label">
-                {notice.type === "alert" ? <AlertTriangle className="h-4 w-4" aria-hidden="true" /> : null}
-                {notice.type === "event" ? <Megaphone className="h-4 w-4" aria-hidden="true" /> : null}
                 {notice.type === "info" ? <Info className="h-4 w-4" aria-hidden="true" /> : null}
                 {notice.label}
               </div>
               <p className="card-date">{notice.date}</p>
               <h3>{notice.title}</h3>
               <p>{notice.text}</p>
+              <a className="text-link mt-4 inline-flex" href={notice.href}>{notice.linkLabel}</a>
             </article>
           ))}
         </div>
       </Section>
 
-      <Section eyebrow="Plakátovací plocha" title="Pozvánky a významné akce" tone="white">
+      <Section eyebrow="Sezóna 2026/2027" title="Plakáty aktuálního cvičení" tone="white">
         <PosterGallery posters={featuredPosters} compact />
         <div className="mt-7">
           <button className="btn-outline" type="button" onClick={() => onNavigate("/akce")}>Zobrazit všechny plakáty</button>

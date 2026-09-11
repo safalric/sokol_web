@@ -5,14 +5,14 @@
     "date": "15.-23. srpna 2026",
     "place": "řeka Berounka",
     "category": "Tábor",
-    "status": "Aktuální plakát",
+    "status": "Archiv · akce proběhla",
     "description": "Originální pozvánka TJ Sokol Doudleby nad Orlicí a TJ Sokol Potštejn na vodácké putování pro mládež od 10 do 18 let.",
     "previewUrl": "/posters/previews/berounka-2026.webp",
     "downloadUrl": "/posters/original/berounka-2026.jpg",
     "downloadLabel": "Stáhnout plakát v JPG",
     "width": 720,
     "height": 1018,
-    "featured": true
+    "featured": false
   },
   {
     "id": "atletika-2025-2026",

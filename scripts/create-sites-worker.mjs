@@ -2,9 +2,8 @@ import { copyFile, mkdir, readFile, readdir, stat, writeFile } from "node:fs/pro
 import { join, relative, sep } from "node:path";
 
 const serverDir = join(process.cwd(), "dist", "server");
-const assetsDir = join(process.cwd(), "dist", "assets");
-const distDir = join(process.cwd(), "dist");
-const indexHtml = await readFile(join(process.cwd(), "dist", "index.html"), "utf8");
+const clientDir = join(process.cwd(), "dist", "client");
+const indexHtml = await readFile(join(clientDir, "index.html"), "utf8");
 const calendarEvents = JSON.parse(await readFile(join(process.cwd(), "src", "data", "calendar-events.json"), "utf8"));
 const registrationEvents = JSON.parse(await readFile(join(process.cwd(), "src", "data", "registration-events.json"), "utf8"));
 const routeMetadata = JSON.parse(await readFile(join(process.cwd(), "src", "data", "site-routes.json"), "utf8"));
@@ -32,35 +31,20 @@ function getContentType(fileName) {
   if (fileName.endsWith(".pdf")) return "application/pdf";
   if (fileName.endsWith(".json")) return "application/json; charset=utf-8";
   if (fileName.endsWith(".ico")) return "image/x-icon";
+  if (fileName.endsWith(".woff2")) return "font/woff2";
+  if (fileName.endsWith(".txt")) return "text/plain; charset=utf-8";
   return "application/octet-stream";
 }
 
-const assetEntries = await Promise.all(
-  (await readdir(assetsDir)).map(async (fileName) => {
-    const filePath = join(assetsDir, fileName);
-    const content = await readFile(filePath);
-    const contentType = getContentType(fileName);
-
-    return [`/assets/${fileName}`, { content: content.toString("base64"), contentType }];
-  }),
-);
-const publicEntries = await Promise.all(
-  (await collectFiles(distDir)).map(async (filePath) => {
-    const fileName = relative(distDir, filePath);
-    if (fileName === "index.html" || fileName.startsWith(`assets${sep}`) || fileName.startsWith(`server${sep}`)) {
-      return null;
-    }
-
-    const content = await readFile(filePath);
-    const contentType = getContentType(fileName);
-    const route = `/${fileName.split(sep).join("/")}`;
-
-    return [route, { content: content.toString("base64"), contentType }];
-  }),
-);
-const staticEntries = [...assetEntries, ...publicEntries.filter(Boolean)];
+// Keep media in the asset store, not in the Worker JavaScript bundle.
+const staticEntries = (await collectFiles(clientDir))
+  .map((filePath) => relative(clientDir, filePath).split(sep).join("/"))
+  .filter((fileName) => fileName !== "index.html" && !fileName.split("/").some((part) => part.startsWith(".")))
+  .sort()
+  .map((fileName) => [`/${fileName}`, { contentType: getContentType(fileName) }]);
 
 await mkdir(serverDir, { recursive: true });
+await writeFile(join(serverDir, "asset-manifest.js"), `export default ${JSON.stringify(staticEntries)};\n`);
 await Promise.all(
   (await readdir(join(process.cwd(), "server")))
     .filter((fileName) => fileName.endsWith(".js"))
@@ -69,9 +53,9 @@ await Promise.all(
 await writeFile(
   join(serverDir, "index.js"),
 `import { createWorker } from "./runtime.js";
+import assetManifest from "./asset-manifest.js";
 
 const INDEX_HTML = ${JSON.stringify(indexHtml)};
-const ASSETS = new Map(${JSON.stringify(staticEntries)});
 const CALENDAR_EVENTS = ${JSON.stringify(calendarEvents)};
 const REGISTRATION_EVENTS = ${JSON.stringify(registrationEvents)};
 const APP_ROUTES = ${JSON.stringify(appRoutes)};
@@ -79,7 +63,7 @@ const ROUTE_METADATA = ${JSON.stringify(routeMetadata)};
 
 export default createWorker({
   indexHtml: INDEX_HTML,
-  staticEntries: ASSETS,
+  staticEntries: assetManifest,
   calendarEvents: CALENDAR_EVENTS,
   registrationEvents: REGISTRATION_EVENTS,
   appRoutes: APP_ROUTES,

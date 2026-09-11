@@ -2,16 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "Sokol Tyrs";
+  src: url("/fonts/SokolTyrs-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Work Sans";
+  src: url("/fonts/work-sans-latin-ext.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Work Sans";
+  src: url("/fonts/work-sans-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.schedule-source {
+  margin-bottom: 1.5rem;
+  max-width: 75ch;
+  line-height: 1.7;
+}
+.schedule-source a { text-decoration: underline; text-underline-offset: 3px; }
+.exercise-toolbar, .program-view-switch, .exercise-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+.exercise-toolbar { margin-bottom: 1.5rem; }
+.exercise-toolbar label { display: grid; gap: 0.4rem; font-size: 0.875rem; font-weight: 600; }
+.exercise-toolbar select {
+  min-height: 44px; padding: 0.5rem 2rem 0.5rem 0.75rem;
+  border: 1px solid #737b87; border-radius: 4px;
+  color: inherit; background: #fff; font: inherit;
+}
+.exercise-toolbar .btn-primary, .exercise-toolbar .btn-outline, .exercise-card-actions .btn-outline, .exercise-card-actions .text-link {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.exercise-toolbar .btn-primary { margin-left: auto; }
+.exercise-card { display: flex; flex-direction: column; min-width: 0; }
+.exercise-card h2 { font-size: 1.65rem; line-height: 1.15; }
+.exercise-coaches { display: grid; gap: 0.75rem; margin-top: 1.25rem; }
+.exercise-coaches h3 { font: 600 0.875rem var(--font-body); }
+.exercise-coaches > div { display: grid; gap: 0.3rem; font-size: 0.9375rem; }
+.exercise-coaches a { display: flex; align-items: center; gap: 0.5rem; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.exercise-note { font-size: 0.875rem; line-height: 1.6; margin-top: 1rem; }
+.exercise-card-actions { padding-top: 1.5rem; margin-top: auto; justify-content: space-between; }
+.weekly-schedule { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; }
+.schedule-day { min-width: 0; }
+.schedule-day h2 { font-family: var(--font-display); font-size: 1.6rem; text-transform: uppercase; border-bottom: 3px solid #d32f2f; padding-bottom: 0.6rem; }
+.schedule-day li { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 0.75rem; padding: 1rem 0; border-bottom: 1px solid #d1d5db; }
+.schedule-day p { font-size: 0.875rem; line-height: 1.6; margin-top: 0.25rem; }
+.schedule-time { font-size: 0.9375rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.program-view-switch button[aria-pressed="true"] { background: #d32f2f; color: #fff; border-color: #d32f2f; }
+.poster-archive { border-top: 1px solid #a1a8b3; padding-top: 1.5rem; }
+.poster-archive summary { cursor: pointer; padding: 0.5rem 0; font-weight: 700; }
+html[data-theme="dark"] .exercise-toolbar select { background: #15191f; border-color: #747d8b; }
+html[data-theme="dark"] .schedule-day li { border-color: #424852; }
+html[data-theme="dark"] .program-view-switch button[aria-pressed="true"] { background: #d32f2f; color: #fff; border-color: #d32f2f; }
+@media (max-width: 767px) {
+  .weekly-schedule { grid-template-columns: minmax(0, 1fr); }
+  .exercise-toolbar .btn-primary { margin-left: 0; }
+}
+@media (max-width: 420px) {
+  .schedule-day li { grid-template-columns: minmax(0, 1fr); gap: 0.35rem; }
+}
+
 @layer base {
   :root {
-    --font-body: "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
-    --font-display: "Arial Narrow", "Roboto Condensed", "Franklin Gothic Condensed", Impact, Haettenschweiler, Arial, sans-serif;
+    --font-body: "Work Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
+    --font-display: "Sokol Tyrs", "Arial Narrow", "Roboto Condensed", "Franklin Gothic Condensed", Impact, Haettenschweiler, Arial, sans-serif;
   }
 
   html {
     scroll-behavior: smooth;
     color-scheme: light;
-    overflow-x: clip;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -33,7 +109,6 @@
     background: #f4f5f7;
     font-family: var(--font-body);
     color: #1f2937;
-    overflow-x: clip;
   }
 
   button,
@@ -899,7 +974,7 @@
   }
 
   .registration-form button:disabled {
-    @apply cursor-not-allowed opacity-60;
+    @apply cursor-not-allowed border-zinc-700 bg-zinc-700 text-white shadow-none;
   }
 
   .turnstile-shell {
