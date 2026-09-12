@@ -491,7 +491,7 @@ html[data-theme="dark"] .program-view-switch button[aria-pressed="true"] { backg
   }
 
   .poster-grid-compact {
-    @apply max-w-md md:grid-cols-1 xl:grid-cols-1;
+    @apply w-full max-w-none lg:grid-cols-3;
   }
 
   .poster-card {

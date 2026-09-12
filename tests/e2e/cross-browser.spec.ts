@@ -3,6 +3,37 @@ import axe from "axe-core";
 
 const routes = ["/", "/o-nas", "/cviceni", "/akce", "/kalendar", "/prihlaska", "/fotogalerie", "/historie", "/kontakt", "/gdpr", "/dotace"];
 
+test("homepage posters fill the content width with responsive columns", async ({ page }, testInfo) => {
+  for (const [width, columns] of [[375, 1], [768, 2], [1024, 3], [1280, 3], [1920, 3]]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto("/");
+    const grid = page.locator(".poster-grid-compact");
+    await grid.scrollIntoViewIfNeeded();
+    await expect(grid.locator(".poster-card")).toHaveCount(3);
+    const layout = await grid.evaluate((element) => {
+      const cards = [...element.querySelectorAll(".poster-card")].map((card) => card.getBoundingClientRect());
+      return { width: element.getBoundingClientRect().width, parentWidth: element.parentElement!.getBoundingClientRect().width,
+        columns: getComputedStyle(element).gridTemplateColumns.split(" ").length,
+        firstRowCount: cards.filter((card) => Math.abs(card.top - cards[0].top) < 1).length,
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+    });
+    expect(layout.columns).toBe(columns);
+    expect(layout.firstRowCount).toBe(columns);
+    expect(Math.abs(layout.width - layout.parentWidth)).toBeLessThanOrEqual(1);
+    expect(layout.overflow).toBeLessThanOrEqual(1);
+    await expect(grid.locator("img").first()).toHaveJSProperty("complete", true);
+    await page.evaluate(() => document.fonts.ready);
+    await grid.screenshot({ path: testInfo.outputPath(`homepage-posters-${width}.png`), animations: "disabled" });
+  }
+  const opener = page.getByRole("button", { name: "Zvětšit plakát Florbal", exact: true });
+  await opener.click();
+  const dialog = page.getByRole("dialog", { name: "Florbal", exact: true });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("link", { name: "Stáhnout plakát v JPG" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(opener).toBeFocused();
+});
+
 test("publication offers no fictional events or demo registration", async ({ page }) => {
   await page.goto("/akce");
   await expect(page.locator("main")).not.toContainText(/ukázkov|prototyp|Orlických hor|červenec 2027/i);
