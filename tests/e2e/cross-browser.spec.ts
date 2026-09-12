@@ -3,6 +3,41 @@ import axe from "axe-core";
 
 const routes = ["/", "/o-nas", "/cviceni", "/akce", "/kalendar", "/prihlaska", "/fotogalerie", "/historie", "/kontakt", "/gdpr", "/dotace"];
 
+test("exercise toolbar aligns controls and stacks cleanly on mobile", async ({ page }, testInfo) => {
+  for (const width of [375, 390, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/cviceni");
+    await page.evaluate(() => document.fonts.ready);
+    for (const theme of ["light", "dark"]) {
+      await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+      const toolbar = page.locator(".exercise-toolbar");
+      const bounds = await toolbar.evaluate((element) => ({
+        width: element.getBoundingClientRect().width,
+        controls: [...element.querySelectorAll("select, :scope > a")].map((control) => {
+          const { top, bottom, width, height } = control.getBoundingClientRect();
+          return { top, bottom, width, height };
+        }),
+      }));
+      expect(bounds.controls).toHaveLength(3);
+      for (const control of bounds.controls) {
+        expect(control.height).toBeGreaterThanOrEqual(44);
+        if (width >= 640) {
+          expect(Math.abs(control.top - bounds.controls[0].top)).toBeLessThanOrEqual(1);
+          expect(Math.abs(control.bottom - bounds.controls[0].bottom)).toBeLessThanOrEqual(1);
+        } else expect(Math.abs(control.width - bounds.width)).toBeLessThanOrEqual(1);
+      }
+      if (width < 640) {
+        expect(bounds.controls[1].top).toBeGreaterThan(bounds.controls[0].bottom);
+        expect(bounds.controls[2].top).toBeGreaterThan(bounds.controls[1].bottom);
+      }
+      await toolbar.screenshot({ path: testInfo.outputPath(`toolbar-${width}-${theme}.png`), animations: "disabled" });
+    }
+    await page.getByLabel("Den cvičení").selectOption("1");
+    await expect(page.getByRole("heading", { name: "Florbal", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Volejbal", exact: true })).toHaveCount(0);
+  }
+});
+
 test("homepage posters fill the content width with responsive columns", async ({ page }, testInfo) => {
   for (const [width, columns] of [[375, 1], [768, 2], [1024, 3], [1280, 3], [1920, 3]]) {
     await page.setViewportSize({ width, height: 1000 });

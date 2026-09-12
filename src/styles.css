@@ -40,10 +40,11 @@
   align-items: center;
   gap: 1rem;
 }
-.exercise-toolbar { margin-bottom: 1.5rem; }
+.exercise-toolbar { margin-bottom: 1.5rem; align-items: flex-end; }
+.exercise-toolbar > a { min-height: 46px; }
 .exercise-toolbar label { display: grid; gap: 0.4rem; font-size: 0.875rem; font-weight: 600; }
 .exercise-toolbar select {
-  min-height: 44px; padding: 0.5rem 2rem 0.5rem 0.75rem;
+  min-height: 46px; padding: 0.5rem 2rem 0.5rem 0.75rem;
   border: 1px solid #737b87; border-radius: 4px;
   color: inherit; background: #fff; font: inherit;
 }
@@ -77,6 +78,11 @@ html[data-theme="dark"] .program-view-switch button[aria-pressed="true"] { backg
 }
 @media (max-width: 420px) {
   .schedule-day li { grid-template-columns: minmax(0, 1fr); gap: 0.35rem; }
+}
+
+@media (max-width: 639px) {
+  .exercise-toolbar { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .exercise-toolbar select, .exercise-toolbar > a { width: 100%; }
 }
 
 @layer base {
