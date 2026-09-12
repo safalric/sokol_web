@@ -20,19 +20,19 @@ export function calendarRuntimeStatus(env) {
   return missingCapabilities.length === 0
     ? { status: "google", configurationWarning: false, missingCapabilities: [], warning: null }
     : {
-      status: "demo",
-      configurationWarning: true,
+      status: "local",
+      configurationWarning: Boolean(env.GOOGLE_CALENDAR_ID || env.GOOGLE_CALENDAR_API_KEY),
       missingCapabilities,
-      warning: "Kalendář běží v demo režimu, protože není kompletně připojený veřejný Google Kalendář jednoty.",
+      warning: null,
     };
 }
 
-function getPeriod(url, calendarEvents, now) {
+function getPeriod(url, now) {
   const yearValue = url.searchParams.get("year");
   const monthValue = url.searchParams.get("month");
 
-  if ((yearValue && !monthValue) || (!yearValue && monthValue)) return null;
-  if (yearValue && monthValue) {
+  if (yearValue !== null || monthValue !== null) {
+    if (!/^\d{4}$/.test(yearValue ?? "") || !/^\d{1,2}$/.test(monthValue ?? "")) return null;
     const year = Number(yearValue);
     const month = Number(monthValue);
     if (!Number.isInteger(year) || year < 2020 || year > 2035 || !Number.isInteger(month) || month < 1 || month > 12) {
@@ -43,8 +43,7 @@ function getPeriod(url, calendarEvents, now) {
 
   const today = now();
   const currentKey = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Prague", year: "numeric", month: "2-digit" }).format(today);
-  const nextEvent = [...calendarEvents].sort((a, b) => a.date.localeCompare(b.date)).find((event) => event.date.slice(0, 7) >= currentKey);
-  const initialDate = new Date(`${nextEvent ? nextEvent.date : `${currentKey}-01`}T12:00:00Z`);
+  const initialDate = new Date(`${currentKey}-01T12:00:00Z`);
   return { year: initialDate.getUTCFullYear(), month: initialDate.getUTCMonth() + 1 };
 }
 
@@ -131,10 +130,25 @@ async function getGoogleEvents(period, env, fetchImpl) {
     }));
 }
 
+export function publishedCalendarEvents(calendarEvents) {
+  const ids = new Set();
+  return calendarEvents.filter((event) => {
+    if (!event || event.published !== true || !/^[a-z0-9-]+$/.test(event.id ?? "") || ids.has(event.id)) return false;
+    const date = new Date(`${event.date}T12:00:00Z`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(event.date ?? "") || !Number.isFinite(date.getTime()) || !date.toISOString().startsWith(event.date)) return false;
+    if (!["training", "event"].includes(event.category) || ![event.title, event.time, event.place].every((value) => typeof value === "string" && value.trim() && value.length <= 160)) return false;
+    try { if (new URL(event.sourceUrl).protocol !== "https:") return false; } catch { return false; }
+    ids.add(event.id);
+    return true;
+  }).map(({ id, date, title, time, category, place, sourceUrl }) => ({ id, date, title, time, category, place, sourceUrl }))
+    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time) || a.title.localeCompare(b.title, "cs"));
+}
+
 export async function handleCalendar(url, env, calendarEvents, fetchImpl, now) {
   const runtime = calendarRuntimeStatus(env);
-  const period = getPeriod(url, runtime.status === "google" ? [] : calendarEvents, now);
+  const period = getPeriod(url, now);
   if (!period) return jsonResponse({ error: "Neplatný rok nebo měsíc." }, 400);
+  const localEvents = publishedCalendarEvents(calendarEvents).filter((event) => event.date.startsWith(`${period.year}-${String(period.month).padStart(2, "0")}`));
 
   if (runtime.status === "google") {
     try {
@@ -150,29 +164,26 @@ export async function handleCalendar(url, env, calendarEvents, fetchImpl, now) {
         warning: null,
       }, 200, "public, max-age=300");
     } catch {
-      const events = calendarEvents.filter((event) => event.date.startsWith(`${period.year}-${String(period.month).padStart(2, "0")}`));
       return jsonResponse({
-        source: "demo",
-        demo: true,
+        source: "local",
+        demo: false,
         period,
-        events,
+        events: localEvents,
         updatedAt: now().toISOString(),
         configurationWarning: false,
         warningCode: "provider_unavailable",
-        warning: "Google Kalendář je dočasně nedostupný. Zobrazujeme náhradní ukázková data.",
+        warning: "Online kalendář je dočasně nedostupný. Zobrazené zveřejněné termíny nemusí zahrnovat poslední změny. Aktuální informace ověřte u jednoty.",
       });
     }
   }
 
-  const events = calendarEvents.filter((event) => event.date.startsWith(`${period.year}-${String(period.month).padStart(2, "0")}`));
   return jsonResponse({
-    source: "demo",
-    demo: true,
+    source: "local",
+    demo: false,
     period,
-    events,
+    events: localEvents,
     updatedAt: now().toISOString(),
     configurationWarning: runtime.configurationWarning,
-    warningCode: "missing_configuration",
     missingCapabilities: runtime.missingCapabilities,
     warning: runtime.warning,
   });

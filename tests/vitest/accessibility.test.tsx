@@ -9,8 +9,8 @@ describe("automated accessibility audit", () => {
   test.each(routes)("%s has no serious or critical axe violations", async (route) => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
       period: { year: 2026, month: 8 },
-      source: "demo",
-      demo: true,
+      source: "local",
+      demo: false,
       events: [],
       warning: null,
     }), { headers: { "Content-Type": "application/json" } })));

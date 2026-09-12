@@ -5,10 +5,11 @@ export type CalendarEvent = {
   time: string;
   category: "training" | "event";
   place: string;
+  sourceUrl?: string;
 };
 
 export type CalendarResponse = {
-  source: "demo" | "google";
+  source: "local" | "google";
   demo: boolean;
   period: { year: number; month: number };
   events: CalendarEvent[];

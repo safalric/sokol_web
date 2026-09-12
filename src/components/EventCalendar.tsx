@@ -35,7 +35,8 @@ export function EventCalendar() {
     setLoading(true);
     setError(null);
     try {
-      setCalendar(await fetchCalendar(period, controller.signal));
+      const result = await fetchCalendar(period, controller.signal);
+      if (!controller.signal.aborted) setCalendar(result);
     } catch (reason) {
       if (!controller.signal.aborted) {
         setError(reason instanceof Error ? reason.message : "Kalendář se nepodařilo načíst.");
@@ -68,7 +69,7 @@ export function EventCalendar() {
       <section className="calendar-panel" aria-label="Kalendář programu">
         <div className="calendar-toolbar">
           <div>
-            <span className="demo-badge">{calendar?.source === "google" ? "Google Kalendář" : "Demo API"}</span>
+            <span className="eyebrow text-sokol-red">Zveřejněné termíny</span>
             <h2>{monthLabel}</h2>
           </div>
           <div className="calendar-toolbar-actions">
@@ -95,6 +96,9 @@ export function EventCalendar() {
               </button>
             </div>
             <div className="calendar-controls" role="group" aria-label="Přepínání měsíců">
+              <button type="button" aria-label="Aktuální měsíc" title="Aktuální měsíc" disabled={loading} onClick={() => void load()}>
+                <CalendarDays className="h-5 w-5" aria-hidden="true" />
+              </button>
               <button type="button" aria-label="Předchozí měsíc" disabled={!period || loading || (period.year === 2020 && period.month === 1)} onClick={() => changeMonth(-1)}>
                 <ChevronLeft className="h-5 w-5" aria-hidden="true" />
               </button>
@@ -119,6 +123,7 @@ export function EventCalendar() {
 
         {!error && period ? (
           <>
+            {events.length === 0 && !loading ? <CalendarEmpty /> : null}
             <div className={view === "grid" ? "calendar-desktop" : "calendar-desktop calendar-view-hidden"}>
               <div className="calendar-weekdays" aria-hidden="true">
                 {weekDays.map((day) => <span key={day}>{day}</span>)}
@@ -129,12 +134,14 @@ export function EventCalendar() {
                   const dayEvents = day ? events.filter((event) => event.date === key) : [];
                   return (
                     <div key={key} className={day ? "calendar-day" : "calendar-day calendar-day-empty"}>
-                      {day ? <span className="calendar-day-number">{day}</span> : null}
+                      {day ? <time className="calendar-day-number" dateTime={key}>{day}</time> : null}
                       {dayEvents.map((event) => (
                         <div key={event.id} className={event.category === "training" ? "calendar-chip calendar-chip-training" : "calendar-chip calendar-chip-event"}>
                           <strong>{categoryLabel(event.category)}</strong>
                           <span>{event.title}</span>
                           <span>{event.time}</span>
+                          <span>{event.place}</span>
+                          {event.sourceUrl ? <a className="underline" href={event.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`Podrobnosti: ${event.title}`}>Podrobnosti</a> : null}
                         </div>
                       ))}
                     </div>
@@ -144,22 +151,20 @@ export function EventCalendar() {
             </div>
 
             <div className={view === "grid" ? "calendar-mobile" : "calendar-view-hidden"}>
-              {events.length > 0 ? events.map((event) => <CalendarListItem key={event.id} event={event} />) : <CalendarEmpty />}
+              {events.map((event) => <CalendarListItem key={event.id} event={event} />)}
             </div>
             <div className={view === "list" ? "calendar-list-view" : "calendar-view-hidden"}>
-              {events.length > 0 ? events.map((event) => <CalendarListItem key={`list-${event.id}`} event={event} />) : <CalendarEmpty />}
+              {events.map((event) => <CalendarListItem key={`list-${event.id}`} event={event} />)}
             </div>
           </>
         ) : null}
       </section>
 
       <aside className="calendar-agenda">
-        <p className="eyebrow text-sokol-red">Přehled kategorií</p>
-        <h2>Jak číst kalendář</h2>
+        <p className="eyebrow text-sokol-red">Program jednoty</p>
+        <h2>Termíny a změny</h2>
         <p className="calendar-disclaimer">
-          {calendar?.demo
-            ? "Kalendář běží přes funkční API s ukázkovými daty. Po připojení veřejného Google Kalendáře se obsah začne načítat automaticky."
-            : "Program se načítá z veřejného kalendáře jednoty. Změny se mohou projevit s krátkým zpožděním."}
+          Pravidelné časy oddílů najdete v rozvrhu cvičení. Tento kalendář obsahuje pouze jednotlivě zveřejněné termíny. Změny, svátky a prázdninový provoz ověřte u cvičitele.
         </p>
         <div className="calendar-legend">
           <span className="category-label category-training">Tréninky</span>
@@ -172,9 +177,9 @@ export function EventCalendar() {
 
 function CalendarEmpty() {
   return (
-    <p className="calendar-empty">
+    <p className="calendar-empty mt-5" role="status">
       <CalendarDays className="h-5 w-5" aria-hidden="true" />
-      Pro tento měsíc nejsou zveřejněné žádné položky.
+      Pro tento měsíc zatím nejsou zveřejněné žádné potvrzené akce.
     </p>
   );
 }
@@ -192,6 +197,7 @@ function CalendarListItem({ event }: { event: CalendarEvent }) {
       <h3>{event.title}</h3>
       <p><Clock className="h-4 w-4" aria-hidden="true" />{event.time}</p>
       <p><MapPin className="h-4 w-4" aria-hidden="true" />{event.place}</p>
+      {event.sourceUrl ? <a className="text-link mt-3 inline-flex" href={event.sourceUrl} target="_blank" rel="noopener noreferrer">Podrobnosti akce</a> : null}
     </article>
   );
 }

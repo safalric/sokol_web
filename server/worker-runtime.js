@@ -85,6 +85,7 @@ export function createWorker({
   const knownHtmlRoutes = new Set(appRoutes);
   const metadataByPath = new Map(routeMetadata.map((route) => [route.path, route]));
   const handleRegistration = createRegistrationHandler({ fetchImpl, now, registrationEvents });
+  const registrationsPublished = registrationEvents.length > 0;
 
   return {
     async fetch(request, env = {}) {
@@ -112,16 +113,17 @@ export function createWorker({
           checkedAt: now().toISOString(),
           release: typeof env.RELEASE_SHA === "string" && env.RELEASE_SHA ? env.RELEASE_SHA.slice(0, 12) : "unknown",
           calendar: calendar.status,
-          registrations: registration.status,
+          registrations: registrationsPublished ? registration.status : "closed",
           healthData: registration.status === "configured" && env.REGISTRATION_HEALTH_DATA_ENABLED === "true" ? "enabled" : "disabled",
           configurationWarnings: {
             calendar: calendar.configurationWarning,
-            registrations: registration.configurationWarning,
+            registrations: registrationsPublished && registration.configurationWarning,
           },
         }, operational ? 200 : 503);
       }
       if (url.pathname === "/api/registration-config") {
         if (request.method !== "GET") return methodNotAllowed(["GET"]);
+        if (!registrationsPublished) return jsonResponse({ mode: "unavailable", turnstileSiteKey: null, healthDataEnabled: false, configurationWarning: false, warning: "Online přihlášky na akce nejsou otevřené." });
         const registration = registrationRuntimeStatus(env);
         return jsonResponse({
           mode: registration.status === "configured" ? "live" : "demo",
@@ -138,8 +140,10 @@ export function createWorker({
       }
       if (url.pathname === "/api/registrations") {
         if (request.method !== "POST") return methodNotAllowed(["POST"]);
+        if (!registrationsPublished) return jsonResponse({ error: "Online přihlášky na akce nejsou otevřené.", code: "registrations_closed" }, 503);
         return handleRegistration(request, url, env);
       }
+      if (url.pathname === "/api/internal/registration-delivery") return handleDeliveryMaintenance(request, env, fetchImpl, now);
       if (url.pathname.startsWith("/api/")) return jsonResponse({ error: "Endpoint nebyl nalezen." }, 404);
 
       if (!["GET", "HEAD"].includes(request.method)) return methodNotAllowed(["GET", "HEAD"]);
@@ -160,7 +164,6 @@ export function createWorker({
         const response = await env.ASSETS.fetch(request);
         return withSecurityHeaders(response);
       }
-      if (url.pathname === "/api/internal/registration-delivery") return handleDeliveryMaintenance(request, env, fetchImpl, now);
       if ((request.headers.get("Accept") || "").includes("text/html")) {
         const normalizedPath = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, "") : url.pathname;
         const knownRoute = knownHtmlRoutes.has(normalizedPath);

@@ -1,59 +1,29 @@
-import { CalendarDays, CheckCircle2, Clock, Info, MapPin, Users } from "lucide-react";
+import { CalendarDays, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { EventCalendar } from "../components/EventCalendar";
-import { EventRegistrationForm } from "../components/EventRegistrationForm";
-import { InfoRow, PageShell } from "../components/PagePrimitives";
+import { PageShell } from "../components/PagePrimitives";
 import { PosterGallery } from "../components/PosterGallery";
 import { currentPosters, archivedPosters } from "../data/posters";
-import { events } from "../data/siteContent";
+import { socialLinks } from "../data/siteContent";
 import { WeeklySchedule } from "./ExercisePage";
 export { ExercisePage } from "./ExercisePage";
 
-
 export function EventsPage() {
-  const registrationEvents = events.filter((event) => event.registration && event.registrationType);
-  const [selectedEventTitle, setSelectedEventTitle] = useState(registrationEvents[0]?.title ?? "");
-  const registrationEvent = registrationEvents.find((event) => event.title === selectedEventTitle) ?? registrationEvents[0];
-  const selectRegistrationEvent = (eventTitle: string, scrollToForm = false) => {
-    setSelectedEventTitle(eventTitle);
-    if (scrollToForm) {
-      window.requestAnimationFrame(() => document.getElementById("prihlaska-na-akci")?.scrollIntoView({ behavior: "smooth", block: "start" }));
-    }
-  };
-
   return (
     <PageShell title="Akce a tábory">
-      <div className="demo-callout mb-6">
-        <Info className="h-5 w-5" aria-hidden="true" />
-        <span>Termíny a kapacity jsou ukázkové. Stránka představuje cílovou podobu nabídky akcí.</span>
-      </div>
-      <div className="grid gap-5 lg:grid-cols-3">
-        {events.map((event) => (
-          <article key={event.title} className="event-card">
-            <span className="demo-badge">{event.status}</span>
-            <CalendarDays className="h-7 w-7 text-sokol-red" aria-hidden="true" />
-            <h2>{event.title}</h2>
-            <p>{event.description}</p>
-            <dl className="mt-5 grid gap-3">
-              <InfoRow icon={CalendarDays} label="Termín" value={event.date} />
-              <InfoRow icon={Clock} label="Čas" value={event.time} />
-              <InfoRow icon={MapPin} label="Místo" value={event.place} />
-              <InfoRow icon={Users} label="Kapacita" value={event.capacity} />
-            </dl>
-            {event.registration && event.registrationType ? (
-              <button className="btn-outline mt-5" type="button" onClick={() => selectRegistrationEvent(event.title, true)}>
-                {event.registrationType === "camp" ? "Přihlásit na tábor" : "Přihlásit na výlet"}
-              </button>
-            ) : null}
-          </article>
-        ))}
-      </div>
+      <section aria-labelledby="upcoming-events-title">
+        <h2 id="upcoming-events-title" className="section-title">Nadcházející akce</h2>
+        <p className="page-intro mt-4">Potvrzené termíny výletů, táborů a společných setkání zveřejňujeme v kalendáři akcí.</p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <a className="btn-primary" href="/kalendar#akce"><CalendarDays className="h-4 w-4" aria-hidden="true" />Kalendář akcí</a>
+          <a className="btn-outline" href={socialLinks[0].href} target="_blank" rel="noopener noreferrer">Aktuality na Facebooku <ExternalLink className="h-4 w-4" aria-hidden="true" /></a>
+        </div>
+        <p className="mt-5">Informace k účasti poskytne organizátor konkrétní akce. Online přihlášky na akce zde zatím nejsou otevřené.</p>
+      </section>
       <section id="plakaty" className="mt-12 scroll-mt-24" aria-labelledby="plakaty-title">
         <p className="eyebrow text-sokol-red">Sezóna 2026/2027</p>
         <h2 id="plakaty-title" className="section-title">Plakáty a informační letáky</h2>
-        <p className="page-intro mt-4">
-          Aktuální plakáty cvičení z Facebooku jednoty. Časy, místa a kontakty najdete také v nabídce cvičení.
-        </p>
+        <p className="page-intro mt-4">Aktuální plakáty cvičení z Facebooku jednoty. Časy, místa a kontakty najdete také v nabídce cvičení.</p>
         <div className="mt-7"><PosterGallery posters={currentPosters} /></div>
         <details className="poster-archive mt-8">
           <summary>Archiv plakátů · {archivedPosters.length} materiálů</summary>
@@ -61,55 +31,23 @@ export function EventsPage() {
           <PosterGallery posters={archivedPosters} />
         </details>
       </section>
-      {registrationEvent ? (
-        <div id="prihlaska-na-akci" className="mt-10 scroll-mt-24 grid gap-6 lg:grid-cols-[0.72fr_1.28fr]">
-          <article className="content-card">
-            <span className="demo-badge">Funkční prototyp</span>
-            <h2 className="mt-4">Vyberte typ přihlášky</h2>
-            <div className="registration-type-switch" role="group" aria-label="Typ přihlášky">
-              {registrationEvents.map((event) => (
-                <button
-                  key={event.title}
-                  type="button"
-                  aria-pressed={registrationEvent?.title === event.title}
-                  onClick={() => selectRegistrationEvent(event.title)}
-                >
-                  {event.registrationType === "camp" ? "Tábor" : "Výlet"}
-                </button>
-              ))}
-            </div>
-            <p>
-              {registrationEvent?.registrationType === "camp"
-                ? "Táborová přihláška obsahuje také nepovinné zdravotní údaje a samostatný výslovný souhlas."
-                : "Jednodenní výlet má zkrácenou přihlášku bez zdravotních údajů a alergií."}
-            </p>
-            <ul className="mt-5 grid gap-3 text-sm">
-              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> U nezletilých potvrzuje oprávnění zákonný zástupce</li>
-              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Rozsah údajů odpovídá typu a délce akce</li>
-              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Serverová validace, antispam a ochrana proti duplicitám</li>
-              <li className="check-row"><CheckCircle2 className="h-4 w-4" /> Demo náhled e-mailů bez ukládání osobních údajů</li>
-            </ul>
-          </article>
-          <EventRegistrationForm
-            key={registrationEvent.title}
-            eventName={registrationEvent.title}
-            registrationType={registrationEvent.registrationType === "camp" ? "camp" : "trip"}
-          />
-        </div>
-      ) : null}
     </PageShell>
   );
 }
 
 export function CalendarPage() {
-  const [view, setView] = useState<"schedule" | "events">("schedule");
+  const [view, setView] = useState<"schedule" | "events">(() => window.location.hash === "#akce" ? "events" : "schedule");
+  const changeView = (next: "schedule" | "events") => {
+    setView(next);
+    window.history.replaceState(window.history.state, "", next === "events" ? "/kalendar#akce" : "/kalendar");
+  };
   return (
     <PageShell title="Kalendář">
       <div className="program-view-switch" role="group" aria-label="Typ programu">
-        <button className="btn-outline" type="button" aria-pressed={view === "schedule"} onClick={() => setView("schedule")}>Rozvrh cvičení</button>
-        <button className="btn-outline" type="button" aria-pressed={view === "events"} onClick={() => setView("events")}>Kalendář akcí</button>
+        <button className="btn-outline" type="button" aria-pressed={view === "schedule"} aria-controls="calendar-program" onClick={() => changeView("schedule")}>Rozvrh cvičení</button>
+        <button className="btn-outline" type="button" aria-pressed={view === "events"} aria-controls="calendar-program" onClick={() => changeView("events")}>Kalendář akcí</button>
       </div>
-      <div className="mt-8">{view === "schedule" ? <WeeklySchedule /> : <EventCalendar />}</div>
+      <div id="calendar-program" className="mt-8">{view === "schedule" ? <WeeklySchedule /> : <EventCalendar />}</div>
     </PageShell>
   );
 }

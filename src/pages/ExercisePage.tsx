@@ -6,22 +6,9 @@ import { exerciseSchedule, weekDayNames } from "../data/exercises";
 import { currentPosters, type SitePoster } from "../data/posters";
 import { memberApplicationUrl } from "../data/siteContent";
 
-export function ScheduleSource() {
-  const verifiedDate = new Intl.DateTimeFormat("cs-CZ", { day: "numeric", month: "numeric", year: "numeric", timeZone: "Europe/Prague" })
-    .format(new Date(`${exerciseSchedule.verifiedAt}T12:00:00Z`));
-  return (
-    <p className="schedule-source">
-      Sezóna {exerciseSchedule.season} · ověřeno {verifiedDate} z{" "}
-      <a href={exerciseSchedule.sourceUrl} target="_blank" rel="noopener noreferrer">plakátů jednoty na Facebooku</a>.
-      {" "}Změny, svátky a volná místa potvrzuje cvičitel.
-    </p>
-  );
-}
-
 export function WeeklySchedule() {
   return (
     <section aria-label="Týdenní rozvrh cvičení">
-      <ScheduleSource />
       <div className="weekly-schedule">
         {[1, 2, 3, 4, 5].map((day) => (
           <section className="schedule-day" key={day} aria-labelledby={`day-${day}`}>
@@ -56,7 +43,6 @@ export function ExercisePage() {
 
   return (
     <PageShell title="Nabídka cvičení">
-      <ScheduleSource />
       <div className="exercise-toolbar">
         <label htmlFor="exercise-day">Den cvičení
           <select id="exercise-day" value={day} onChange={(event) => setDay(event.target.value)}>

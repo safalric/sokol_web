@@ -2,6 +2,8 @@
 
 Moderní prezentační web postavený v Reactu, TypeScriptu, Vite a Tailwind CSS. Součástí je same-origin API pro kalendář a přihlášky na akce.
 
+**Aktuální publikační rozsah (12. 9. 2026):** [publikační verze bez ukázkových akcí](docs/publication-2026-09-12.md). Prioritou je informační web a skutečný rozvrh. Přihlášky na akce jsou uzavřené; integrace a testovací scénáře zůstávají připravené pro další etapu.
+
 Aktuální stav a plán: [zářijové předání](docs/release-2026-09-10.md), [přechod z FORPSI](docs/migration-forpsi.md), [ověřené cvičení](docs/exercise-sources-2026-2027.md), [oficiální písma](docs/fonts.md). Starší reporty popisují historický stav, nikoli současný ostrý provoz.
 
 Příprava účtů a přístupů: [Google pro jednotu a testování](docs/google-accounts-setup.md). Nové účty zatím nejsou založené a živé integrace nejsou aktivované.
@@ -32,7 +34,7 @@ pnpm preview:worker
 - `src/pages/` obsahuje stránky seskupené podle domény.
 - `src/components/` obsahuje sdílené komponenty a formuláře.
 - `src/config/` obsahuje sdílená pravidla klienta.
-- `src/data/` obsahuje veřejný obsah, demo kalendář a povolené akce.
+- `src/data/` obsahuje veřejný obsah, potvrzené termíny a povolené akce. Oba seznamy jednotlivých akcí jsou nyní prázdné; testovací přihlášky patří pouze do `tests/fixtures/`.
 - `src/data/site-routes.json` je jediný registr veřejných cest a jejich SEO metadat.
 - `src/data/gallery.json` je jediný manifest alb, popisků a rozměrů fotografií.
 - `public/gallery/` obsahuje malé WebP náhledy a větší varianty načítané až v lightboxu.
@@ -53,9 +55,11 @@ Build odděluje veřejné soubory (`dist/client/`) od Workeru (`dist/server/`). 
 
 ## Provozní režimy
 
-Bez tajných proměnných běží kalendář a přihlášky v transparentním demo režimu. Přihláška projde serverovou validací, ale osobní ani zdravotní údaje se neukládají a neodesílají.
+Bez Google proměnných používá kalendář pouze lokálně zveřejněné termíny. Prázdný seznam zobrazí pravdivý prázdný stav. Týdenní rozvrh je samostatný a neodvozuje jednotlivé termíny o svátcích či prázdninách. Ukázková data nikdy neslouží jako náhrada při výpadku.
 
-Ostrý režim vyžaduje serverové proměnné a každá skutečná akce také `productionApproved: true`. Ukázkové akce mají tuto pojistku vypnutou. Klíče nesmí mít prefix `VITE_` a nesmí být commitnuty. Zdravotní údaje mají samostatnou pojistku `REGISTRATION_HEALTH_DATA_ENABLED=true` a spolu s volnými poznámkami se neposílají e-mailem.
+Prázdný `src/data/registration-events.json` uzavírá příjem přihlášek ještě před zpracováním těla požadavku. Formulář se veřejně nevykresluje. Oficiální odkaz na členskou přihlášku eČlen zůstává dostupný.
+
+Budoucí ostré přihlášky vyžadují serverové proměnné a každá skutečná akce také `productionApproved: true`. Testovací akce se nesmějí kopírovat do publikovaných dat. Klíče nesmí mít prefix `VITE_` a nesmí být commitnuty. Zdravotní údaje mají samostatnou pojistku `REGISTRATION_HEALTH_DATA_ENABLED=true` a spolu s volnými poznámkami se neposílají e-mailem.
 
 Podrobnosti jsou v [integrations.md](docs/integrations.md), [security.md](docs/security.md), [privacy-go-live.md](docs/privacy-go-live.md), [final-production-readiness-report.md](docs/final-production-readiness-report.md) a [go-live-handoff.md](docs/go-live-handoff.md).
 

@@ -37,7 +37,7 @@ export function PosterGallery({ posters, compact = false }: PosterGalleryProps) 
               </span>
             </button>
             <div className="poster-content">
-              <span className="demo-badge">{poster.status}</span>
+              <span className="status-badge">{poster.status}</span>
               <h3>{poster.title}</h3>
               <p>{poster.description}</p>
               <div className="poster-actions">

@@ -5,7 +5,7 @@ import { describe, expect, test, vi } from "vitest";
 import { createWorker } from "../../server/worker-runtime.js";
 
 const calendarEvents = JSON.parse(await readFile(new URL("../../src/data/calendar-events.json", import.meta.url), "utf8"));
-const registrationEvents = JSON.parse(await readFile(new URL("../../src/data/registration-events.json", import.meta.url), "utf8"));
+const registrationEvents = JSON.parse(await readFile(new URL("../fixtures/registration-events.json", import.meta.url), "utf8"));
 const fixedNow = () => new Date("2026-07-26T12:00:00Z");
 
 function createTestWorker(fetchImpl = vi.fn()) {

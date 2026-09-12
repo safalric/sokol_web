@@ -389,7 +389,7 @@ html[data-theme="dark"] .program-view-switch button[aria-pressed="true"] { backg
     @apply !mt-0 text-xs font-black uppercase tracking-[0.14em] text-[#b51527];
   }
 
-  .demo-badge {
+  .status-badge {
     @apply inline-flex w-fit items-center rounded-sm bg-zinc-900 px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.1em] text-white;
   }
 
@@ -450,7 +450,7 @@ html[data-theme="dark"] .program-view-switch button[aria-pressed="true"] { backg
     @apply mb-5 grid h-12 w-12 place-items-center bg-sokol-red text-white;
   }
 
-  .department-card .demo-badge + .icon-badge {
+  .department-card .status-badge + .icon-badge {
     @apply mt-5;
   }
 
@@ -1015,7 +1015,7 @@ html[data-theme="dark"] .program-view-switch button[aria-pressed="true"] { backg
   }
 
   .calendar-layout {
-    @apply grid gap-6 xl:grid-cols-[1fr_320px];
+    @apply grid min-w-0 gap-6;
   }
 
   .calendar-panel,
@@ -1074,7 +1074,7 @@ html[data-theme="dark"] .program-view-switch button[aria-pressed="true"] { backg
   }
 
   .calendar-day {
-    @apply min-h-28 border-b border-r border-zinc-200 p-2;
+    @apply min-h-28 min-w-0 break-words border-b border-r border-zinc-200 p-2;
   }
 
   .calendar-day:nth-child(7n + 1) {
@@ -1118,7 +1118,7 @@ html[data-theme="dark"] .program-view-switch button[aria-pressed="true"] { backg
   }
 
   .calendar-agenda {
-    @apply h-fit;
+    @apply h-fit rounded-none border-0 border-t border-zinc-300 bg-transparent px-0 shadow-none;
   }
 
   .calendar-disclaimer {
@@ -1452,7 +1452,7 @@ html[data-theme="dark"] .btn-outline:hover {
   color: #111318;
 }
 
-html[data-theme="dark"] .demo-badge {
+html[data-theme="dark"] .status-badge {
   background: #e3e5e8;
   color: #171a1f;
 }

@@ -3,59 +3,36 @@ import { PageShell } from "../components/PagePrimitives";
 
 const privacySections = [
   {
-    title: "Správce a kontakt",
-    text: "Správcem je Tělocvičná jednota Sokol Doudleby nad Orlicí, IČ 15040020, se sídlem Švermova 528, 517 42 Doudleby nad Orlicí. Žádosti a odvolání souhlasů přijímá e-mail sokoldoudleby@seznam.cz.",
+    "title": "Správce a kontakt",
+    "text": "Správcem obsahu je Tělocvičná jednota Sokol Doudleby nad Orlicí, IČ 15040020, se sídlem Švermova 528, 517 42 Doudleby nad Orlicí. S dotazy k osobním údajům, fotografiím nebo zveřejněným kontaktům se obraťte na sokoldoudleby@seznam.cz."
   },
   {
-    title: "Účel a právní titul",
-    text: "Identifikační a kontaktní údaje se používají k vyřízení přihlášky, komunikaci a bezpečné organizaci konkrétní akce. Před ostrým provozem musí jednota písemně potvrdit odpovídající právní titul, typicky kroky před uzavřením dohody a její plnění. Potvrzení seznámení se zásadami není souhlasem s tímto nezbytným zpracováním.",
+    "title": "Přihlášky a členství",
+    "text": "Tento web nyní nepřijímá online přihlášky na výlety ani tábory a nesbírá zdravotní údaje. Členská přihláška se otevírá na samostatném webu eČlen České obce sokolské. Údaje vyplňujete až tam; před odesláním si přečtěte informace o jejich zpracování v tomto systému."
   },
   {
-    title: "Zdravotní údaje",
-    text: "Údaj o alergii nebo zdravotním omezení přijímá pouze rozšířená přihláška na tábor. Je nepovinný, patří mezi zvláštní kategorie osobních údajů a zpracuje se jen po samostatném výslovném souhlasu v omezené evidenci. Krátká přihláška na jednodenní výlet zdravotní údaje nesbírá a běžný e-mail jejich obsah nikdy nepřenáší.",
+    "title": "Návštěva webu",
+    "text": "Pro načtení a zabezpečení webu hosting zpracovává technické údaje požadavku, například IP adresu, čas a požadovanou adresu stránky. Aktuální náhled běží na platformě Sites s hostingovou infrastrukturou Cloudflare. Přístup k soukromému náhledu může vyžadovat přihlášení k platformě; to není členský účet Sokola."
   },
   {
-    title: "Fotografie a video",
-    text: "Souhlas s pořízením a zveřejněním fotografií nebo videa na webu a sociálních sítích jednoty je dobrovolný, oddělený od přihlášky a lze jej odvolat bez vlivu na účast. Odvoláním není dotčena zákonnost dřívějšího zpracování.",
+    "title": "Nastavení a externí služby",
+    "text": "Aplikační kód nepoužívá reklamní ani analytické cookies. Volba světlého nebo tmavého vzhledu se ukládá do vašeho prohlížeče pod klíčem sokol-theme. Kontaktní stránka načítá mapu OpenStreetMap, jejíž poskytovatel obdrží technické údaje včetně IP adresy. Facebook, Instagram, Google Mapy a eČlen jsou odkazy na externí weby, které se otevřou po kliknutí."
   },
   {
-    title: "Nezletilí účastníci",
-    text: "U účastníka mladšího 18 let formulář vyžaduje jméno zákonného zástupce a potvrzení, že osoba odesílající přihlášku je oprávněna dítě přihlásit. Kontaktní údaje mají patřit osobě zajišťující komunikaci k akci.",
+    "title": "Kontakty a fotografie",
+    "text": "Web zveřejňuje kontakty vedení a cvičitelů a fotografie z činnosti jednoty. S žádostí o opravu kontaktu nebo posouzení zveřejněné fotografie se obraťte na správce. V žádosti stačí uvést odkaz a popsat, čeho se týká; neposílejte zbytečně citlivé údaje."
   },
   {
-    title: "Uchování a výmaz",
-    text: "Produkční evidence má pro každou akci předem určené datum kontroly výmazu. Pro aktuálně připravenou akci je nastaveno 30 dní po jejím skončení; delší uchování je možné jen při doložené právní povinnosti nebo řešení nároku. Demo režim údaje neukládá ani neodesílá.",
-  },
-  {
-    title: "Příjemci a zpracovatelé",
-    text: "Přístup mají pouze pověření organizátoři. Připravený produkční tok využívá hostingovou infrastrukturu Cloudflare, službu Resend pro transakční e-maily a Google Sheets s Google Apps Script pro omezenou evidenci. Před aktivací musí jednota schválit tyto dodavatele, ověřit místo zpracování a uzavřít potřebné zpracovatelské smlouvy.",
-  },
-  {
-    title: "Potvrzovací e-maily",
-    text: "Provozní fronta potvrzení používá šifrované úložiště Cloudflare D1. Obsahuje potřebné identifikační a kontaktní údaje, nikoli zdravotní údaje nebo volné poznámky. Po přijetí obou zpráv e-mailovou službou se těla odstraní; nevyřízená těla pravidelná údržba odstraňuje po sedmi dnech. Stavové údaje se uchovávají do schválené kontroly výmazu dané akce. Tento postup musí být před ostrým provozem schválen a otestován.",
-  },
-  {
-    title: "Vaše práva",
-    text: "Můžete žádat přístup, opravu, výmaz, omezení zpracování, přenositelnost tam, kde se uplatní, a vznést námitku. Dobrovolný souhlas lze kdykoli odvolat. Žádost bude vyřízena bez zbytečného odkladu, zpravidla nejpozději do jednoho měsíce.",
-  },
-  {
-    title: "Cookies, mapa a automatizace",
-    text: "Aplikační kód nepoužívá analytické ani marketingové cookies ani reklamní profilování. V ostrém režimu chrání formulář Cloudflare Turnstile, který automaticky vyhodnocuje technické signály spamu bez rozhodnutí s právními účinky. Kontaktní stránka načítá mapu od OpenStreetMap; tito poskytovatelé mohou obdržet IP adresu a technické údaje požadavku. Odkaz na Google Mapy se otevře pouze na výslovný pokyn návštěvníka.",
-  },
+    "title": "Vaše práva",
+    "text": "Podle okolností zpracování můžete požádat o přístup k údajům, opravu, výmaz či omezení zpracování, vznést námitku a uplatnit právo na přenositelnost. Pokud je zpracování založené na souhlasu, můžete jej odvolat. Máte právo podat stížnost u Úřadu pro ochranu osobních údajů."
+  }
 ];
 
 export function PrivacyPage() {
   return (
     <PageShell title="Ochrana osobních údajů">
-      <div className="legal-draft">
-        <ShieldCheck className="h-5 w-5 shrink-0" aria-hidden="true" />
-        <p>
-          Přihlašovací systém technicky podporuje demo i ostrý režim. Níže uvedený text je věcný návrh informační povinnosti; před aktivací skutečného ukládání jej musí schválit vedení jednoty a právník včetně právních titulů, lhůt a smluv s dodavateli.
-        </p>
-      </div>
-      <div className="privacy-summary" role="region" aria-label="Rychlé shrnutí">
-        <strong>Stav formuláře</strong>
-        <span>Aktuální provozní režim je vždy uveden přímo u přihlašovacího formuláře</span>
+      <p className="page-intro">Informace k současnému informačnímu webu jednoty. Online přihlášky na akce nejsou otevřené.</p>
+      <div className="privacy-summary mt-6" role="region" aria-label="Kontakt správce">
         <strong>Kontakt správce</strong>
         <a href="mailto:sokoldoudleby@seznam.cz">sokoldoudleby@seznam.cz</a>
       </div>
@@ -69,14 +46,9 @@ export function PrivacyPage() {
         ))}
       </div>
       <div className="privacy-complaint">
-        <div>
-          <strong>Dozorový úřad</strong>
-          <p>Máte také právo podat stížnost u Úřadu pro ochranu osobních údajů.</p>
-        </div>
-        <a href="https://uoou.gov.cz/" target="_blank" rel="noopener noreferrer">
-          Otevřít web ÚOOÚ
-          <ExternalLink className="h-4 w-4" aria-hidden="true" />
-        </a>
+        <div><strong>Informace o právech</strong><p>Podrobnosti zveřejňuje Evropská komise a Úřad pro ochranu osobních údajů.</p></div>
+        <a href="https://commission.europa.eu/law/law-topic/data-protection/information-individuals_en" target="_blank" rel="noopener noreferrer">Evropská komise <ExternalLink className="h-4 w-4" aria-hidden="true" /></a>
+        <a href="https://uoou.gov.cz/" target="_blank" rel="noopener noreferrer">ÚOOÚ <ExternalLink className="h-4 w-4" aria-hidden="true" /></a>
       </div>
     </PageShell>
   );

@@ -5,7 +5,7 @@ import { createWorker } from "../server/worker-runtime.js";
 import { createD1 } from "./helpers/d1.mjs";
 
 const calendarEvents = JSON.parse(await readFile(new URL("../src/data/calendar-events.json", import.meta.url), "utf8"));
-const demoRegistrationEvents = JSON.parse(await readFile(new URL("../src/data/registration-events.json", import.meta.url), "utf8"));
+const demoRegistrationEvents = JSON.parse(await readFile(new URL("./fixtures/registration-events.json", import.meta.url), "utf8"));
 const registrationEvents = demoRegistrationEvents.map((event) => ({ ...event, productionApproved: true }));
 const routeMetadata = JSON.parse(await readFile(new URL("../src/data/site-routes.json", import.meta.url), "utf8"));
 const fixedNow = () => new Date("2026-07-26T12:00:00Z");
@@ -83,13 +83,15 @@ async function postRegistration(worker, body, env = {}) {
   }), env);
 }
 
-test("calendar API chooses the first upcoming demo month", async () => {
+test("calendar API opens the current month without fabricated fallback events", async () => {
   const response = await createTestWorker().fetch(new Request("https://sokol.example/api/calendar"));
   assert.equal(response.status, 200);
   const body = await response.json();
-  assert.deepEqual(body.period, { year: 2026, month: 8 });
-  assert.equal(body.source, "demo");
-  assert.equal(body.events.length, 1);
+  assert.deepEqual(body.period, { year: 2026, month: 7 });
+  assert.equal(body.source, "local");
+  assert.equal(body.demo, false);
+  assert.equal(body.configurationWarning, false);
+  assert.equal(body.events.length, 0);
 });
 
 test("worker returns 200 for known HTML routes and 404 for unknown routes", async () => {
@@ -112,7 +114,7 @@ test("worker returns 200 for known HTML routes and 404 for unknown routes", asyn
 test("calendar API filters a requested month and rejects invalid input", async () => {
   const worker = createTestWorker();
   const valid = await worker.fetch(new Request("https://sokol.example/api/calendar?year=2026&month=9"));
-  assert.equal((await valid.json()).events.length, 4);
+  assert.equal((await valid.json()).events.length, 0);
   const invalid = await worker.fetch(new Request("https://sokol.example/api/calendar?year=2026&month=13"));
   assert.equal(invalid.status, 400);
 });
@@ -140,8 +142,10 @@ test("calendar API falls back safely when Google fails", async () => {
     { GOOGLE_CALENDAR_ID: "public@example.com", GOOGLE_CALENDAR_API_KEY: "test" },
   );
   const body = await response.json();
-  assert.equal(body.source, "demo");
-  assert.match(body.warning, /Google/);
+  assert.equal(body.source, "local");
+  assert.equal(body.demo, false);
+  assert.deepEqual(body.events, []);
+  assert.match(body.warning, /nedostupný/);
 });
 
 test("trip registration validates fields, guardian declaration and rejects health data", async () => {

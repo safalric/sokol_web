@@ -183,7 +183,7 @@ export function GrantsPage() {
           <FileText className="h-8 w-8" aria-hidden="true" />
           <div>
             <h2>Aktuálně bez zveřejněných dokumentů</h2>
-            <p>Vedení jednoty zatím nedodalo žádné dotační údaje určené k publikaci. Stránka proto nezobrazuje neověřená nebo smyšlená data.</p>
+            <p>Přehled podpory a související dokumenty zde zveřejníme po jejich doplnění.</p>
           </div>
         </div>
       </div>

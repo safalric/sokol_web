@@ -74,47 +74,6 @@ export const notices = [
 ] as const;
 
 
-export const events = [
-  {
-    title: "Sokolský výlet do Orlických hor",
-    date: "sobota 19. září 2026",
-    time: "odjezd 8:30",
-    place: "sraz u sokolovny",
-    capacity: "30 míst",
-    category: "Výlet",
-    status: "Ukázkový termín",
-    description:
-      "Rodinný výlet pro děti, rodiče i členy jednoty. Počítá se s lehčí trasou, společným obědem a návratem odpoledne.",
-    registration: true,
-    registrationType: "trip" as const,
-  },
-  {
-    title: "Sokolský běh republiky",
-    date: "říjen 2026",
-    time: "čas bude upřesněn",
-    place: "Doudleby nad Orlicí",
-    capacity: "otevřeno veřejnosti",
-    category: "Komunitní akce",
-    status: "Ukázkový obsah",
-    description: "Komunitní běh pro všechny věkové kategorie. Připravujeme tratě pro děti i dospělé.",
-    registration: false,
-    registrationType: null,
-  },
-  {
-    title: "Letní tábor",
-    date: "červenec 2027",
-    time: "týdenní pobyt",
-    place: "místo bude potvrzeno",
-    capacity: "40 míst",
-    category: "Tábor",
-    status: "Ukázkový tábor",
-    description: "Ukázka táborové přihlášky. Nejde o vypsaný tábor ani rezervaci místa; skutečný termín, cenu a pokyny musí potvrdit organizátor.",
-    registration: true,
-    registrationType: "camp" as const,
-  },
-];
-
-export type SiteEvent = (typeof events)[number];
 
 export const historyTimeline = [
   {
@@ -173,7 +132,7 @@ export const historyStories = [
     title: "Sokol a obecní život",
     paragraphs: [
       "Doudlebský Sokol nebyl jen sportovním spolkem. Podílel se na slavnostech, veřejném životě a vytvářel prostor pro setkávání obyvatel. Výrazným příkladem byla slavnost Lípy Svobody v roce 1919.",
-      "Historie jednoty ukazuje kontinuitu dobrovolné práce, pohybu a péče o místní komunitu. Tato tradice je základem, na který může současný web navazovat.",
+      "Historie jednoty ukazuje kontinuitu dobrovolné práce, pohybu a péče o místní komunitu. Na tuto tradici navazuje i současná činnost Sokola v Doudlebách nad Orlicí.",
     ],
   },
 ];

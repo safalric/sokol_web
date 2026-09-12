@@ -3,6 +3,51 @@ import axe from "axe-core";
 
 const routes = ["/", "/o-nas", "/cviceni", "/akce", "/kalendar", "/prihlaska", "/fotogalerie", "/historie", "/kontakt", "/gdpr", "/dotace"];
 
+test("publication offers no fictional events or demo registration", async ({ page }) => {
+  await page.goto("/akce");
+  await expect(page.locator("main")).not.toContainText(/ukázkov|prototyp|Orlických hor|červenec 2027/i);
+  await expect(page.locator("main form")).toHaveCount(0);
+  await page.getByRole("link", { name: "Kalendář akcí", exact: true }).click();
+  await expect(page.getByText(/žádné potvrzené akce/)).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Kalendář akcí", exact: true })).toHaveAttribute("aria-pressed", "true");
+  const response = await page.request.get("/api/calendar");
+  expect(await response.json()).toMatchObject({ source: "local", demo: false, events: [] });
+  const registration = await page.request.post("/api/registrations", { data: {} });
+  expect(registration.status()).toBe(503);
+  expect(await registration.json()).toMatchObject({ code: "registrations_closed" });
+});
+
+test("monthly calendar fits all target widths and themes with accessible controls", async ({ page }, testInfo) => {
+  for (const width of [375, 390, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const theme of ["light", "dark"]) {
+      await page.goto("/kalendar#akce");
+      await page.evaluate((value) => { localStorage.setItem("sokol-theme", value); document.documentElement.dataset.theme = value; }, theme);
+      await expect(page.getByText(/žádné potvrzené akce/)).toBeVisible();
+      const heading = await page.locator(".calendar-toolbar h2").textContent();
+      await page.getByRole("button", { name: "Následující měsíc" }).click();
+      await expect(page.locator(".calendar-toolbar h2")).not.toHaveText(heading!);
+      await page.getByRole("button", { name: "Aktuální měsíc" }).click();
+      await expect(page.locator(".calendar-toolbar h2")).toHaveText(heading!);
+      if (width >= 768) {
+        await page.getByRole("button", { name: "Seznam", exact: true }).click();
+        await expect(page.getByRole("button", { name: "Seznam", exact: true })).toHaveAttribute("aria-pressed", "true");
+        await page.getByRole("button", { name: "Mřížka", exact: true }).click();
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      await page.evaluate(() => document.fonts.ready);
+      await page.screenshot({ path: testInfo.outputPath(`calendar-${width}-${theme}.png`), fullPage: true });
+      await page.evaluate(axe.source);
+      const violations = await page.evaluate(async () => {
+        const result = await (window as unknown as { axe: typeof axe }).axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa"] }, iframes: false });
+        return result.violations.map(({ id }) => id);
+      });
+      expect(violations).toEqual([]);
+    }
+  }
+});
+
 for (const viewport of [
   { width: 375, height: 812 },
   { width: 390, height: 844 },
@@ -15,6 +60,7 @@ for (const viewport of [
       await page.goto(route);
       await expect(page.locator("main h1")).toBeVisible();
       await expect(page.locator("footer")).toBeVisible();
+      await expect(page.locator("main")).not.toContainText(/\bdemo\b|prototyp|ukázkov|ověřeno.*Facebooku/i);
       const audit = await page.evaluate(() => ({
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         brokenImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).length,
