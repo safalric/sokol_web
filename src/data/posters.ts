@@ -1,6 +1,6 @@
 import posterData from "./posters.json";
 import { exerciseSchedule } from "./exercises";
-import { memberApplicationUrl } from "./siteContent";
+import { memberApplicationGuideUrl } from "./siteContent";
 
 export type SitePoster = {
   id: string;
@@ -32,7 +32,7 @@ export const currentPosters: SitePoster[] = exerciseSchedule.courses.map((course
   ...course.poster,
   downloadLabel: "Stáhnout plakát v JPG",
   featured: ["baby-pondeli", "florbal", "predskolaci"].includes(course.id),
-  registrationUrl: memberApplicationUrl,
+  registrationUrl: memberApplicationGuideUrl,
   sourceUrl: course.sourceUrl,
 }));
 export const posters = [...currentPosters, ...archivedPosters];

@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   CalendarDays,
   ChevronDown,
   Dumbbell,
@@ -14,7 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ComponentType } from "react";
-import { memberApplicationUrl, navigation, secondaryNavigation, socialLinks } from "../data/siteContent";
+import { memberApplicationGuideUrl, navigation, secondaryNavigation, socialLinks } from "../data/siteContent";
 import { SokolLogo } from "./SokolLogo";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -173,9 +174,9 @@ export function Header({ currentPath, onNavigate }: HeaderProps) {
               </div>
             </div>
           </details>
-          <a className="header-cta" href={memberApplicationUrl} target="_blank" rel="noopener noreferrer">
+          <a className="header-cta" href={memberApplicationGuideUrl}>
             Přidat se
-            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </a>
         </nav>
 
@@ -211,13 +212,11 @@ export function Header({ currentPath, onNavigate }: HeaderProps) {
           </div>
           <a
             className="mobile-cta"
-            href={memberApplicationUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={memberApplicationGuideUrl}
             onClick={() => setIsOpen(false)}
           >
             Přidat se
-            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </a>
         </nav>
       ) : null}

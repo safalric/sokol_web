@@ -69,7 +69,7 @@ export function PosterLightbox({ poster, opener, onClose }: PosterLightboxProps)
               <FileDown className="h-4 w-4" aria-hidden="true" />
               {poster.downloadLabel}
             </a>
-            {poster.registrationUrl ? <a className="btn-primary" href={poster.registrationUrl} target="_blank" rel="noopener noreferrer">Přihláška do Sokola</a> : null}
+            {poster.registrationUrl ? <a className="btn-primary" href={poster.registrationUrl}>Přihláška do Sokola</a> : null}
             {poster.sourceUrl ? <a className="text-link" href={poster.sourceUrl} target="_blank" rel="noopener noreferrer">Původní plakát na Facebooku</a> : null}
           </div>
         </div>

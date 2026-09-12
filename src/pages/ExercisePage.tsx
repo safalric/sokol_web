@@ -1,10 +1,10 @@
-import { CalendarDays, Clock, Expand, ExternalLink, MapPin, Phone, Users } from "lucide-react";
+import { ArrowRight, CalendarDays, Clock, Expand, ExternalLink, MapPin, Phone, Users } from "lucide-react";
 import { useState } from "react";
 import { InfoRow, PageShell } from "../components/PagePrimitives";
 import { PosterLightbox } from "../components/PosterLightbox";
 import { exerciseSchedule, weekDayNames } from "../data/exercises";
 import { currentPosters, type SitePoster } from "../data/posters";
-import { memberApplicationUrl } from "../data/siteContent";
+import { memberApplicationGuideUrl } from "../data/siteContent";
 
 export function WeeklySchedule() {
   return (
@@ -51,7 +51,7 @@ export function ExercisePage() {
           </select>
         </label>
         <a className="btn-outline" href="/kalendar"><CalendarDays aria-hidden="true" className="h-4 w-4" /> Týdenní rozvrh</a>
-        <a className="btn-primary" href={memberApplicationUrl} target="_blank" rel="noopener noreferrer">Přihláška do Sokola <ExternalLink aria-hidden="true" className="h-4 w-4" /></a>
+        <a className="btn-primary" href={memberApplicationGuideUrl}>Přihláška do Sokola <ArrowRight aria-hidden="true" className="h-4 w-4" /></a>
       </div>
       <p className="mb-5 text-sm" role="status">{courses.length} cvičení</p>
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

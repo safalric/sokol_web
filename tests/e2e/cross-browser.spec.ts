@@ -3,6 +3,35 @@ import axe from "axe-core";
 
 const routes = ["/", "/o-nas", "/cviceni", "/akce", "/kalendar", "/prihlaska", "/fotogalerie", "/historie", "/kontakt", "/gdpr", "/dotace"];
 
+test("membership entry points visit the guide before the external form", async ({ page }) => {
+  const assertGuide = async () => {
+    await expect(page).toHaveURL(/\/prihlaska$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Přihláška do Sokola" })).toBeVisible();
+    await expect(page.getByText("Kraj: Královéhradecký")).toBeVisible();
+    await expect(page.getByText("Župa: Orlická")).toBeVisible();
+    await expect(page.getByText("Jednota: Doudleby nad Orlicí")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Přihláška do Sokola Doudleby", exact: true })).toHaveAttribute("href", "https://www.ecz-sokol.cz/clen/prihlaska");
+  };
+  for (const width of [375, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    if (width === 375) await page.getByRole("button", { name: "Otevřít navigaci" }).click();
+    await page.getByRole("link", { name: "Přidat se", exact: true }).click();
+    await assertGuide();
+    await page.goto("/cviceni");
+    await expect(page.locator('a[href="https://www.ecz-sokol.cz/clen/prihlaska"]')).toHaveCount(0);
+    await page.getByRole("link", { name: "Přihláška do Sokola", exact: true }).click();
+    await assertGuide();
+    await page.goto("/akce");
+    await page.getByRole("button", { name: "Zvětšit plakát Florbal", exact: true }).click();
+    await page.getByRole("dialog", { name: "Florbal", exact: true }).getByRole("link", { name: "Přihláška do Sokola", exact: true }).click();
+    await assertGuide();
+    await page.goto("/");
+    await page.getByRole("button", { name: "Přihláška do Sokola", exact: true }).click();
+    await assertGuide();
+  }
+});
+
 test("exercise toolbar aligns controls and stacks cleanly on mobile", async ({ page }, testInfo) => {
   for (const width of [375, 390, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 });
@@ -92,6 +121,13 @@ test("monthly calendar fits all target widths and themes with accessible control
       await page.evaluate((value) => { localStorage.setItem("sokol-theme", value); document.documentElement.dataset.theme = value; }, theme);
       await expect(page.getByText(/žádné potvrzené akce/)).toBeVisible();
       const heading = await page.locator(".calendar-toolbar h2").textContent();
+      const agendaInsets = await page.locator(".calendar-agenda").evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        const content = element.querySelector(".calendar-disclaimer")!.getBoundingClientRect();
+        return { left: content.left - box.left, right: box.right - content.right };
+      });
+      expect(agendaInsets.left).toBeGreaterThanOrEqual(20);
+      expect(agendaInsets.right).toBeGreaterThanOrEqual(20);
       await page.getByRole("button", { name: "Následující měsíc" }).click();
       await expect(page.locator(".calendar-toolbar h2")).not.toHaveText(heading!);
       await page.getByRole("button", { name: "Aktuální měsíc" }).click();
@@ -195,7 +231,7 @@ test("current exercise filters, original poster download and weekly schedule wor
   const response = await page.request.get(download!);
   expect(response.ok()).toBe(true);
   expect(response.headers()["content-type"]).toContain("image/jpeg");
-  await expect(dialog.getByRole("link", { name: "Přihláška do Sokola" })).toHaveAttribute("href", "https://www.ecz-sokol.cz/clen/prihlaska");
+  await expect(dialog.getByRole("link", { name: "Přihláška do Sokola" })).toHaveAttribute("href", "/prihlaska");
   await page.keyboard.press("Escape");
   await page.getByRole("link", { name: "Týdenní rozvrh" }).click();
   await expect(page.getByRole("region", { name: "Týdenní rozvrh cvičení" }).getByRole("listitem")).toHaveCount(17);

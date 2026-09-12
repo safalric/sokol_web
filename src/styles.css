@@ -1124,7 +1124,7 @@ html[data-theme="dark"] .program-view-switch button[aria-pressed="true"] { backg
   }
 
   .calendar-agenda {
-    @apply h-fit rounded-none border-0 border-t border-zinc-300 bg-transparent px-0 shadow-none;
+    @apply h-fit;
   }
 
   .calendar-disclaimer {

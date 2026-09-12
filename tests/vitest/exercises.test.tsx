@@ -26,6 +26,6 @@ describe("verified exercise content", () => {
     expect(archivedPosters).toHaveLength(12);
     expect(currentPosters.filter((poster) => poster.featured)).toHaveLength(3);
     expect(archivedPosters.every((poster) => !poster.featured)).toBe(true);
-    expect(currentPosters.every((poster) => poster.registrationUrl === "https://www.ecz-sokol.cz/clen/prihlaska")).toBe(true);
+    expect(currentPosters.every((poster) => poster.registrationUrl === "/prihlaska")).toBe(true);
   });
 });

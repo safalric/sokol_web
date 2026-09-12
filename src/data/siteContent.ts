@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 export const memberApplicationUrl = "https://www.ecz-sokol.cz/clen/prihlaska";
+export const memberApplicationGuideUrl = "/prihlaska";
 
 export const socialLinks = [
   {
@@ -40,7 +41,7 @@ export const secondaryNavigation = [
 export const quickLinks = [
   { label: "Chci cvičit", href: "/cviceni", icon: Dumbbell },
   { label: "Aktuální program", href: "/kalendar", icon: CalendarDays },
-  { label: "Přihláška do Sokola", href: "/prihlaska", icon: Users },
+  { label: "Přihláška do Sokola", href: memberApplicationGuideUrl, icon: Users },
 ];
 
 export const notices = [
