@@ -18,7 +18,7 @@ export type EventRegistrationPayload = {
   consentVersion: "2026-08-12";
 };
 
-type DeliveryState = "sent" | "saved" | "duplicate" | "preview" | "not_configured";
+type DeliveryState = "sent" | "queued" | "attention_required" | "saved" | "duplicate" | "preview" | "not_configured";
 
 export type EventRegistrationResult = {
   ok: true;
@@ -46,6 +46,14 @@ export type RegistrationClientConfig = {
   missingCapabilities?: string[];
   warning?: string | null;
 };
+
+export function registrationSuccessMessage(result: EventRegistrationResult | null) {
+  if (result?.mode !== "live") return "Demo přihláška byla úspěšně zkontrolována. V ostrém provozu by potvrzení přišlo na e-mail; žádná data nebyla uložena ani odeslána.";
+  const receipt = result.receiptId ? ` ID přihlášky: ${result.receiptId}.` : "";
+  if (result.delivery?.participantEmail === "sent") return `Přihlášku jsme přijali a potvrzení předali e-mailové službě.${receipt}`;
+  if (result.delivery?.participantEmail === "attention_required") return `Přihlášku jsme přijali. Potvrzení e-mailem vyžaduje kontrolu organizátora. Neposílejte novou přihlášku.${receipt}`;
+  return `Přihlášku jsme přijali. Potvrzení čeká na odeslání a systém jej zkusí odeslat znovu. Neposílejte novou přihlášku.${receipt}`;
+}
 
 function isLocalhost() {
   return ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);

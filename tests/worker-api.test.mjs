@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { createWorker } from "../server/worker-runtime.js";
+import { createD1 } from "./helpers/d1.mjs";
 
 const calendarEvents = JSON.parse(await readFile(new URL("../src/data/calendar-events.json", import.meta.url), "utf8"));
 const demoRegistrationEvents = JSON.parse(await readFile(new URL("../src/data/registration-events.json", import.meta.url), "utf8"));
@@ -10,27 +11,7 @@ const routeMetadata = JSON.parse(await readFile(new URL("../src/data/site-routes
 const fixedNow = () => new Date("2026-07-26T12:00:00Z");
 
 function createRateLimitDatabase() {
-  const attempts = new Map();
-  return {
-    prepare(sql) {
-      return {
-        bind(...values) {
-          return {
-            async first() {
-              assert.match(sql, /INSERT INTO registration_rate_limits/);
-              const key = `${values[0]}:${values[1]}`;
-              const attemptCount = (attempts.get(key) || 0) + 1;
-              attempts.set(key, attemptCount);
-              return { attempt_count: attemptCount };
-            },
-            async run() {
-              return { success: true };
-            },
-          };
-        },
-      };
-    },
-  };
+  return createD1();
 }
 
 const liveEnv = {
@@ -43,11 +24,15 @@ const liveEnv = {
   TURNSTILE_SITE_KEY: "turnstile-site-key",
   TURNSTILE_SECRET_KEY: "turnstile-secret-key",
   RATE_LIMIT_HASH_SECRET: "rate-limit-test-secret-at-least-32-characters",
+  REGISTRATION_OUTBOX_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+  REGISTRATION_JOBS_TOKEN: "only-a-test-jobs-token-at-least-32-characters",
   DB: createRateLimitDatabase(),
 };
 
 function createTestWorker(options = {}) {
-  return createWorker({ indexHtml: "<!doctype html><title>Test</title>", staticEntries: [], calendarEvents, registrationEvents, now: fixedNow, ...options });
+  const worker = createWorker({ indexHtml: "<!doctype html><title>Test</title>", staticEntries: [], calendarEvents, registrationEvents, now: fixedNow, ...options });
+  const DB = createD1();
+  return { fetch: (request, env) => worker.fetch(request, env?.DB === liveEnv.DB ? { ...env, DB } : env) };
 }
 
 function registration(overrides = {}) {
@@ -353,7 +338,7 @@ test("registration config exposes only the public Turnstile site key", async () 
   assert.equal(fallbackBody.mode, "demo");
   assert.equal(fallbackBody.healthDataEnabled, false);
   assert.equal(fallbackBody.configurationWarning, true);
-  assert.deepEqual(fallbackBody.missingCapabilities.sort(), ["abuseProtection", "antispam", "email", "storage"]);
+  assert.deepEqual(fallbackBody.missingCapabilities.sort(), ["abuseProtection", "antispam", "deliveryQueue", "email", "storage"]);
   assert.doesNotMatch(JSON.stringify(fallbackBody), /partial|RESEND_API_KEY|secret/i);
 });
 
@@ -557,7 +542,7 @@ test("idempotency binds data and does not truncate submission IDs to eight chara
   assert.equal((await postRegistration(worker, registration({ participantName: "Eva Nováková" }))).status, 409);
 });
 
-test("partial email failure reports saved registration and allows an idempotent retry", async () => {
+test("partial email failure queues confirmation without asking for a new registration", async () => {
   const calls = [];
   let failEmail = true;
   const success = successfulDeliveryFetch(calls);
@@ -567,12 +552,12 @@ test("partial email failure reports saved registration and allows an idempotent 
   } });
   const failed = await postRegistration(worker, registration(), liveEnv);
   const body = await failed.json();
-  assert.equal(failed.status, 502);
-  assert.equal(body.registrationSaved, true);
-  assert.match(body.error, /je uložená/);
+  assert.equal(failed.status, 202);
+  assert.equal(body.delivery.googleSheet, "saved");
+  assert.equal(body.delivery.participantEmail, "queued");
   failEmail = false;
   const retried = await postRegistration(worker, registration(), liveEnv);
-  assert.equal(retried.status, 201);
+  assert.equal(retried.status, 202);
   assert.equal((await retried.json()).receiptId, body.receiptId);
 });
 
@@ -648,4 +633,38 @@ test("missing asset bindings fail explicitly instead of returning an HTML image"
   const response = await worker.fetch(new Request("https://sokol.example/fonts/sokol.woff2"));
   assert.equal(response.status, 503);
   assert.equal(response.headers.get("Cache-Control"), "no-store");
+});
+
+test("different data under the same ID is rejected across Worker instances", async () => {
+  const DB = createD1();
+  const env = { ...liveEnv, DB };
+  assert.equal((await postRegistration(createTestWorker({ fetchImpl: successfulDeliveryFetch() }), registration(), env)).status, 201);
+  const calls = [];
+  const response = await postRegistration(createTestWorker({ fetchImpl: successfulDeliveryFetch(calls) }), registration({ participantName: "Eva Nováková" }), env);
+  assert.equal(response.status, 409);
+  assert.equal(calls.filter((call) => call.url.includes("script.google.com") || call.url.includes("resend")).length, 0);
+});
+
+test("outbox failure prevents a new Sheets reservation", async () => {
+  const DB = createD1();
+  DB.sqlite.exec("DROP TABLE registration_deliveries");
+  const calls = [];
+  const response = await postRegistration(createTestWorker({ fetchImpl: successfulDeliveryFetch(calls) }), registration(), { ...liveEnv, DB });
+  assert.equal(response.status, 502);
+  assert.equal(calls.filter((call) => call.url.includes("script.google.com") || call.url.includes("resend")).length, 0);
+});
+
+test("health details never enter the encrypted email outbox", async () => {
+  const DB = createD1();
+  const calls = [];
+  const success = successfulDeliveryFetch(calls);
+  const fetchImpl = async (url, init) => String(url).includes("resend") ? new Response("unavailable", { status: 503 }) : success(url, init);
+  const eventName = registrationEvents.find((event) => event.registrationType === "camp").name;
+  const response = await postRegistration(createTestWorker({ fetchImpl }), registration({ eventName, healthNote: "Specific confidential allergy", healthConsent: true, additionalNote: "Private note" }), { ...liveEnv, DB, REGISTRATION_HEALTH_DATA_ENABLED: "true" });
+  assert.equal(response.status, 202);
+  const row = DB.sqlite.prepare("SELECT * FROM registration_deliveries").get();
+  const envelope = JSON.parse(row.payload);
+  const key = await crypto.subtle.importKey("raw", Buffer.from(liveEnv.REGISTRATION_OUTBOX_KEY, "base64"), "AES-GCM", false, ["decrypt"]);
+  const data = await crypto.subtle.decrypt({ name: "AES-GCM", iv: Buffer.from(envelope.iv, "base64"), additionalData: new TextEncoder().encode(`${row.receipt_id}:${row.fingerprint}`) }, key, Buffer.from(envelope.data, "base64"));
+  assert.doesNotMatch(new TextDecoder().decode(data), /Specific confidential allergy|Private note/);
 });

@@ -1,19 +1,3 @@
-export const registrationRateLimitsSchema = `
-CREATE TABLE IF NOT EXISTS registration_rate_limits (
-  client_hash TEXT NOT NULL,
-  window_start INTEGER NOT NULL,
-  attempt_count INTEGER NOT NULL DEFAULT 1,
-  updated_at INTEGER NOT NULL,
-  PRIMARY KEY (client_hash, window_start)
-)
-`;
-
-export const registrationRateLimitsUpdatedAtIndex = `
-CREATE INDEX IF NOT EXISTS idx_registration_rate_limits_updated_at
-ON registration_rate_limits (updated_at)
-`;
-
-export const registrationDeliveriesSchema = `
 CREATE TABLE registration_deliveries (
   receipt_id TEXT PRIMARY KEY NOT NULL,
   fingerprint TEXT NOT NULL,
@@ -41,4 +25,3 @@ CREATE TABLE registration_deliveries (
 CREATE INDEX idx_registration_deliveries_due ON registration_deliveries (state, next_attempt);
 --> statement-breakpoint
 CREATE INDEX idx_registration_deliveries_retention ON registration_deliveries (retain_until);
-`;

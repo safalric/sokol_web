@@ -1,5 +1,6 @@
 import { isLocalRequest, jsonResponse } from "./http-security.js";
 import { consumeDurableRateLimit } from "./rate-limit-store.js";
+import { confirmDelivery, deliveryStates, processDelivery, rejectDelivery, stageDelivery, validOutboxKey } from "./registration-outbox.js";
 
 const CONSENT_VERSION = "2026-08-12";
 const REGISTRATION_LIMIT = 5;
@@ -187,44 +188,29 @@ function organizerMessage(payload, receiptId, registrationType) {
   return { html, text };
 }
 
-async function sendResendEmail(fetchImpl, env, message, idempotencyKey) {
-  const response = await fetchWithTimeout(fetchImpl, "https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-      "Idempotency-Key": idempotencyKey,
-      "User-Agent": "sokol-doudleby-web/2.0",
-    },
-    body: JSON.stringify(message),
-  });
-  if (!response.ok) throw new Error(`Resend returned ${response.status}`);
-}
-
-async function deliverEmails(payload, receiptId, eventPolicy, env, fetchImpl) {
+function emailMessages(payload, receiptId, eventPolicy, env) {
   const organizer = organizerMessage(payload, receiptId, eventPolicy.registrationType);
   const organizerEmail = eventPolicy.registrationType === "camp"
     ? env.REGISTRATION_CAMP_ORGANIZER_EMAIL
     : env.REGISTRATION_TRIP_ORGANIZER_EMAIL;
-  await sendResendEmail(fetchImpl, env, {
+  return { organizer: {
     from: env.REGISTRATION_FROM_EMAIL,
     to: [organizerEmail],
     reply_to: payload.email,
     subject: `Nová přihláška: ${payload.eventName}`,
     html: organizer.html,
     text: organizer.text,
-  }, `${receiptId}-organizer`);
-  await sendResendEmail(fetchImpl, env, {
+  }, participant: {
     from: env.REGISTRATION_FROM_EMAIL,
     to: [payload.email],
     reply_to: organizerEmail,
     subject: `Potvrzení přihlášky: ${payload.eventName}`,
     html: `<h1>Přihlášku jsme přijali</h1><p>Dobrý den, evidujeme přihlášku účastníka ${escapeHtml(payload.participantName)} na akci ${escapeHtml(payload.eventName)}.</p><p>ID přihlášky: ${escapeHtml(receiptId)}</p><p>Pro změnu nebo zrušení přihlášky odpovězte na tento e-mail a uveďte ID přihlášky.</p>`,
     text: `Dobrý den, evidujeme přihlášku účastníka ${payload.participantName} na akci ${payload.eventName}.\nID přihlášky: ${receiptId}\nPro změnu nebo zrušení přihlášky odpovězte na tento e-mail a uveďte ID přihlášky.`,
-  }, `${receiptId}-participant`);
+  } };
 }
 
-async function reserveGoogleSheet(payload, receiptId, eventPolicy, env, fetchImpl, now) {
+async function reserveGoogleSheet(payload, receiptId, fingerprint, eventPolicy, env, fetchImpl, now) {
   const endpoint = new URL(env.GOOGLE_SHEETS_WEBHOOK_URL);
   if (endpoint.protocol !== "https:" || !["script.google.com", "script.googleusercontent.com"].includes(endpoint.hostname)) {
     throw new Error("Invalid Google Sheets webhook URL");
@@ -244,6 +230,7 @@ async function reserveGoogleSheet(payload, receiptId, eventPolicy, env, fetchImp
     mediaConsent: payload.mediaConsent ? "ano" : "ne",
     consentVersion: payload.consentVersion,
     retentionReviewDate: eventPolicy.retentionReviewDate,
+    requestFingerprint: fingerprint,
   };
   if (eventPolicy.registrationType === "camp") {
     recordValues.healthNote = payload.healthNote;
@@ -292,6 +279,10 @@ export function registrationRuntimeStatus(env) {
         : null,
     ],
     antispam: [env.TURNSTILE_SITE_KEY, env.TURNSTILE_SECRET_KEY],
+    deliveryQueue: [
+      validOutboxKey(env.REGISTRATION_OUTBOX_KEY) ? env.REGISTRATION_OUTBOX_KEY : null,
+      typeof env.REGISTRATION_JOBS_TOKEN === "string" && env.REGISTRATION_JOBS_TOKEN.length >= 32 ? env.REGISTRATION_JOBS_TOKEN : null,
+    ],
   };
   const missingCapabilities = Object.entries(groups)
     .filter(([, values]) => values.some((value) => !value))
@@ -491,17 +482,25 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
     state.receipts.set(payload.submissionId, { state: "processing", fingerprint, createdAt: timestamp });
     let reservationSaved = false;
     try {
-      const reservation = await reserveGoogleSheet(payload, receiptId, eventPolicy, env, fetchImpl, submissionTime);
+      const staged = await stageDelivery(env, { receiptId, fingerprint, eventPolicy, messages: emailMessages(payload, receiptId, eventPolicy, env), timestamp });
+      if (staged.fingerprint !== fingerprint || staged.state === "rejected") {
+        state.receipts.delete(payload.submissionId);
+        return jsonResponse({ error: "Pod tímto ID už existuje jiná nebo odmítnutá přihláška. Kontaktujte organizátora." }, 409);
+      }
+      const reservation = await reserveGoogleSheet(payload, receiptId, fingerprint, eventPolicy, env, fetchImpl, submissionTime);
       if (reservation.status === "conflict") {
+        await rejectDelivery(env.DB, receiptId);
         state.receipts.delete(payload.submissionId);
         return jsonResponse({ error: "Pod tímto ID už existuje přihláška s jinými údaji. Kontaktujte organizátora." }, 409);
       }
       if (reservation.status === "full") {
+        await rejectDelivery(env.DB, receiptId);
         state.receipts.delete(payload.submissionId);
         return jsonResponse({ error: "Kapacita této akce je již naplněna." }, 409);
       }
       reservationSaved = true;
-      await deliverEmails(payload, receiptId, eventPolicy, env, fetchImpl);
+      await confirmDelivery(env.DB, receiptId);
+      const delivery = deliveryStates(await processDelivery(env, receiptId, fetchImpl, now));
 
       const result = {
         ok: true,
@@ -509,19 +508,20 @@ export function createRegistrationHandler({ fetchImpl, now, registrationEvents }
         receiptId,
         capacityRemaining: Number.isInteger(reservation.capacityRemaining) ? reservation.capacityRemaining : undefined,
         delivery: {
-          organizerEmail: "sent",
-          participantEmail: "sent",
+          ...delivery,
           googleSheet: reservation.status === "duplicate" ? "duplicate" : "saved",
         },
       };
-      state.receipts.set(payload.submissionId, { state: "complete", result, fingerprint, createdAt: timestamp });
-      return jsonResponse(result, reservation.status === "duplicate" ? 200 : 201);
+      const complete = delivery.organizerEmail === "sent" && delivery.participantEmail === "sent";
+      if (complete) state.receipts.set(payload.submissionId, { state: "complete", result, fingerprint, createdAt: timestamp });
+      else state.receipts.delete(payload.submissionId);
+      return jsonResponse(result, complete ? reservation.status === "duplicate" ? 200 : 201 : 202);
     } catch (error) {
       state.receipts.delete(payload.submissionId);
-      console.error("Registration delivery failed", { receiptId, error: String(error) });
+      console.error("Registration delivery failed", { receiptId, reservationSaved });
       return jsonResponse({
         error: reservationSaved
-          ? `Přihláška ${receiptId} je uložená, ale odeslání potvrzení se nezdařilo. Zkuste znovu odeslat tento formulář beze změn nebo kontaktujte organizátora s tímto ID.`
+          ? `Přihláška ${receiptId} je uložená. Stav potvrzení nyní nelze ověřit; kontaktujte organizátora s tímto ID. Nevytvářejte novou přihlášku.`
           : "Výsledek uložení přihlášky nelze potvrdit. Zkuste znovu odeslat tento formulář beze změn nebo kontaktujte organizátora.",
         receiptId,
         registrationSaved: reservationSaved,

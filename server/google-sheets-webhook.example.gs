@@ -16,6 +16,7 @@ const FINAL_FIELDS = [
   ["mediaConsent", "Souhlas foto/video"],
   ["consentVersion", "Verze právních informací"],
   ["retentionReviewDate", "Kontrola výmazu"],
+  ["requestFingerprint", "Otisk přihlášky"],
 ];
 
 const SCHEMAS = {
@@ -50,15 +51,17 @@ function doPost(event) {
     // Sheet-tab protection cannot restrict reading health data; use a separate workbook.
     if (body.registrationType === "camp" && campSheetId === tripSheetId) return jsonResponse_({ ok: false });
     if (!expectedSecret || body.secret !== expectedSecret || !sheetId || !schema) return jsonResponse_({ ok: false });
-    if (body.action !== "reserve" || !body.receiptId || !body.eventName || !body.record) return jsonResponse_({ ok: false });
-    if (!Number.isInteger(body.capacity) || body.capacity < 1 || body.capacity > 10000) return jsonResponse_({ ok: false });
+    if (!["reserve", "status"].includes(body.action) || !body.receiptId || !body.eventName) return jsonResponse_({ ok: false });
+    const statusOnly = body.action === "status";
+    if (statusOnly && !/^[a-f0-9]{64}$/.test(body.fingerprint || "")) return jsonResponse_({ ok: false });
+    if (!statusOnly && (!body.record || !/^[a-f0-9]{64}$/.test(body.record.requestFingerprint || "") || !Number.isInteger(body.capacity) || body.capacity < 1 || body.capacity > 10000)) return jsonResponse_({ ok: false });
 
     const allowedKeys = new Set(schema.map(function (field) { return field[0]; }));
-    const unexpectedKeys = Object.keys(body.record).filter(function (key) { return !allowedKeys.has(key); });
+    const unexpectedKeys = Object.keys(body.record || {}).filter(function (key) { return !allowedKeys.has(key); });
     if (unexpectedKeys.length > 0) return jsonResponse_({ ok: false });
-    if (body.record.receiptId !== body.receiptId || body.record.eventName !== body.eventName) return jsonResponse_({ ok: false });
+    if (!statusOnly && (body.record.receiptId !== body.receiptId || body.record.eventName !== body.eventName)) return jsonResponse_({ ok: false });
 
-    const safeRow = schema.map(function (field) { return safeCell_(body.record[field[0]]); });
+    const safeRow = statusOnly ? null : schema.map(function (field) { return safeCell_(body.record[field[0]]); });
     const headers = schema.map(function (field) { return field[1]; });
     const receiptColumn = schema.findIndex(function (field) { return field[0] === "receiptId"; }) + 1;
     const eventColumn = schema.findIndex(function (field) { return field[0] === "eventName"; }) + 1;
@@ -70,7 +73,9 @@ function doPost(event) {
     lock.waitLock(10000);
     try {
       const spreadsheet = SpreadsheetApp.openById(sheetId);
-      const sheet = spreadsheet.getSheetByName(sheetName) || spreadsheet.insertSheet(sheetName);
+      let sheet = spreadsheet.getSheetByName(sheetName);
+      if (statusOnly && (!sheet || sheet.getLastRow() === 0)) return jsonResponse_({ ok: true, status: "not_found" });
+      if (!sheet) sheet = spreadsheet.insertSheet(sheetName);
       if (sheet.getLastRow() === 0) sheet.appendRow(headers);
       if (sheet.getLastColumn() !== headers.length) return jsonResponse_({ ok: false });
       const existingHeaders = sheet.getRange(1, 1, 1, headers.length).getDisplayValues()[0];
@@ -83,6 +88,13 @@ function doPost(event) {
       const eventValues = rowCount > 0 ? sheet.getRange(2, eventColumn, rowCount, 1).getDisplayValues() : [];
       const existingIndex = receiptValues.findIndex(function (row) { return row[0] === body.receiptId; });
       const registeredCount = eventValues.filter(function (row) { return row[0] === body.eventName; }).length;
+
+      if (statusOnly) {
+        if (existingIndex === -1) return jsonResponse_({ ok: true, status: "not_found" });
+        const stored = sheet.getRange(existingIndex + 2, 1, 1, headers.length).getDisplayValues()[0];
+        const fingerprintColumn = schema.findIndex(function (field) { return field[0] === "requestFingerprint"; });
+        return jsonResponse_({ ok: true, status: stored[eventColumn - 1] === body.eventName && stored[fingerprintColumn] === body.fingerprint ? "reserved" : "conflict" });
+      }
 
       if (existingIndex !== -1) {
         const existingRow = sheet.getRange(existingIndex + 2, 1, 1, headers.length).getDisplayValues()[0];

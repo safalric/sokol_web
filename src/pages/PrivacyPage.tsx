@@ -31,6 +31,10 @@ const privacySections = [
     text: "Přístup mají pouze pověření organizátoři. Připravený produkční tok využívá hostingovou infrastrukturu Cloudflare, službu Resend pro transakční e-maily a Google Sheets s Google Apps Script pro omezenou evidenci. Před aktivací musí jednota schválit tyto dodavatele, ověřit místo zpracování a uzavřít potřebné zpracovatelské smlouvy.",
   },
   {
+    title: "Potvrzovací e-maily",
+    text: "Provozní fronta potvrzení používá šifrované úložiště Cloudflare D1. Obsahuje potřebné identifikační a kontaktní údaje, nikoli zdravotní údaje nebo volné poznámky. Po přijetí obou zpráv e-mailovou službou se těla odstraní; nevyřízená těla pravidelná údržba odstraňuje po sedmi dnech. Stavové údaje se uchovávají do schválené kontroly výmazu dané akce. Tento postup musí být před ostrým provozem schválen a otestován.",
+  },
+  {
     title: "Vaše práva",
     text: "Můžete žádat přístup, opravu, výmaz, omezení zpracování, přenositelnost tam, kde se uplatní, a vznést námitku. Dobrovolný souhlas lze kdykoli odvolat. Žádost bude vyřízena bez zbytečného odkladu, zpravidla nejpozději do jednoho měsíce.",
   },

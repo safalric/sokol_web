@@ -12,5 +12,6 @@ Technické řešení snižuje riziko, ale samo o sobě nezaručuje právní soul
 8. postup při bezpečnostním incidentu a vyhodnocení oznamovací povinnosti,
 9. zda hosting používá technické cookies a zda je potřeba aktualizovat cookie informaci,
 10. test ostré integrace pouze s fiktivními údaji.
+11. šifrovanou provozní frontu v Cloudflare D1: rozsah e-mailových dat bez zdravotních údajů a poznámek, nejvýše sedmidenní uchování čekajícího těla při pravidelné údržbě, metadata do schválené kontroly výmazu, správu klíče a proces ručního dořešení; viz `registration-delivery.md`.
 
 Do potvrzení těchto bodů má produkční web zůstat v demo režimu bez ukládání.

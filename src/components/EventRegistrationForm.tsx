@@ -10,6 +10,7 @@ import {
 } from "../config/registration";
 import {
   loadRegistrationConfig,
+  registrationSuccessMessage,
   submitEventRegistration,
   type EventRegistrationPayload,
   type EventRegistrationResult,
@@ -436,11 +437,7 @@ export function EventRegistrationForm({ eventName, registrationType }: EventRegi
       {status === "success" ? (
         <StatusMessage
           tone="success"
-          message={
-            successResult?.mode === "live"
-              ? `Přihláška byla úspěšně odeslána. Potvrzení bylo zasláno na e-mail.${typeof successResult.capacityRemaining === "number" ? ` Zbývá ${successResult.capacityRemaining} volných míst.` : ""}`
-              : "Demo přihláška byla úspěšně zkontrolována. V ostrém provozu by potvrzení přišlo na e-mail; žádná data nebyla uložena ani odeslána."
-          }
+          message={registrationSuccessMessage(successResult)}
         />
       ) : null}
       {status === "success" && successResult?.preview ? (

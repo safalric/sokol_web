@@ -1,6 +1,7 @@
 import { calendarRuntimeStatus, handleCalendar } from "./calendar-api.js";
 import { isLocalRequest, jsonResponse, staticResponse, withSecurityHeaders } from "./http-security.js";
 import { createRegistrationHandler, registrationRuntimeStatus } from "./registration-api.js";
+import { handleDeliveryMaintenance } from "./registration-outbox.js";
 
 function decodeBase64(value) {
   const binary = atob(value);
@@ -159,6 +160,7 @@ export function createWorker({
         const response = await env.ASSETS.fetch(request);
         return withSecurityHeaders(response);
       }
+      if (url.pathname === "/api/internal/registration-delivery") return handleDeliveryMaintenance(request, env, fetchImpl, now);
       if ((request.headers.get("Accept") || "").includes("text/html")) {
         const normalizedPath = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, "") : url.pathname;
         const knownRoute = knownHtmlRoutes.has(normalizedPath);

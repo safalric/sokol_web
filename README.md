@@ -6,6 +6,8 @@ Aktuální stav a plán: [zářijové předání](docs/release-2026-09-10.md), [
 
 Příprava účtů a přístupů: [Google pro jednotu a testování](docs/google-accounts-setup.md). Nové účty zatím nejsou založené a živé integrace nejsou aktivované.
 
+Nejnovější technická etapa: [šifrovaná fronta potvrzení, bezpečné opakování a provozní dohled](docs/registration-delivery.md). Implementace je připravená k integračnímu testu, nikoli aktivovaná pro příjem skutečných přihlášek. Browser testy vždy spouštějí vlastní čerstvý server na portu 4175, odděleně od náhledu na 4174.
+
 ## Vývoj
 
 ```bash

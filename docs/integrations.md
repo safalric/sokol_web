@@ -18,7 +18,7 @@ Při výpadku Google API se endpoint bezpečně vrátí k demo datům a návšt�
 
 Nastavte `RESEND_API_KEY`, `REGISTRATION_FROM_EMAIL` z ověřené domény, `REGISTRATION_TRIP_ORGANIZER_EMAIL` a `REGISTRATION_CAMP_ORGANIZER_EMAIL`. Obě cílové adresy mohou být stejné, ale musí být nastavené výslovně. Server odešle jeden e-mail příslušnému organizátorovi a jeden účastníkovi. Každý požadavek používá idempotency key odvozený z ID odeslání. Obsah zdravotní poznámky se záměrně neposílá e-mailem.
 
-Produkční režim se aktivuje pouze tehdy, když jsou současně nastaveny e-mail, Google Sheets, Turnstile, D1 binding `DB` a `RATE_LIMIT_HASH_SECRET`. Chybějící nebo částečné nastavení bezpečně ponechá formulář v demo režimu s viditelným varováním; nic se neuloží ani neodešle. Návštěvník proto nikdy nedostane falešné produkční potvrzení bez uložené rezervace.
+Produkční režim se aktivuje pouze tehdy, když jsou současně nastaveny e-mail, Google Sheets, Turnstile, D1 binding `DB`, `RATE_LIMIT_HASH_SECRET`, `REGISTRATION_OUTBOX_KEY` a `REGISTRATION_JOBS_TOKEN`. Chybějící nebo částečné nastavení bezpečně ponechá formulář v demo režimu s viditelným varováním; nic se neuloží ani neodešle. Návštěvník proto nikdy nedostane falešné produkční potvrzení bez uložené rezervace. Ostrý start navíc vyžaduje běžící plánovač podle [návodu k doručování](registration-delivery.md).
 
 ## Google Sheets
 
@@ -46,10 +46,10 @@ Hosting používá logical binding `DB` z `.openai/hosting.json`. Migrace `drizz
 ## Pořadí zpracování
 
 1. Server ověří původ, rychlost odeslání, honeypot, pole a Turnstile token.
-2. Google Sheets pod zámkem rezervuje místo a odmítne plnou kapacitu.
-3. Resend odešle e-mail organizátorovi a potvrzení účastníkovi.
-4. Stejné ID a údaje nevytvoří další řádek. E-mailové idempotency klíče Resend chrání opakování 24 hodin; trvalá evidence doručení/outbox a automatické retry zatím nejsou implementované ([Resend](https://resend.com/docs/dashboard/emails/idempotency-keys)). Po delší době nelze garantovat, že opakování znovu neodešle e-mail.
-5. Pokud byla rezervace uložena, ale e-mail selhal, odpověď obsahuje ID a pravdivé upozornění. Nezaměňuje se s potvrzeným nedoručením či nezapsáním.
+2. Do D1 se připraví šifrovaná fronta obou e-mailů bez zdravotních údajů a volných poznámek. Teprve potom Google Sheets pod zámkem rezervuje místo a odmítne plnou kapacitu.
+3. Po potvrzení rezervace se fronta aktivuje a Resend dostane oba e-maily, každý s vlastním stavem. Při částečném výpadku API vrátí uloženou přihlášku se stavem `queued`, nikoli falešně odeslané potvrzení.
+4. Stejné ID a údaje nevytvoří další řádek. Zprávy přijaté Resendem se zaznamenají trvale; opakování nejistého pokusu končí po 23 hodinách k ruční kontrole, ještě před 24hodinovým limitem poskytovatele. Nelze slibovat garantované doručení do schránky ([Resend](https://resend.com/docs/dashboard/emails/idempotency-keys)).
+5. Pravidelná údržba dohledává nejasný výsledek rezervace pomocí akce `status` v Apps Scriptu a pokračuje pouze při shodném otisku. Vyžaduje aktuální schema tabulky se sloupcem `Otisk přihlášky`.
 
 ## Před ostrým provozem
 

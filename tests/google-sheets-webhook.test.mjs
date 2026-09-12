@@ -34,7 +34,7 @@ function webhook(properties = {}) {
 function payload(overrides = {}) {
   return {
     secret: "secret", action: "reserve", receiptId: "SOKOL-test", eventName: "Test trip", registrationType: "trip", capacity: 1,
-    record: { receiptId: "SOKOL-test", eventName: "Test trip", receivedAt: "2026-09-10", participantName: "Jan Novak", additionalNote: "=IMPORTXML(A1)" },
+    record: { receiptId: "SOKOL-test", eventName: "Test trip", receivedAt: "2026-09-10", participantName: "Jan Novak", additionalNote: "=IMPORTXML(A1)", requestFingerprint: "a".repeat(64) },
     ...overrides,
   };
 }
@@ -78,4 +78,14 @@ test("camp data requires a separate workbook rather than a hidden tab", () => {
   assert.equal(webhook({ CAMP_SHEET_ID: "trips" }).post(camp).ok, false);
   assert.equal(webhook({ CAMP_SHEET_ID: "" }).post(camp).ok, false);
   assert.equal(webhook().post(camp).status, "created");
+});
+
+test("recovery status exposes no personal data and requires the exact fingerprint", () => {
+  const { post } = webhook();
+  const request = { secret: "secret", action: "status", receiptId: "SOKOL-test", eventName: "Test trip", registrationType: "trip", fingerprint: "a".repeat(64) };
+  assert.deepEqual(post(request), { ok: true, status: "not_found" });
+  post(payload());
+  assert.deepEqual(post(request), { ok: true, status: "reserved" });
+  assert.equal(post({ ...request, fingerprint: "b".repeat(64) }).status, "conflict");
+  assert.equal(post({ ...request, secret: "bad" }).ok, false);
 });
