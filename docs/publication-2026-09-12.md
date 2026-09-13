@@ -1,5 +1,7 @@
 # Publikační verze: kalendář a informační web
 
+**Pozdější změna téhož dne:** uživatel požádal o týdenní opakování cvičení mimo prázdniny a svátky. Měsíční kalendář už tedy není prázdný. Aktuální pravidla a plán využití zaplaceného FORPSI hostingu: [calendar-recurrence.md](calendar-recurrence.md). Níže je původní publikační rozsah a záznam tehdejší kontroly.
+
 Aktuální rozhodnutí zadavatele z 12. 9. 2026 nahrazuje dřívější požadavek aktivovat všechny integrace před spuštěním. Chytré přihlášky, automatické e-maily a Google Sheets se dokončí až v další etapě.
 
 ## Rozsah

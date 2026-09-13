@@ -140,7 +140,10 @@ export function publishedCalendarEvents(calendarEvents) {
     try { if (new URL(event.sourceUrl).protocol !== "https:") return false; } catch { return false; }
     ids.add(event.id);
     return true;
-  }).map(({ id, date, title, time, category, place, sourceUrl }) => ({ id, date, title, time, category, place, sourceUrl }))
+  }).map(({ id, date, title, time, category, place, sourceUrl, detailUrl }) => ({
+    id, date, title, time, category, place, sourceUrl,
+    ...(/^\/cviceni#[a-z0-9-]+$/.test(detailUrl ?? "") ? { detailUrl } : {}),
+  }))
     .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time) || a.title.localeCompare(b.title, "cs"));
 }
 
@@ -152,7 +155,9 @@ export async function handleCalendar(url, env, calendarEvents, fetchImpl, now) {
 
   if (runtime.status === "google") {
     try {
-      const events = await getGoogleEvents(period, env, fetchImpl);
+      const googleEvents = await getGoogleEvents(period, env, fetchImpl);
+      const events = [...new Map([...localEvents, ...googleEvents].map((event) => [event.id, event])).values()]
+        .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
       return jsonResponse({
         source: "google",
         demo: false,

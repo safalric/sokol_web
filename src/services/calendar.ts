@@ -6,6 +6,7 @@ export type CalendarEvent = {
   category: "training" | "event";
   place: string;
   sourceUrl?: string;
+  detailUrl?: string;
 };
 
 export type CalendarResponse = {

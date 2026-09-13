@@ -1,10 +1,16 @@
 import { copyFile, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
+import { generateExerciseEvents } from "../server/exercise-calendar.js";
 
 const serverDir = join(process.cwd(), "dist", "server");
 const clientDir = join(process.cwd(), "dist", "client");
 const indexHtml = await readFile(join(clientDir, "index.html"), "utf8");
-const calendarEvents = JSON.parse(await readFile(join(process.cwd(), "src", "data", "calendar-events.json"), "utf8"));
+const exercises = JSON.parse(await readFile(join(process.cwd(), "src", "data", "exercises.json"), "utf8"));
+const calendarRules = JSON.parse(await readFile(join(process.cwd(), "src", "data", "exercise-calendar-rules.json"), "utf8"));
+const calendarEvents = [
+  ...generateExerciseEvents(exercises, calendarRules),
+  ...JSON.parse(await readFile(join(process.cwd(), "src", "data", "calendar-events.json"), "utf8")),
+];
 const registrationEvents = JSON.parse(await readFile(join(process.cwd(), "src", "data", "registration-events.json"), "utf8"));
 const routeMetadata = JSON.parse(await readFile(join(process.cwd(), "src", "data", "site-routes.json"), "utf8"));
 const appRoutes = routeMetadata.map((route) => route.path);

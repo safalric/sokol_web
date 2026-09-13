@@ -1051,7 +1051,7 @@ html[data-theme="dark"] .program-view-switch button[aria-pressed="true"] { backg
   }
 
   .calendar-view-toggle {
-    @apply hidden border border-zinc-400 bg-white p-1 md:flex;
+    @apply hidden border border-zinc-400 bg-white p-1 lg:flex;
   }
 
   .calendar-view-toggle button {
@@ -1067,7 +1067,7 @@ html[data-theme="dark"] .program-view-switch button[aria-pressed="true"] { backg
   }
 
   .calendar-desktop {
-    @apply mt-5 hidden md:block;
+    @apply mt-5 hidden lg:block;
   }
 
   .calendar-weekdays,
@@ -1096,7 +1096,7 @@ html[data-theme="dark"] .program-view-switch button[aria-pressed="true"] { backg
   }
 
   .calendar-chip {
-    @apply mt-2 grid gap-0.5 rounded-sm border-l-4 px-2 py-1.5 text-[11px] leading-4;
+    @apply mt-2 grid gap-0.5 rounded-sm border-l-4 px-2 py-1.5 text-sm leading-5;
   }
 
   .calendar-chip strong {
@@ -1112,7 +1112,7 @@ html[data-theme="dark"] .program-view-switch button[aria-pressed="true"] { backg
   }
 
   .calendar-mobile {
-    @apply mt-5 grid gap-3 md:hidden;
+    @apply mt-5 grid gap-3 sm:grid-cols-2 lg:hidden;
   }
 
   .calendar-list-view {

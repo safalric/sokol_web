@@ -1,6 +1,7 @@
 import { AlertCircle, CalendarDays, ChevronLeft, ChevronRight, Clock, Grid2X2, List, Loader2, MapPin, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fetchCalendar, type CalendarEvent, type CalendarResponse } from "../services/calendar";
+import calendarRules from "../data/exercise-calendar-rules.json";
 
 const weekDays = ["Po", "Út", "St", "Čt", "Pá", "So", "Ne"];
 
@@ -138,10 +139,10 @@ export function EventCalendar() {
                       {dayEvents.map((event) => (
                         <div key={event.id} className={event.category === "training" ? "calendar-chip calendar-chip-training" : "calendar-chip calendar-chip-event"}>
                           <strong>{categoryLabel(event.category)}</strong>
-                          <span>{event.title}</span>
+                          {event.detailUrl ? <a className="underline" href={event.detailUrl}>{event.title}</a> : <span>{event.title}</span>}
                           <span>{event.time}</span>
-                          <span>{event.place}</span>
-                          {event.sourceUrl ? <a className="underline" href={event.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`Podrobnosti: ${event.title}`}>Podrobnosti</a> : null}
+                          {!event.detailUrl ? <span>{event.place}</span> : null}
+                          {!event.detailUrl && event.sourceUrl ? <a className="underline" href={event.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`Podrobnosti: ${event.title}`}>Podrobnosti</a> : null}
                         </div>
                       ))}
                     </div>
@@ -164,7 +165,7 @@ export function EventCalendar() {
         <p className="eyebrow text-sokol-red">Program jednoty</p>
         <h2>Termíny a změny</h2>
         <p className="calendar-disclaimer">
-          Pravidelné časy oddílů najdete v rozvrhu cvičení. Tento kalendář obsahuje pouze jednotlivě zveřejněné termíny. Změny, svátky a prázdninový provoz ověřte u cvičitele.
+          Cvičení se opakují podle rozvrhu pro školní rok {calendarRules.season}. O školních prázdninách okresu {calendarRules.district} a o státních i ostatních svátcích se necvičí. Mimořádné změny oznámí cvičitel.
         </p>
         <div className="calendar-legend">
           <span className="category-label category-training">Tréninky</span>
@@ -179,7 +180,7 @@ function CalendarEmpty() {
   return (
     <p className="calendar-empty mt-5" role="status">
       <CalendarDays className="h-5 w-5" aria-hidden="true" />
-      Pro tento měsíc zatím nejsou zveřejněné žádné potvrzené akce.
+      Pro tento měsíc nejsou naplánovaná žádná cvičení ani akce.
     </p>
   );
 }
@@ -197,7 +198,7 @@ function CalendarListItem({ event }: { event: CalendarEvent }) {
       <h3>{event.title}</h3>
       <p><Clock className="h-4 w-4" aria-hidden="true" />{event.time}</p>
       <p><MapPin className="h-4 w-4" aria-hidden="true" />{event.place}</p>
-      {event.sourceUrl ? <a className="text-link mt-3 inline-flex" href={event.sourceUrl} target="_blank" rel="noopener noreferrer">Podrobnosti akce</a> : null}
+      {event.detailUrl ? <a className="text-link mt-3 inline-flex" href={event.detailUrl}>Detail cvičení a kontakt</a> : event.sourceUrl ? <a className="text-link mt-3 inline-flex" href={event.sourceUrl} target="_blank" rel="noopener noreferrer">Podrobnosti akce</a> : null}
     </article>
   );
 }

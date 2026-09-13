@@ -1,0 +1,23 @@
+{
+  "season": "2026/2027",
+  "startsOn": "2026-09-01",
+  "endsOn": "2027-06-30",
+  "district": "Rychnov nad Kněžnou",
+  "schoolYearSource": "https://msmt.gov.cz/organizace-skolniho-roku",
+  "holidaySource": "https://ppropo.mpsv.cz/pdf/zakon_245_2000.pdf",
+  "schoolBreaks": [
+    { "from": "2026-10-29", "to": "2026-10-30", "label": "Podzimní prázdniny" },
+    { "from": "2026-12-23", "to": "2027-01-03", "label": "Vánoční prázdniny" },
+    { "from": "2027-01-29", "to": "2027-01-29", "label": "Pololetní prázdniny" },
+    { "from": "2027-02-08", "to": "2027-02-14", "label": "Jarní prázdniny" },
+    { "from": "2027-03-25", "to": "2027-03-25", "label": "Velikonoční prázdniny" }
+  ],
+  "publicHolidays": [
+    "2026-09-28", "2026-10-28", "2026-11-17",
+    "2026-12-24", "2026-12-25", "2026-12-26",
+    "2027-01-01", "2027-03-26", "2027-03-29",
+    "2027-05-01", "2027-05-08"
+  ],
+  "excludedDates": [],
+  "cancelledSessions": []
+}

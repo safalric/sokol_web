@@ -55,7 +55,9 @@ Build odděluje veřejné soubory (`dist/client/`) od Workeru (`dist/server/`). 
 
 ## Provozní režimy
 
-Bez Google proměnných používá kalendář pouze lokálně zveřejněné termíny. Prázdný seznam zobrazí pravdivý prázdný stav. Týdenní rozvrh je samostatný a neodvozuje jednotlivé termíny o svátcích či prázdninách. Ukázková data nikdy neslouží jako náhrada při výpadku.
+**Aktualizace 12. 9. 2026:** měsíční kalendář nově generuje 17 týdenních lekcí z plakátů, s výjimkami pro školní prázdniny okresu Rychnov nad Kněžnou a svátky. Pravidla, rušení lekcí a přípravu pro potvrzený hosting FORPSI popisuje [opakování cvičení](docs/calendar-recurrence.md).
+
+Bez Google proměnných používá kalendář místní pravidelná cvičení a jednotlivě zveřejněné akce. Mimo platnou sezónu ani během prázdnin negeneruje cvičení. Ukázková data nikdy neslouží jako náhrada při výpadku.
 
 Prázdný `src/data/registration-events.json` uzavírá příjem přihlášek ještě před zpracováním těla požadavku. Formulář se veřejně nevykresluje. Oficiální odkaz na členskou přihlášku eČlen zůstává dostupný.
 
