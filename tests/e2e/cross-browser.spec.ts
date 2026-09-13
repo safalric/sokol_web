@@ -117,6 +117,28 @@ test("publication offers no fictional events or demo registration", async ({ pag
 });
 
 for (const width of [375, 390, 768, 1280]) {
+  test(`weekly schedule stays readable and filters days at ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    for (const theme of ["light", "dark"]) {
+      await page.goto("/kalendar");
+      await page.evaluate((value) => { localStorage.setItem("sokol-theme", value); document.documentElement.dataset.theme = value; }, theme);
+      await expect(page.locator(".schedule-day li")).toHaveCount(17);
+      const alignment = await page.locator(".schedule-day li").first().evaluate((row) => Math.abs(row.querySelector(".schedule-time")!.getBoundingClientRect().top - row.querySelector(".schedule-session-main > a")!.getBoundingClientRect().top));
+      expect(alignment).toBeLessThanOrEqual(2);
+      await page.getByRole("button", { name: "Pondělí", exact: true }).click();
+      await expect(page.locator(".schedule-day li")).toHaveCount(4);
+      await expect(page.getByRole("heading", { name: "Pondělí", exact: true })).toBeVisible();
+      await page.getByRole("button", { name: "Celý týden", exact: true }).click();
+      await expect(page.locator(".schedule-day li")).toHaveCount(17);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      await page.evaluate(() => document.fonts.ready);
+      await page.screenshot({ path: testInfo.outputPath(`weekly-${width}-${theme}.png`), fullPage: true });
+      await page.evaluate(axe.source);
+      const violations = await page.evaluate(async () => (await (window as unknown as { axe: typeof axe }).axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa"] }, iframes: false })).violations.map(({ id }) => id));
+      expect(violations).toEqual([]);
+    }
+  });
+
   test(`monthly calendar fits ${width}px in both themes with accessible controls`, async ({ page }, testInfo) => {
     await page.route("**/api/calendar", (route) => route.continue({ url: `${new URL(route.request().url()).origin}/api/calendar?year=2026&month=9` }));
     await page.setViewportSize({ width, height: 900 });
@@ -124,7 +146,16 @@ for (const width of [375, 390, 768, 1280]) {
       await page.goto("/kalendar#akce");
       await page.evaluate((value) => { localStorage.setItem("sokol-theme", value); document.documentElement.dataset.theme = value; }, theme);
       await expect(page.locator(".calendar-layout")).toHaveAttribute("aria-busy", "false");
-      await expect(page.locator(width >= 1024 ? ".calendar-chip" : ".calendar-mobile .calendar-list-item").first()).toBeVisible();
+      await expect(page.locator(".calendar-date-button.has-program").first()).toBeVisible();
+      await page.locator('.calendar-date-button[data-date="2026-09-14"]').click();
+      await expect(page.locator("#selected-day-program")).toContainText("Florbal");
+      await expect(page.locator("#selected-day-program .calendar-list-item")).toHaveCount(4);
+      await page.locator('.calendar-date-button[data-date="2026-09-28"]').click();
+      await expect(page.locator("#selected-day-program")).toContainText("Na tento den není naplánované");
+      await page.locator('.calendar-date-button[data-date="2026-09-28"]').focus();
+      await page.keyboard.press("ArrowRight");
+      await expect(page.locator('.calendar-date-button[data-date="2026-09-29"]')).toBeFocused();
+      await expect(page.locator("#selected-day-program")).toContainText("Cvičení předškoláků");
       const heading = await page.locator(".calendar-toolbar h2").textContent();
       const agendaInsets = await page.locator(".calendar-agenda").evaluate((element) => {
         const box = element.getBoundingClientRect();
@@ -137,11 +168,11 @@ for (const width of [375, 390, 768, 1280]) {
       await expect(page.locator(".calendar-toolbar h2")).not.toHaveText(heading!);
       await page.getByRole("button", { name: "Aktuální měsíc" }).click();
       await expect(page.locator(".calendar-toolbar h2")).toHaveText(heading!);
-      if (width >= 1024) {
-        await page.getByRole("button", { name: "Seznam", exact: true }).click();
-        await expect(page.getByRole("button", { name: "Seznam", exact: true })).toHaveAttribute("aria-pressed", "true");
-        await page.getByRole("button", { name: "Mřížka", exact: true }).click();
-      }
+      await page.getByRole("button", { name: "Seznam", exact: true }).click();
+      await expect(page.getByRole("button", { name: "Seznam", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await expect(page.locator(".calendar-list-view .calendar-list-item")).toHaveCount(71);
+      await page.getByRole("button", { name: "Mřížka", exact: true }).click();
+      expect(await page.locator(".calendar-month").evaluate((element) => element.getBoundingClientRect().height)).toBeLessThan(width < 640 ? 430 : 800);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
       await page.evaluate(() => document.fonts.ready);
       await page.screenshot({ path: testInfo.outputPath(`calendar-${width}-${theme}.png`), fullPage: true });

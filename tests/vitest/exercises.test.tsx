@@ -28,4 +28,15 @@ describe("verified exercise content", () => {
     expect(archivedPosters.every((poster) => !poster.featured)).toBe(true);
     expect(currentPosters.every((poster) => poster.registrationUrl === "/prihlaska")).toBe(true);
   });
+
+  it("weekly day selection keeps chronological sessions and can restore the whole week", () => {
+    render(<WeeklySchedule />);
+    fireEvent.click(screen.getByRole("button", { name: "Pondělí", exact: true }));
+    expect(screen.getAllByRole("listitem")).toHaveLength(4);
+    expect(screen.queryByRole("heading", { name: "Úterý" })).toBeNull();
+    expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("08:15");
+    expect(screen.getByRole("link", { name: "Florbal" })).toHaveAttribute("href", "/cviceni#florbal");
+    fireEvent.click(screen.getByRole("button", { name: "Celý týden", exact: true }));
+    expect(screen.getAllByRole("listitem")).toHaveLength(17);
+  });
 });

@@ -12,10 +12,18 @@ function toDateKey(year: number, month: number, day: number) {
 function getCalendarCells(year: number, month: number) {
   const daysInMonth = new Date(year, month, 0).getDate();
   const firstDay = (new Date(year, month - 1, 1).getDay() + 6) % 7;
-  return Array.from({ length: 42 }, (_, index) => {
+  return Array.from({ length: Math.ceil((firstDay + daysInMonth) / 7) * 7 }, (_, index) => {
     const day = index - firstDay + 1;
     return day > 0 && day <= daysInMonth ? day : null;
   });
+}
+
+function dateLabel(date: string) {
+  return new Intl.DateTimeFormat("cs-CZ", { weekday: "long", day: "numeric", month: "long" }).format(new Date(`${date}T12:00:00`));
+}
+
+function todayKey() {
+  return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Prague", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 }
 
 function categoryLabel(category: CalendarEvent["category"]) {
@@ -27,6 +35,8 @@ export function EventCalendar() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const dayButtons = useRef(new Map<number, HTMLButtonElement>());
   const activeRequest = useRef<AbortController | null>(null);
 
   const load = useCallback(async (period?: { year: number; month: number }) => {
@@ -37,7 +47,13 @@ export function EventCalendar() {
     setError(null);
     try {
       const result = await fetchCalendar(period, controller.signal);
-      if (!controller.signal.aborted) setCalendar(result);
+      if (!controller.signal.aborted) {
+        setCalendar(result);
+        const today = todayKey();
+        const monthKey = `${result.period.year}-${String(result.period.month).padStart(2, "0")}`;
+        const firstDate = result.events.find((event) => event.date >= today)?.date ?? result.events[0]?.date;
+        setSelectedDate(firstDate ?? (today.startsWith(monthKey) ? today : `${monthKey}-01`));
+      }
     } catch (reason) {
       if (!controller.signal.aborted) {
         setError(reason instanceof Error ? reason.message : "Kalendář se nepodařilo načíst.");
@@ -54,6 +70,8 @@ export function EventCalendar() {
 
   const period = calendar?.period;
   const events = calendar?.events ?? [];
+  const selectedEvents = events.filter((event) => event.date === selectedDate);
+  const today = todayKey();
   const cells = useMemo(() => (period ? getCalendarCells(period.year, period.month) : []), [period]);
   const monthLabel = period
     ? new Intl.DateTimeFormat("cs-CZ", { month: "long", year: "numeric" }).format(new Date(period.year, period.month - 1, 1))
@@ -70,7 +88,7 @@ export function EventCalendar() {
       <section className="calendar-panel" aria-label="Kalendář programu">
         <div className="calendar-toolbar">
           <div>
-            <span className="eyebrow text-sokol-red">Zveřejněné termíny</span>
+            <span className="eyebrow text-sokol-red">Měsíční program</span>
             <h2>{monthLabel}</h2>
           </div>
           <div className="calendar-toolbar-actions">
@@ -125,7 +143,8 @@ export function EventCalendar() {
         {!error && period ? (
           <>
             {events.length === 0 && !loading ? <CalendarEmpty /> : null}
-            <div className={view === "grid" ? "calendar-desktop" : "calendar-desktop calendar-view-hidden"}>
+            <div className={view === "grid" ? "calendar-workspace" : "calendar-view-hidden"}>
+            <div className="calendar-month">
               <div className="calendar-weekdays" aria-hidden="true">
                 {weekDays.map((day) => <span key={day}>{day}</span>)}
               </div>
@@ -133,29 +152,42 @@ export function EventCalendar() {
                 {cells.map((day, index) => {
                   const key = day ? toDateKey(period.year, period.month, day) : `empty-${index}`;
                   const dayEvents = day ? events.filter((event) => event.date === key) : [];
-                  return (
-                    <div key={key} className={day ? "calendar-day" : "calendar-day calendar-day-empty"}>
-                      {day ? <time className="calendar-day-number" dateTime={key}>{day}</time> : null}
-                      {dayEvents.map((event) => (
-                        <div key={event.id} className={event.category === "training" ? "calendar-chip calendar-chip-training" : "calendar-chip calendar-chip-event"}>
-                          <strong>{categoryLabel(event.category)}</strong>
-                          {event.detailUrl ? <a className="underline" href={event.detailUrl}>{event.title}</a> : <span>{event.title}</span>}
-                          <span>{event.time}</span>
-                          {!event.detailUrl ? <span>{event.place}</span> : null}
-                          {!event.detailUrl && event.sourceUrl ? <a className="underline" href={event.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`Podrobnosti: ${event.title}`}>Podrobnosti</a> : null}
-                        </div>
-                      ))}
-                    </div>
-                  );
+                  if (!day) return <div key={key} className="calendar-day-empty" aria-hidden="true" />;
+                  return <button key={key} type="button" className={`calendar-date-button${dayEvents.length ? " has-program" : ""}`}
+                    ref={(element) => { if (element) dayButtons.current.set(day, element); else dayButtons.current.delete(day); }}
+                    data-date={key} aria-pressed={selectedDate === key} aria-current={today === key ? "date" : undefined}
+                    aria-label={`${dateLabel(key)}, počet termínů: ${dayEvents.length}`}
+                    aria-controls="selected-day-program" tabIndex={selectedDate === key ? 0 : -1} disabled={loading}
+                    onClick={() => setSelectedDate(key)}
+                    onKeyDown={(event) => {
+                      const offsets: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+                      const offset = offsets[event.key];
+                      if (offset === undefined) return;
+                      event.preventDefault();
+                      const target = dayButtons.current.get(day + offset);
+                      if (target) { setSelectedDate(toDateKey(period.year, period.month, day + offset)); target.focus(); }
+                    }}>
+                    <span className="calendar-date-top"><time dateTime={key}>{day}</time><span className="calendar-date-count" aria-hidden="true">{dayEvents.length || ""}</span></span>
+                    <span className="calendar-date-preview" aria-hidden="true">
+                      {dayEvents.slice(0, 2).map((event) => <span key={event.id} className={event.category === "training" ? "date-preview-training" : "date-preview-event"}><b>{event.time.split(/[–-]/)[0]}</b><span>{event.title}</span></span>)}
+                      {dayEvents.length > 2 ? <small>+{dayEvents.length - 2} další</small> : null}
+                    </span>
+                    <span className="calendar-date-dots" aria-hidden="true">
+                      {dayEvents.some((event) => event.category === "training") ? <i className="training-dot" /> : null}
+                      {dayEvents.some((event) => event.category === "event") ? <i className="event-dot" /> : null}
+                    </span>
+                  </button>;
                 })}
               </div>
             </div>
-
-            <div className={view === "grid" ? "calendar-mobile" : "calendar-view-hidden"}>
-              {events.map((event) => <CalendarListItem key={event.id} event={event} />)}
+            <section id="selected-day-program" className="calendar-selected-day" aria-labelledby="selected-day-title" aria-live="polite" aria-atomic="true">
+              <p className="eyebrow text-sokol-red">Program dne</p>
+              <h3 id="selected-day-title">{selectedDate ? dateLabel(selectedDate) : "Vybraný den"}</h3>
+              {selectedEvents.length ? selectedEvents.map((event) => <CalendarListItem key={event.id} event={event} />) : <p className="calendar-day-free">Na tento den není naplánované žádné cvičení ani akce.</p>}
+            </section>
             </div>
             <div className={view === "list" ? "calendar-list-view" : "calendar-view-hidden"}>
-              {events.map((event) => <CalendarListItem key={`list-${event.id}`} event={event} />)}
+              {Array.from(new Set(events.map((event) => event.date))).map((date) => <section key={date} className="calendar-list-day" aria-label={dateLabel(date)}><h3>{dateLabel(date)}</h3>{events.filter((event) => event.date === date).map((event) => <CalendarListItem key={event.id} event={event} />)}</section>)}
             </div>
           </>
         ) : null}
@@ -186,17 +218,13 @@ function CalendarEmpty() {
 }
 
 function CalendarListItem({ event }: { event: CalendarEvent }) {
-  const formattedDate = new Intl.DateTimeFormat("cs-CZ", { weekday: "short", day: "numeric", month: "numeric" }).format(
-    new Date(`${event.date}T12:00:00`),
-  );
   return (
     <article className="calendar-list-item">
       <div className="calendar-list-heading">
         <span className={event.category === "training" ? "category-label category-training" : "category-label category-event"}>{categoryLabel(event.category)}</span>
-        <strong>{formattedDate}</strong>
+        <span className="calendar-item-time"><Clock aria-hidden="true" />{event.time}</span>
       </div>
       <h3>{event.title}</h3>
-      <p><Clock className="h-4 w-4" aria-hidden="true" />{event.time}</p>
       <p><MapPin className="h-4 w-4" aria-hidden="true" />{event.place}</p>
       {event.detailUrl ? <a className="text-link mt-3 inline-flex" href={event.detailUrl}>Detail cvičení a kontakt</a> : event.sourceUrl ? <a className="text-link mt-3 inline-flex" href={event.sourceUrl} target="_blank" rel="noopener noreferrer">Podrobnosti akce</a> : null}
     </article>

@@ -7,31 +7,39 @@ import { currentPosters, type SitePoster } from "../data/posters";
 import { memberApplicationGuideUrl } from "../data/siteContent";
 
 export function WeeklySchedule() {
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const sessions = exerciseSchedule.courses.flatMap((course) => course.sessions.map((session) => ({ course, session })))
+    .sort((a, b) => a.session.start.localeCompare(b.session.start));
   return (
     <section aria-label="Týdenní rozvrh cvičení">
+      <div className="schedule-overview">
+        <div><strong>Sezóna {exerciseSchedule.season}</strong><p>{exerciseSchedule.courses.length} cvičení · {sessions.length} lekcí týdně</p></div>
+        <div className="schedule-day-filter" role="group" aria-label="Dny týdenního rozvrhu">
+          <button type="button" aria-pressed={selectedDay === null} onClick={() => setSelectedDay(null)}>Celý týden</button>
+          {[1, 2, 3, 4, 5].map((day) => <button key={day} type="button" aria-pressed={selectedDay === day} onClick={() => setSelectedDay(day)}>{weekDayNames[day]}</button>)}
+        </div>
+      </div>
       <div className="weekly-schedule">
-        {[1, 2, 3, 4, 5].map((day) => (
+        {[1, 2, 3, 4, 5].filter((day) => selectedDay === null || day === selectedDay).map((day) => (
           <section className="schedule-day" key={day} aria-labelledby={`day-${day}`}>
-            <h2 id={`day-${day}`}>{weekDayNames[day]}</h2>
+            <div className="schedule-day-heading"><h2 id={`day-${day}`}>{weekDayNames[day]}</h2><span>{sessions.filter(({ session }) => session.day === day).length} lekce</span></div>
             <ul>
-              {exerciseSchedule.courses.flatMap((course) => course.sessions
-                .filter((session) => session.day === day)
-                .map((session) => ({ course, session })))
-                .sort((a, b) => a.session.start.localeCompare(b.session.start))
+              {sessions.filter(({ session }) => session.day === day)
                 .map(({ course, session }) => (
-                  <li key={course.id}>
-                    <span className="schedule-time">{session.start}–{session.end}</span>
-                    <div>
+                  <li key={`${course.id}-${session.start}`}>
+                    <span className="schedule-time"><strong>{session.start}</strong><span>– {session.end}</span></span>
+                    <div className="schedule-session-main">
                       <a className="text-link" href={`/cviceni#${course.id}`}>{course.title}</a>
-                      <p>{course.coaches.map((coach) => coach.name).join(", ")}</p>
-                      <p>{course.place ?? "Místo domluvte s trenérkami"}</p>
+                      <p><Users aria-hidden="true" />{course.coaches.map((coach) => coach.name).join(", ")}</p>
                     </div>
+                    <p className="schedule-place"><MapPin aria-hidden="true" />{course.place ?? "Místo domluvte s trenérkami"}</p>
                   </li>
                 ))}
             </ul>
           </section>
         ))}
       </div>
+      <p className="schedule-footnote">O školních prázdninách a svátcích se necvičí. Mimořádné změny oznámí cvičitel.</p>
     </section>
   );
 }

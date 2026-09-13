@@ -29,3 +29,16 @@ test("calendar errors offer retry without replacing data with examples", async (
   fireEvent.click(await screen.findByRole("button", { name: "Zkusit znovu" }));
   expect(await screen.findByText(/žádná cvičení ani akce/)).toBeVisible();
 });
+
+test("compact calendar exposes every session through day selection without hiding empty days", async () => {
+  const events = Array.from({ length: 4 }, (_, index) => ({ id: `test-${index}`, date: "2026-09-14", title: `Lekce ${index}`, time: "17:00–18:00", category: "training", place: "Tělocvična", detailUrl: "/cviceni#florbal" }));
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ source: "local", period: { year: 2026, month: 9 }, events })));
+  const { container } = render(<EventCalendar />);
+  const day = await screen.findByRole("button", { name: "pondělí 14. září, počet termínů: 4" });
+  fireEvent.click(day);
+  expect(container.querySelectorAll("#selected-day-program article")).toHaveLength(4);
+  expect(container.querySelectorAll(".calendar-date-preview > span")).toHaveLength(2);
+  fireEvent.click(screen.getByRole("button", { name: "úterý 15. září, počet termínů: 0" }));
+  expect(screen.getByText("Na tento den není naplánované žádné cvičení ani akce.")).toBeVisible();
+  expect(container.querySelectorAll(".calendar-grid > *")).toHaveLength(35);
+});
