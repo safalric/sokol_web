@@ -75,6 +75,7 @@ export function createWorker({
   indexHtml,
   staticEntries,
   calendarEvents,
+  publicCalendarId = "",
   registrationEvents = [],
   appRoutes = ["/"],
   routeMetadata = [],
@@ -90,6 +91,7 @@ export function createWorker({
   return {
     async fetch(request, env = {}) {
       const url = new URL(request.url);
+      const calendarEnv = { GOOGLE_CALENDAR_PUBLIC_ID: publicCalendarId, ...env };
       const canonicalOrigin = publicOrigin(env, url);
 
       if (url.protocol !== "https:" && !isLocalRequest(url)) {
@@ -104,7 +106,7 @@ export function createWorker({
       if (url.pathname === "/api/health") {
         if (request.method !== "GET") return methodNotAllowed(["GET"]);
         const registration = registrationRuntimeStatus(env);
-        const calendar = calendarRuntimeStatus(env);
+        const calendar = calendarRuntimeStatus(calendarEnv);
         const expectedLive = env.HEALTH_EXPECT_LIVE === "true";
         const operational = !expectedLive || (calendar.status === "google" && registration.status === "configured");
         return jsonResponse({
@@ -136,7 +138,7 @@ export function createWorker({
       }
       if (url.pathname === "/api/calendar") {
         if (request.method !== "GET") return methodNotAllowed(["GET"]);
-        return handleCalendar(url, env, calendarEvents, fetchImpl, now);
+        return handleCalendar(url, calendarEnv, calendarEvents, fetchImpl, now);
       }
       if (url.pathname === "/api/registrations") {
         if (request.method !== "POST") return methodNotAllowed(["POST"]);

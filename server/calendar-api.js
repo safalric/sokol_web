@@ -1,4 +1,5 @@
 import { jsonResponse } from "./http-security.js";
+import { getPublicCalendarEvents, publicCalendarLinks } from "./google-ical.js";
 
 const GOOGLE_TIMEOUT_MS = 8_000;
 
@@ -13,6 +14,9 @@ async function fetchWithTimeout(fetchImpl, url, init, timeoutMs = GOOGLE_TIMEOUT
 }
 
 export function calendarRuntimeStatus(env) {
+  if (env.GOOGLE_CALENDAR_PUBLIC_ID) {
+    return { status: "google", configurationWarning: false, missingCapabilities: [], warning: null };
+  }
   const missingCapabilities = [];
   if (!env.GOOGLE_CALENDAR_ID) missingCapabilities.push("calendar_id");
   if (!env.GOOGLE_CALENDAR_API_KEY) missingCapabilities.push("calendar_api");
@@ -154,12 +158,17 @@ export async function handleCalendar(url, env, calendarEvents, fetchImpl, now) {
   const localEvents = publishedCalendarEvents(calendarEvents).filter((event) => event.date.startsWith(`${period.year}-${String(period.month).padStart(2, "0")}`));
 
   if (runtime.status === "google") {
+    let links = {};
     try {
-      const googleEvents = await getGoogleEvents(period, env, fetchImpl);
+      if (env.GOOGLE_CALENDAR_PUBLIC_ID) links = publicCalendarLinks(env.GOOGLE_CALENDAR_PUBLIC_ID);
+      const googleEvents = env.GOOGLE_CALENDAR_PUBLIC_ID
+        ? await getPublicCalendarEvents(period, env.GOOGLE_CALENDAR_PUBLIC_ID, fetchImpl)
+        : await getGoogleEvents(period, env, fetchImpl);
       const events = [...new Map([...localEvents, ...googleEvents].map((event) => [event.id, event])).values()]
         .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
       return jsonResponse({
         source: "google",
+        ...links,
         demo: false,
         period,
         events,
@@ -171,6 +180,7 @@ export async function handleCalendar(url, env, calendarEvents, fetchImpl, now) {
     } catch {
       return jsonResponse({
         source: "local",
+        ...links,
         demo: false,
         period,
         events: localEvents,

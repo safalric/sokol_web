@@ -203,6 +203,11 @@ export function EventCalendar() {
           <span className="category-label category-training">Tréninky</span>
           <span className="category-label category-event">Výlety a akce</span>
         </div>
+        {calendar?.calendarUrl ? <div className="mt-6 space-y-3">
+          <p className="calendar-disclaimer">Akce načítáme z Google kalendáře jednoty. Změny se mohou projevit s krátkým zpožděním.</p>
+          <a className="text-link inline-flex" href={calendar.calendarUrl} target="_blank" rel="noopener noreferrer">Otevřít Google kalendář</a>
+          {calendar.subscribeUrl ? <a className="text-link flex" href={calendar.subscribeUrl} target="_blank" rel="noopener noreferrer">Odebírat kalendář (iCal)</a> : null}
+        </div> : null}
       </aside>
     </div>
   );

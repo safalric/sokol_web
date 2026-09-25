@@ -15,6 +15,8 @@ export type CalendarResponse = {
   period: { year: number; month: number };
   events: CalendarEvent[];
   updatedAt: string;
+  calendarUrl?: string;
+  subscribeUrl?: string;
   warning?: string;
   warningCode?: "missing_configuration" | "provider_unavailable";
   configurationWarning?: boolean;

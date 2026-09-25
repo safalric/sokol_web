@@ -17,7 +17,7 @@ export default defineConfig({
   webServer: {
     command: "pnpm preview:worker",
     url: `http://127.0.0.1:${testPort}/api/health`,
-    env: { PORT: String(testPort) },
+    env: { PORT: String(testPort), GOOGLE_CALENDAR_PUBLIC_ID: "" },
     reuseExistingServer: false,
     timeout: 30_000,
   },

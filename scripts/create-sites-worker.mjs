@@ -1,5 +1,6 @@
 import { copyFile, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import { generateExerciseEvents } from "../server/exercise-calendar.js";
 
 const serverDir = join(process.cwd(), "dist", "server");
@@ -14,6 +15,7 @@ const calendarEvents = [
 const registrationEvents = JSON.parse(await readFile(join(process.cwd(), "src", "data", "registration-events.json"), "utf8"));
 const routeMetadata = JSON.parse(await readFile(join(process.cwd(), "src", "data", "site-routes.json"), "utf8"));
 const appRoutes = routeMetadata.map((route) => route.path);
+const publicCalendar = JSON.parse(await readFile(join(process.cwd(), "src", "data", "public-calendar.json"), "utf8"));
 
 async function collectFiles(dir) {
   const entries = await Promise.all(
@@ -56,6 +58,12 @@ await Promise.all(
     .filter((fileName) => fileName.endsWith(".js"))
     .map((fileName) => copyFile(join(process.cwd(), "server", fileName), join(serverDir, fileName === "worker-runtime.js" ? "runtime.js" : fileName))),
 );
+// Ship the pinned, unmodified ESM library with the Worker (no runtime npm resolution).
+const icalPath = fileURLToPath(import.meta.resolve("ical.js"));
+await copyFile(icalPath, join(serverDir, "ical.js"));
+await copyFile(join(icalPath, "..", "..", "LICENSE"), join(serverDir, "ical-LICENSE.txt"));
+const icalAdapter = await readFile(join(serverDir, "google-ical.js"), "utf8");
+await writeFile(join(serverDir, "google-ical.js"), icalAdapter.replace('from "ical.js"', 'from "./ical.js"'));
 await writeFile(
   join(serverDir, "index.js"),
 `import { createWorker } from "./runtime.js";
@@ -71,6 +79,7 @@ export default createWorker({
   indexHtml: INDEX_HTML,
   staticEntries: assetManifest,
   calendarEvents: CALENDAR_EVENTS,
+  publicCalendarId: ${JSON.stringify(publicCalendar.id)},
   registrationEvents: REGISTRATION_EVENTS,
   appRoutes: APP_ROUTES,
   routeMetadata: ROUTE_METADATA,

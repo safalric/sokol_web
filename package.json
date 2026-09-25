@@ -16,6 +16,7 @@
     "qa": "pnpm check && pnpm test && pnpm test:api && pnpm build && pnpm test:e2e"
   },
   "dependencies": {
+    "ical.js": "2.2.1",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
