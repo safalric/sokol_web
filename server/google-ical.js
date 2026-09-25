@@ -111,7 +111,8 @@ async function downloadFeed(url, fetchImpl) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
   try {
-    const response = await fetchImpl(url, { headers: { Accept: "text/calendar" }, signal: controller.signal, redirect: "error" });
+    // workerd supports manual/follow only. Reject redirects through response.ok below.
+    const response = await fetchImpl(url, { headers: { Accept: "text/calendar" }, signal: controller.signal, redirect: "manual" });
     if (!response.ok || !response.body) throw new Error("Public calendar unavailable");
     const reader = response.body.getReader();
     const decoder = new TextDecoder();

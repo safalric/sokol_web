@@ -115,3 +115,11 @@ test("oversized feeds are rejected without suppressing local events", async () =
   const site = worker(async () => new Response("x".repeat(2_000_001)));
   assert.equal((await (await site.fetch(request())).json()).warningCode, "provider_unavailable");
 });
+
+test("a redirect cannot be mistaken for a successfully loaded public calendar", async () => {
+  const site = worker(async () => Response.redirect("https://accounts.google.com/", 302));
+  const body = await (await site.fetch(request())).json();
+  assert.equal(body.source, "local");
+  assert.equal(body.warningCode, "provider_unavailable");
+  assert.equal(body.events.length, 1);
+});
